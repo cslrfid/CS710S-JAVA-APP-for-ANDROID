@@ -1,13 +1,19 @@
 package com.csl.cs710ademoapp.fragments;
 
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_NXP_UCODE8;
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.MenuProvider;
 import androidx.viewpager.widget.ViewPager;
 
 import com.csl.cs710ademoapp.MainActivity;
@@ -24,12 +30,12 @@ public class Ucode8Fragment extends CommonFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        super.onCreateView(inflater, container, savedInstanceState, true);
+        super.onCreateView(inflater, container, savedInstanceState);
         return inflater.inflate(R.layout.custom_tabbed_layout, container, false);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onMenuItemSelectedA(MenuItem item) {
         InventoryRfidiMultiFragment fragment = (InventoryRfidiMultiFragment) adapter.getItem(1);
         if (item.getItemId() == R.id.menuAction_clear) {
             fragment.clearTagsList();
@@ -46,12 +52,26 @@ public class Ucode8Fragment extends CommonFragment {
         } else if (item.getItemId() == R.id.menuAction_share) {
             fragment.shareTagsList();
             return true;
-        } else return super.onOptionsItemSelected(item);
+        } else return super.onMenuItemSelectedA(item);
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        MainActivity.csLibrary4A.appendToLog("Ucode8Fragment.onViewCreated: going to addMenuProvider");
+        getActivity().addMenuProvider(new MenuProvider() {
+            @Override
+            public void onCreateMenu(@org.jspecify.annotations.NonNull Menu menu, @org.jspecify.annotations.NonNull MenuInflater menuInflater) {
+                MainActivity.csLibrary4A.appendToLog("Ucode8Fragment.onViewCreated.onCreateMenu");
+                onCreateMenuA(menu, menuInflater);
+            }
+
+            @Override
+            public boolean onMenuItemSelected(@org.jspecify.annotations.NonNull MenuItem menuItem) {
+                MainActivity.csLibrary4A.appendToLog("Ucode8Fragment.onViewCreated.onMenuItemSelected");
+                return onMenuItemSelectedA(menuItem);
+            }
+        }, getViewLifecycleOwner());
+        super.onViewCreated(view, savedInstanceState);
 
         actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         actionBar.setIcon(R.drawable.dl_inv);
@@ -61,7 +81,7 @@ public class Ucode8Fragment extends CommonFragment {
 
         adapter = new AdapterTab(getActivity().getSupportFragmentManager(), tabs.length);
         adapter.setFragment(0, new AccessUcode8Fragment());
-        adapter.setFragment(1, InventoryRfidiMultiFragment.newInstance(true, null, ""));
+        adapter.setFragment(1, InventoryRfidiMultiFragment.newInstance(true, TAG_NXP_UCODE8, ""));
         adapter.setFragment(2, new AccessUcodeFragment());
         adapter.setFragment(3, new UtraceFragment());
 
@@ -114,8 +134,10 @@ public class Ucode8Fragment extends CommonFragment {
     public void onDestroy() {
         adapter.fragment0.onDestroy();
         adapter.fragment1.onDestroy();
-        MainActivity.csLibrary4A.setSelectCriteriaDisable(1);
-        MainActivity.csLibrary4A.restoreAfterTagSelect();
+        if (MainActivity.csLibrary4A != null) {
+            MainActivity.csLibrary4A.setSelectCriteriaDisable(1);
+            MainActivity.csLibrary4A.restoreAfterTagSelect();
+        }
         super.onDestroy();
     }
 

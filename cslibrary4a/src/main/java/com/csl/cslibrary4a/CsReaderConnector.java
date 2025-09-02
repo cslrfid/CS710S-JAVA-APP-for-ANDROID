@@ -410,9 +410,8 @@ public class CsReaderConnector {
         barcodeNewland = new BarcodeNewland(context, utility, barcodeConnector, settingData.barcode2TriggerMode);
         barcodeConnector.barcodeConnectorCallback = new BarcodeConnector.BarcodeConnectorCallback(){
             @Override
-            public boolean callbackMethod(byte[] dataValues, BarcodeConnector.CsReaderBarcodeData csReaderBarcodeData) {
-                barcodeNewland.decodeBarcodeUplinkData(dataValues, csReaderBarcodeData);
-                return false;
+            public int callbackMethod(byte[] dataValues, BarcodeConnector.CsReaderBarcodeData csReaderBarcodeData) {
+                return barcodeNewland.decodeBarcodeUplinkData(dataValues, csReaderBarcodeData);
             }
         };
         settingData.setConnectedConnectors(notificationConnector, rfidReader);
@@ -538,7 +537,10 @@ public class CsReaderConnector {
             if (DEBUG_SCAN) appendToLog("mScanResultList.size() = " + mScanResultList.size());
             BluetoothGatt.CsScanData csScanData = mScanResultList.get(0); mScanResultList.remove(0);
             if (csScanData != null) {
-                appendToLog("found981 with name = " + csScanData.name + ", device.name = " + csScanData.device.getName());
+                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                    return null;
+                }
+                appendToLog("found981 with name = " + csScanData.name + (csScanData.device == null ? ", device = null" : (", device.name = " + csScanData.device.getName())));
                 //appendToLog("DeviceFinder, CsReaderConnector.getNewDeviceScanned: csScanData.getAddress is " + csScanData.getAddress());
             }
             return csScanData;
@@ -631,7 +633,7 @@ public class CsReaderConnector {
 
         @Override
         public void run() {
-            if (DEBUGTHREAD || utility.DEBUG_BTDATA) appendToLog("BtData: CsReaderConnector.mReadWriteRunnable starts");
+            if (false && (DEBUGTHREAD || utility.DEBUG_BTDATA)) appendToLog("BtData: CsReaderConnector.mReadWriteRunnable starts");
             if (rfidConnector == null) {
                 mHandler.postDelayed(mReadWriteRunnable, 500);
                 if (utility.DEBUG_BTDATA) appendToLog("BtData: CsReaderConnector.mReadWriteRunnable restart after 500ms");
@@ -661,7 +663,7 @@ public class CsReaderConnector {
             if (DEBUGTHREAD) appendToLog("start new mReadWriteRunnable after " + intervalReadWrite + " ms");
             //appendToLog("postDelayed mReadWriteRunnable within mReadWriteRunnable");
             mHandler.removeCallbacks(mReadWriteRunnable); mHandler.postDelayed(mReadWriteRunnable, intervalReadWrite);
-            if (utility.DEBUG_BTDATA) appendToLog("BtData: CsReaderConnector.mReadWriteRunnable restart after 250ms");
+            if (false && utility.DEBUG_BTDATA) appendToLog("BtData: CsReaderConnector.mReadWriteRunnable restart after 250ms");
             if (rfidReader == null) return;
 
             boolean bFirst = true;
@@ -1062,7 +1064,7 @@ public class CsReaderConnector {
     }
 
     public String checkVersion() {
-        appendToLog("CsReaderConnector.checkVersion, getMacVer");
+        appendToLog("CsReaderConnector.checkVersion: starts");
         String macVersion = rfidReader.getMacVer();
         String hostVersion = controllerConnector.getVersion();
         String bluetoothVersion = bluetoothConnector.getBluetoothIcVersion();
@@ -1088,14 +1090,14 @@ public class CsReaderConnector {
             } else {
                 String strVersionRFID = "0.0.0";
                 String strVersionHost = "0.0.0";
-                String strVersionBT = "1.0.8"; String[] strBTVersions = strVersionBT.split("\\.");
+                String strVersionBT = "1.0.13"; String[] strBTVersions = strVersionBT.split("\\.");
                 boolean bValidMac = true;
                 if (macVersion.indexOf("2.01") == 0) {
                     strVersionRFID = "2.1.0";
-                    strVersionHost = "2.1.5";
+                    strVersionHost = "2.1.14";
                 } else if (macVersion.indexOf("2.00") == 0) {
                     strVersionRFID = "2.0.0";
-                    strVersionHost = "2.0.6";
+                    strVersionHost = "2.0.7";
                 } else if (macVersion.indexOf("1.2.") == 0) {
                     strVersionRFID = "1.2.0";
                     strVersionHost = "0.2.20";
@@ -1103,17 +1105,22 @@ public class CsReaderConnector {
                     bValidMac = false;
                     stringPopup += "Unknown RFID firmware version";
                 }
+                appendToLog("CsReaderConnector.checkVersion: macVersion is " + macVersion + ", bValidMac is " + bValidMac);
                 if (bValidMac) {
+                    appendToLog("CsReaderConnector.checkVersion, x: strVersionRFID is " + strVersionRFID + ", macVersion = " + macVersion);
                     String[] strRFIDVersions = strVersionRFID.split("\\.");
                     if (false && !utility.checkHostProcessorVersion(macVersion, Integer.parseInt(strRFIDVersions[0].trim()), Integer.parseInt(strRFIDVersions[1].trim()), Integer.parseInt(strRFIDVersions[2].trim())))
                         stringPopup += "\nRFID processor firmware: V" + strVersionRFID;
+
+                    appendToLog("CsReaderConnector.checkVersion: strHostVersions is " + strVersionHost + ", hostVersion = " + hostVersion);
                     String[] strHostVersions = strVersionHost.split("\\.");
                     if (hostVersion.indexOf(strVersionHost.substring(0, 4)) != 0 ||
-                            utility.checkHostProcessorVersion(hostVersion, Integer.parseInt(strHostVersions[0].trim()), Integer.parseInt(strHostVersions[1].trim()), Integer.parseInt(strHostVersions[2].trim())) == false)
+                            !utility.checkHostProcessorVersion(hostVersion, Integer.parseInt(strHostVersions[0].trim()), Integer.parseInt(strHostVersions[1].trim()), Integer.parseInt(strHostVersions[2].trim())))
                         stringPopup += "\nAtmel firmware: V" + strVersionHost;
 
                     if (icsModel != 463) {
-                        if (false && utility.checkHostProcessorVersion(bluetoothVersion, Integer.parseInt(strBTVersions[0].trim()), Integer.parseInt(strBTVersions[1].trim()), Integer.parseInt(strBTVersions[2].trim())) == false)
+                        appendToLog("CsReaderConnector.checkVersion, x: strVersionBT is " + strVersionBT + ", bluetoothVersion = " + bluetoothVersion);
+                        if (false && !utility.checkHostProcessorVersion(bluetoothVersion, Integer.parseInt(strBTVersions[0].trim()), Integer.parseInt(strBTVersions[1].trim()), Integer.parseInt(strBTVersions[2].trim())))
                             stringPopup += "\nBluetooth firmware: V" + strVersionBT;
                     }
                 }

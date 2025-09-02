@@ -1,6 +1,5 @@
 package com.csl.cs710ademoapp.fragments;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +11,10 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.csl.cs710ademoapp.AccessTask;
+import com.csl.cs710ademoapp.AsyncTaskA;
 import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
@@ -30,13 +32,13 @@ public class AccessSecurityLockFragment extends CommonFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        super.onCreateView(inflater, container, savedInstanceState, false);
+        super.onCreateView(inflater, container, savedInstanceState);
         return inflater.inflate(R.layout.fragment_access_lock, container, false);
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         editTextTagID = (EditText) getActivity().findViewById(R.id.accessLockTagID);
         editTextPassword = (EditText) getActivity().findViewById(R.id.accessLockPasswordValue);
@@ -107,7 +109,7 @@ public class AccessSecurityLockFragment extends CommonFragment {
 
     @Override
     public void onDestroy() {
-        MainActivity.csLibrary4A.setNotificationListener(null);
+        if (MainActivity.csLibrary4A != null) MainActivity.csLibrary4A.setNotificationListener(null);
         if (accessTask != null) accessTask.cancel(true);
         super.onDestroy();
     }
@@ -146,7 +148,7 @@ public class AccessSecurityLockFragment extends CommonFragment {
         int accessLockMask = 0;
         int lockAction;
 
-        if (accessTask != null) if (accessTask.getStatus() == AsyncTask.Status.RUNNING) return;
+        if (accessTask != null) if (accessTask.getStatus() == AsyncTaskA.Status.RUNNING) return;
         if (checkBox.isChecked()) {
             accessLockAction = 0x3FF;
             accessLockMask = 0x3FF;

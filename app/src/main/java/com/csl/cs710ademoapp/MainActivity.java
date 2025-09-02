@@ -40,10 +40,10 @@ import com.csl.cs710ademoapp.fragments.FdmicroFragment;
 import com.csl.cs710ademoapp.fragments.HomeFragment;
 import com.csl.cs710ademoapp.fragments.HomeSpecialFragment;
 import com.csl.cs710ademoapp.fragments.ImpinjFragment;
-import com.csl.cs710ademoapp.fragments.ImpinjM775Fragment;
 import com.csl.cs710ademoapp.fragments.InventoryFragment;
 import com.csl.cs710ademoapp.fragments.InventoryRfidSearchFragment;
 import com.csl.cs710ademoapp.fragments.InventoryRfidSimpleFragment;
+import com.csl.cs710ademoapp.fragments.InventoryRfidBarFragment;
 import com.csl.cs710ademoapp.fragments.InventoryRfidiMultiFragment;
 import com.csl.cs710ademoapp.fragments.KilowayFragment;
 import com.csl.cs710ademoapp.fragments.LongjingFragment;
@@ -87,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         public String configPassword, configPower, config0, config1, config2, config3;
     };
     public static Config config  = new Config();
+    public static String stringPackageName = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
             if (savedInstanceState == null) Log.i(TAG, "MainActivity.onCreate: NULL savedInstanceState");
             else Log.i(TAG, "MainActivity.onCreate: VALID savedInstanceState");
         }
+        stringPackageName = getPackageName();
         Log.i("Hello", "PackageName is " + getPackageName());
         if (getPackageName().matches("com.csl.updwedgeservice")) setContentView(R.layout.activity_main1);
         else setContentView(R.layout.activity_main);
@@ -215,6 +217,9 @@ public class MainActivity extends AppCompatActivity {
             case SIMINVENTORY:
                 fragment = InventoryRfidSimpleFragment.newInstance(false, null);
                 break;
+            case TAGBARINVENTORY:
+                fragment = new InventoryRfidBarFragment();
+                break;
             case SETTING:
                 fragment = new SettingFragment();
                 break;
@@ -231,11 +236,8 @@ public class MainActivity extends AppCompatActivity {
             case IMPINVENTORY:
                 fragment = new ImpinjFragment();
                 break;
-            case IMP775:
-                fragment = new ImpinjM775Fragment();
-                break;
             case ALIEN:
-                fragment = InventoryRfidiMultiFragment.newInstance(true, TAG_ALIEN, "E2003");
+                fragment = InventoryRfidiMultiFragment.newInstance(true, TAG_ALIEN, "" /*"E2003"*/);
                 break;
             case UCODE8:
                 fragment = new Ucode8Fragment();
@@ -244,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new UcodeFragment();
                 break;
             case BAPCARD:
-                fragment = InventoryRfidiMultiFragment.newInstance(true, TAG_EM_BAP, "E200B0");
+                fragment = InventoryRfidiMultiFragment.newInstance(true, TAG_EM_BAP, "" /*"E200B0"*/);
                 break;
             case COLDCHAIN:
                 fragment = new ColdChainFragment();
@@ -268,10 +270,10 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new FdmicroFragment();
                 break;
             case CTESIUS:
-                fragment = InventoryRfidiMultiFragment.newInstance(true, TAG_CTESIUS, "E203510");
+                fragment = InventoryRfidiMultiFragment.newInstance(true, TAG_CTESIUS, ""); //""E203510");
                 break;
             case ASYGNTAG:
-                fragment = InventoryRfidiMultiFragment.newInstance(true, TAG_ASYGN, "E283A");
+                fragment = InventoryRfidiMultiFragment.newInstance(true, TAG_ASYGN, ""); //""E283A");
                 break;
 
             case REGISTER:
@@ -377,7 +379,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void impInventoryClicked(View view) { selectItem(DrawerPositions.IMPINVENTORY); }
-    public void m775Clicked(View view) { selectItem(DrawerPositions.IMP775); }
     public void alienClicked(View view) { selectItem(DrawerPositions.ALIEN); }
     public void uCode8Clicked(View view) { selectItem(DrawerPositions.UCODE8); }
     public void uCodeClicked(View view) { selectItem(DrawerPositions.UCODEDNA); }
@@ -408,6 +409,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void simpleInventoryClicked(View view) { selectItem(DrawerPositions.SIMINVENTORY); }
 
+    public void tagBarInventoryClicked(View view) { selectItem(DrawerPositions.TAGBARINVENTORY); }
     public void blankClicked(View view) { if (false) selectItem(DrawerPositions.BLANK); }
 
     // The click listener for ListView in the navigation drawer

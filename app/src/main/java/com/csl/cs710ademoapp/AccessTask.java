@@ -1,6 +1,5 @@
 package com.csl.cs710ademoapp;
 
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.widget.Button;
 import android.widget.TextView;
@@ -10,7 +9,7 @@ import com.csl.cslibrary4a.RfidReaderChipData;
 
 import java.util.ArrayList;
 
-public class AccessTask extends AsyncTask<Void, String, String> {
+public class AccessTask extends AsyncTaskA {
     final boolean DEBUG = true;
     final boolean skipSelect = false;
     public enum TaskCancelRReason {

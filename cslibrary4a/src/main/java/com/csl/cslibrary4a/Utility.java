@@ -27,7 +27,7 @@ import java.util.Locale;
 
 public class Utility {
     public final boolean DEBUG_SCAN = false;
-    public final boolean DEBUG_CONNECT = true;
+    public final boolean DEBUG_CONNECT = false;
     public final boolean DEBUG_SELECT = false;
     public final boolean DEBUG_INVCFG = false;
     public final boolean DEBUG_BTDATA = false;
@@ -241,6 +241,7 @@ public class Utility {
         return null;
     }
 
+    public String StringVersionHeader = "21.";
     public String getCombinedVersion(String string0) {
         String string1 = BuildConfig.VERSION_NAME;
         int iValue1 = Integer.parseInt(string1);

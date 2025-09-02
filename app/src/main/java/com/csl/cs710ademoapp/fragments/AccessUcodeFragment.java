@@ -1,7 +1,5 @@
 package com.csl.cs710ademoapp.fragments;
 
-import static com.csl.cs710ademoapp.MainActivity.csLibrary4A;
-
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,12 +11,16 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.csl.cs710ademoapp.AccessTask;
+import com.csl.cs710ademoapp.AsyncTaskA;
 import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
@@ -26,6 +28,7 @@ import com.csl.cs710ademoapp.SaveList2ExternalTask;
 import com.csl.cs710ademoapp.SelectTag;
 import com.csl.cslibrary4a.AesCmac;
 import com.csl.cslibrary4a.ReaderDevice;
+import com.csl.cslibrary4a.RfidReader;
 import com.csl.cslibrary4a.RfidReaderChipData;
 
 import org.json.JSONArray;
@@ -40,6 +43,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class AccessUcodeFragment extends CommonFragment {
     final boolean DEBUG = true; int iTagType = -1;
     SelectTag selectTag;
+    LinearLayout layout;
     TextView textViewAesKey0ActivateOk, textViewAesKey1ActivateOk, textViewAesKey0Ok, textViewAesKey1Ok;
     Spinner spinnerHideTid;
     CheckBox checkBoxAuthEncryptMode, checkBoxAuthValidMode;
@@ -67,17 +71,17 @@ public class AccessUcodeFragment extends CommonFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        super.onCreateView(inflater, container, savedInstanceState, false);
+        super.onCreateView(inflater, container, savedInstanceState);
         return inflater.inflate(R.layout.fragment_access_ucode, container, false);
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        if (MainActivity.mDid != null) if (MainActivity.mDid.contains("E28240")) iTagType = 5;
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        if (MainActivity.tagType != null) if (MainActivity.tagType == RfidReader.TagType.TAG_AXZON) iTagType = 5;
 
         selectTag = new SelectTag((Activity)getActivity(), 1);
-        if (MainActivity.mDid != null && MainActivity.mDid.indexOf("E2801") == 0) bImpinJTag = true;
+        if (MainActivity.tagType != null && MainActivity.tagType.toString().contains("TAG_IMPINJ")) bImpinJTag = true;
 
         spinnerHideTid = (Spinner) getActivity().findViewById(R.id.accessUCHideTid);
         ArrayAdapter<CharSequence> targetAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.hideTid_options, R.layout.custom_spinner_layout);
@@ -268,15 +272,19 @@ public class AccessUcodeFragment extends CommonFragment {
         TextView textView = (TextView) getActivity().findViewById(R.id.accessUCAuthKeyIdLabel);
         EditText editText = (EditText) getActivity().findViewById(R.id.accessUCAuthKeyId);
         TableRow tableRow1 = (TableRow) getActivity().findViewById(R.id.accessUCAuthProfileRow);
-        LinearLayout layout1 = (LinearLayout) getActivity().findViewById(R.id.accessUCKeyLayout);
-        LinearLayout layout = (LinearLayout) getActivity().findViewById(R.id.accessUCButtons);
+
+        layout = (LinearLayout) getActivity().findViewById(R.id.accessUCUcodeDNALayout);
         if (bImpinJTag) {
             textView.setVisibility(View.GONE);
             editText.setVisibility(View.GONE);
             editTextAuthMsg.setText("049CA53E55EA");
             tableRow1.setVisibility(View.GONE);
+            LinearLayout layout1 = (LinearLayout) getActivity().findViewById(R.id.accessUCKeyLayout);
+            LinearLayout layout2 = (LinearLayout) getActivity().findViewById(R.id.accessUCButtons);
             layout1.setVisibility(View.GONE);
-            layout.setVisibility(View.GONE);
+            layout2.setVisibility(View.GONE);
+        } else if (MainActivity.csLibrary4A.get98XX() == 0 && MainActivity.csLibrary4A.checkHostProcessorVersion(MainActivity.csLibrary4A.getMacVer(), 2, 6, 8)) {
+            layout.setVisibility(View.VISIBLE);
         }
 
         Button buttonImpinjCheck = (Button) getActivity().findViewById(R.id.accessUCImpinjCheck);
@@ -294,9 +302,9 @@ public class AccessUcodeFragment extends CommonFragment {
         editTextAccessUCemail = (EditText) getActivity().findViewById(R.id.accessUCemail);
         editTextAccessUCpassword = (EditText) getActivity().findViewById(R.id.accessUCpassword);
         if (true) {
-            editTextAccessUCserverImpinj.setText(csLibrary4A.getServerImpinjLocation());
-            editTextAccessUCemail.setText(csLibrary4A.getServerImpinjName());
-            editTextAccessUCpassword.setText(csLibrary4A.getServerImpinjPassword());
+            editTextAccessUCserverImpinj.setText(MainActivity.csLibrary4A.getServerImpinjLocation());
+            editTextAccessUCemail.setText(MainActivity.csLibrary4A.getServerImpinjName());
+            editTextAccessUCpassword.setText(MainActivity.csLibrary4A.getServerImpinjPassword());
         } else if (false) {
             editTextAccessUCserverImpinj.setText("https://h9tqczg9-7275.asse.devtunnels.ms");
             editTextAccessUCemail.setText("wallace.sit@cne.com.hk");
@@ -312,7 +320,7 @@ public class AccessUcodeFragment extends CommonFragment {
     Runnable runnable = new Runnable() {
         @Override
         public void run() {
-            csLibrary4A.appendToLog("0 bRunning = " + bRunning + ", bStep = " + bStep);
+            MainActivity.csLibrary4A.appendToLog("0 bRunning = " + bRunning + ", bStep = " + bStep);
             if (saveExternalTask != null && saveExternalTask.getStatus() == AsyncTask.Status.FINISHED) {
                 bStep++;
                 if (saveExternalTask.responseCode != 200) bStep++;
@@ -328,7 +336,7 @@ public class AccessUcodeFragment extends CommonFragment {
                             strTid = jsonArray.getJSONObject(0).getString("tid");
                             strResult = jsonArray.getJSONObject(0).getString("tagValid");
                         } catch (JSONException e) {
-                            csLibrary4A.appendToLog("Json exception = " + e.toString());
+                            MainActivity.csLibrary4A.appendToLog("Json exception = " + e.toString());
                         }
                         if (strTid != null && strResult != null) {
                             //textViewImpinjResponse.setText(strResult + " " + strTid);
@@ -339,10 +347,10 @@ public class AccessUcodeFragment extends CommonFragment {
                 MainActivity.csLibrary4A.appendToLog("responseCode = " + saveExternalTask.responseCode + ", response = " + saveExternalTask.response);
                 saveExternalTask = null;
             }
-            csLibrary4A.appendToLog("bRunning = " + bRunning + ", bStep = " + bStep);
+            MainActivity.csLibrary4A.appendToLog("bRunning = " + bRunning + ", bStep = " + bStep);
             if (bStep < 2) {
                 if (saveExternalTask == null || saveExternalTask.getStatus() != AsyncTask.Status.RUNNING) {
-                    csLibrary4A.appendToLog("1 bRunning = " + bRunning + ", bStep = " + bStep);
+                    MainActivity.csLibrary4A.appendToLog("1 bRunning = " + bRunning + ", bStep = " + bStep);
                     bRunning = true;
                     if (bStep == 0) {
                         bStep = 0;
@@ -370,7 +378,7 @@ public class AccessUcodeFragment extends CommonFragment {
                         try {
                             JSONArray jsonArray = new JSONArray();
                             JSONObject object1 = new JSONObject();
-                            object1.put("tid", editTextAccessUCTid.getText().toString()); //tagSelected.getTid()); //"E2C011A21234123412341234"); //
+                            object1.put("tid", editTextAccessUCTid.getText().toString());
                             object1.put("challenge", editTextAuthMsg.getText().toString());
                             object1.put("tagResponse", editTextAuthResponse.getText().toString());
                             jsonArray.put(object1);
@@ -405,8 +413,7 @@ public class AccessUcodeFragment extends CommonFragment {
     @Override
     public void onDestroy() {
         if (accessTask != null) accessTask.cancel(true);
-        MainActivity.csLibrary4A.setSameCheck(true);
-        //MainActivity.mCs108Library4a.appendToLog("onDestroy");
+        if (MainActivity.csLibrary4A != null) MainActivity.csLibrary4A.setSameCheck(true);
         super.onDestroy();
     }
 
@@ -418,11 +425,43 @@ public class AccessUcodeFragment extends CommonFragment {
             userVisibleHint = true;
             MainActivity.csLibrary4A.appendToLog("AccessUcodeFragment is now VISIBLE");
             setupTagID();
-            //            setNotificationListener();
+            //setNotificationListener();
         } else {
             userVisibleHint = false;
-            MainActivity.csLibrary4A.appendToLog("AccessUcodeFragment is now INVISIBLE");
-//            MainActivity.mCs108Library4a.setNotificationListener(null);
+            MainActivity.csLibrary4A.appendToLog("AccessUcodeFragment is now inVISIBLE with layout = " + (layout == null ? "null" : layout.getVisibility()));
+            if (getActivity() != null && layout != null && layout.getVisibility() == View.VISIBLE) {
+                keyId = Integer.parseInt(editTextAuthKeyId.getText().toString()); strChallenge = editTextAuthMsg.getText().toString();
+                RadioButton radioButton = (RadioButton) getActivity().findViewById(R.id.accessUCInventoryTam1);
+                if (radioButton.isChecked()) {
+                    MainActivity.csLibrary4A.appendToLog("AccessUcodeFragment.setUserVisibleHint: accessUCInventoryTam1 is checked");
+                    if (false) MainActivity.csLibrary4A.setTam1Configuration(0, "FD5D8048F48DD09AAD22");
+                    else {
+                        MainActivity.csLibrary4A.setTam1Configuration(keyId, strChallenge);
+                        MainActivity.csLibrary4A.appendToLog("AccessUCodeFragment.setUserVisibleHint: keyId = " + keyId + ", strChallenge = " + strChallenge);
+                    }
+                    MainActivity.tagType = RfidReader.TagType.TAG_NXP_UCODEDNA_AUTHMODE;
+                } else {
+                    radioButton = (RadioButton) getActivity().findViewById(R.id.accessUCInventoryTam2);
+                    if (radioButton.isChecked()) {
+                        MainActivity.csLibrary4A.appendToLog("AccessUcodeFragment.setUserVisibleHint: accessUCInventoryTam22 is checked");
+                        if (false) MainActivity.csLibrary4A.setTam2Configuration(1, "FD5D8048F48DD09AAD22", 0, 0, 1, 1);
+                        else {
+                            profile = Integer.parseInt(editTextAuthProfile.getText().toString());
+                            offset = Integer.parseInt(editTextAuthOffset.getText().toString());
+                            blockId = Integer.parseInt(editTextAuthBlockId.getText().toString());
+                            protMode = Integer.parseInt(editTextAuthProtMode.getText().toString());
+                            MainActivity.csLibrary4A.setTam2Configuration(keyId, strChallenge, profile, offset, blockId, protMode);
+                            MainActivity.csLibrary4A.appendToLog("AccessUCodeFragment.setUserVisibleHint: keyId = " + keyId + ", strChallenge = " + strChallenge + ", profile = " + profile + ", offset = " + offset + ", blockId = " + blockId + ", protMode = " + protMode);
+                        }
+                        MainActivity.tagType = RfidReader.TagType.TAG_NXP_UCODEDNA_AUTHMODE;
+                    } else {
+                        MainActivity.csLibrary4A.appendToLog("AccessUcodeFragment.setUserVisibleHint: accessUCInventoryNormal is checked");
+                        MainActivity.tagType = RfidReader.TagType.TAG_NXP_UCODEDNA;
+                    }
+                }
+                MainActivity.csLibrary4A.appendToLog("AccessUcodeFragment.setUserVisibleHint: MainActivity.tagType = " + (MainActivity.tagType == null ? "null" : MainActivity.tagType.toString()));
+            }
+            //MainActivity.mCs108Library4a.setNotificationListener(null);
         }
     }
 
@@ -431,7 +470,7 @@ public class AccessUcodeFragment extends CommonFragment {
     }
 
     void setupTagID() {
-        if (selectTag == null) return;
+        if (selectTag == null || getActivity() == null) return;
         ReaderDevice tagSelected = MainActivity.tagSelected;
         MainActivity.csLibrary4A.appendToLog("Start with tagSelected = " + (tagSelected == null ? "NULL" : (tagSelected.getSelected() + ", " + tagSelected.getAddress())));
         boolean bSelected = false;
@@ -655,7 +694,7 @@ public class AccessUcodeFragment extends CommonFragment {
             if (accessTask == null) {
                 if (DEBUG) MainActivity.csLibrary4A.appendToLog("updateRunnable(): NULL accessReadWriteTask");
                 taskRequest = true;
-            } else if (accessTask.getStatus() != AsyncTask.Status.FINISHED) {
+            } else if (accessTask.getStatus() != AsyncTaskA.Status.FINISHED) {
                 rerunRequest = true;
                 if (DEBUG) MainActivity.csLibrary4A.appendToLog("updateRunnable(): accessReadWriteTask.getStatus() =  " + accessTask.getStatus().toString());
             } else {
@@ -737,7 +776,7 @@ public class AccessUcodeFragment extends CommonFragment {
     boolean processResult() {
         String accessResult = null;
         if (accessTask == null) return false;
-        else if (accessTask.getStatus() != AsyncTask.Status.FINISHED) return false;
+        else if (accessTask.getStatus() != AsyncTaskA.Status.FINISHED) return false;
         else {
             accessResult = accessTask.accessResult;
             if (readBufferChecked) readBufferChecked = false;

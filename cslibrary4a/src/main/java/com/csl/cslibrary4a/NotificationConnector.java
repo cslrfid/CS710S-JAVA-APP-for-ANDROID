@@ -191,6 +191,7 @@ public class NotificationConnector {
                             triggerButtonStatus = false;
                         }
                         iTriggerCount++;
+                        appendToLog("NotificationConnector.isMatchNotificationToWrite: iTriggerCount = " + iTriggerCount);
                         if (DEBUG_PKDATA) appendToLog("PkData: BARTRIGGER: isMatchNotificationToWrite finds trigger = " + getTriggerStatus());
                         bprocessed = true;
                     } else if (notificationToWrite.get(0).notificationPayloadEvent == NotificationPayloadEvents.NOTIFICATION_GET_AUTO_RFIDINV_ABORT) {
@@ -270,6 +271,7 @@ public class NotificationConnector {
             found = true;
         } else if (connectorData.dataValues[0] == (byte) 0xA1) {
             if (DEBUG_PKDATA) appendToLog("PkData: found Notification.Uplink with payload = " + byteArrayToString(connectorData.dataValues));
+            iTriggerCount++;
             //Cs108NotificatiionData cs108NotificatiionData = new Cs108NotificatiionData();
             switch (connectorData.dataValues[1]) {
                 case 0:
