@@ -395,7 +395,9 @@ public class SaveList2ExternalTask extends AsyncTask<Void,Void,String> {
             errorDisplay = "denied WRITE_EXTERNAL_STORAGE Permission !!!";
         } else if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) == false) errorDisplay = "Error in mouting external storage !!!";
         else {
-            String strDir = "csReaderJava";
+            String strDir = "cs108Java";
+            if (MainActivity.stringPackageName.contains("cs710ademoapp")) strDir = "csReaderJava";
+            csLibrary4A.appendToLog("SaveList2ExternalTask.save2File: strDir = " + strDir);
             File path = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + Environment.DIRECTORY_DOWNLOADS + "/" + strDir);
             if (path.exists() == false) path.mkdirs();
             if (path.exists() == false) errorDisplay = "Error in making directory !!!";

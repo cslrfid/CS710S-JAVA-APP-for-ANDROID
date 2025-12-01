@@ -1,6 +1,5 @@
 package com.csl.cs710ademoapp.fragments;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,7 +8,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.csl.cs710ademoapp.AccessTask;
+import com.csl.cs710ademoapp.AsyncTaskA;
 import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
@@ -25,13 +27,13 @@ public class AccessSecurityKillFragment extends CommonFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        super.onCreateView(inflater, container, savedInstanceState, false);
+        super.onCreateView(inflater, container, savedInstanceState);
         return inflater.inflate(R.layout.fragment_access_kill, container, false);
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         editTextTagID = (EditText) getActivity().findViewById(R.id.accessKillTagID);
         editTextPassword = (EditText) getActivity().findViewById(R.id.accessKillPasswordValue);
@@ -82,7 +84,7 @@ public class AccessSecurityKillFragment extends CommonFragment {
 
     @Override
     public void onDestroy() {
-        MainActivity.csLibrary4A.setNotificationListener(null);
+        if (MainActivity.csLibrary4A != null) MainActivity.csLibrary4A.setNotificationListener(null);
         if (accessTask != null) accessTask.cancel(true);
         super.onDestroy();
     }
@@ -117,7 +119,7 @@ public class AccessSecurityKillFragment extends CommonFragment {
     }
 
     void startAccessTask() {
-        if (accessTask != null) if (accessTask.getStatus() == AsyncTask.Status.RUNNING) return;
+        if (accessTask != null) if (accessTask.getStatus() == AsyncTaskA.Status.RUNNING) return;
         boolean invalidRequest = false;
         String strTagID = editTextTagID.getText().toString();
         String strPassword = editTextPassword.getText().toString();

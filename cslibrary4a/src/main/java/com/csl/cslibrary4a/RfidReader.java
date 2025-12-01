@@ -1,5 +1,14 @@
 package com.csl.cslibrary4a;
 
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_EM;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_M730;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_M775;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_M770;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_M780;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_M830;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_NXP_UCODE8;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_NXP_UCODEDNA_AUTHMODE;
 import static java.lang.Math.log10;
 
 import android.content.Context;
@@ -61,17 +70,21 @@ public class RfidReader {
 
     public enum TagType {
         TAG_NULL,
-        TAG_IMPINJ, TAG_IMPINJ_M755, //E28011, E2C011
+        TAG_IMPINJ, //E28011
+        TAG_IMPINJ_M775, TAG_IMPINJ_M780, TAG_IMPINJ_M830, TAG_IMPINJ_M770, TAG_IMPINJ_M730, //E2C011(E2C011A2), E28011C, E28011B, E28011A, E280119
+        TAG_IMPINJ_MONZA_R6A, TAG_IMPINJ_MONZA_R6P, TAG_IMPINJ_MONZA_R6, TAG_IMPINJ_MONZA_X8K, //E2801171, E2801170, E2801160, E2801150
+        TAG_IMPINJ_noUSER, //E2001
         TAG_ALIEN, //E2003
-        TAG_NXP, TAG_NXP_UCODEDNA, TAG_NXP_UCODE8,              //E2806, E2C06, E2806894
-        TAG_NXP_UCODE8_EPC, TAG_NXP_UCODE8_EPCTID, TAG_NXP_UCODE8_EPCBRAND, TAG_NXP_UCODE8_EPCBRANDTID, //E2806894A, E2806894B, E2806894C, E2806894d
+        TAG_NXP, TAG_NXP_UCODEDNA, TAG_NXP_UCODEDNA_AUTHMODE, //E2806, E2C06, E2C06
+        TAG_NXP_UCODE8, TAG_NXP_UCODE8_EPC, TAG_NXP_UCODE8_EPCTID, TAG_NXP_UCODE8_EPCBRAND, TAG_NXP_UCODE8_EPCBRANDTID, //E2806894, E2806894A, E2806894B, E2806894C, E2806894d
         TAG_EM, TAG_EM_BAP, TAG_EM_COLDCHAIN, TAG_EM_AURASENSE, TAG_EM_AURASENSE_ATBOOT, TAG_EM_AURASENSE_ATSELECT, //E280B, E200B0, E280B0, E280B12, E280B12A, E280B12B
         TAG_KILOWAY, //E281D
         TAG_LONGJING, //E201E
+        TAG_AXZON, TAG_MAGNUS_S1, TAG_MAGNUS_S2, TAG_MAGNUS_S3, TAG_AXZON_XERXES,    //E2824, E282401, E282402, E282403, E282405
+
         TAG_FDMICRO, //E2827001
-        TAG_CTESIUS, //E203510
-        TAG_ASYGN, //E283A
-        TAG_AXZON, TAG_MAGNUS_S2, TAG_MAGNUS_S3, TAG_AXZON_XERXES,    //E2824, E282402, E282403, E282405
+        TAG_CTESIUS, //E203510 -- not tested
+        TAG_ASYGN, //E283A -- not tested
     }
     public static class ExtraBankData {
         public int extra1Bank;
@@ -91,85 +104,87 @@ public class RfidReader {
             this.extra1Bank = extra1Bank; this.extra2Bank = extra2Bank;
             this.extra1Count = extra1Count; this.extra2Count = extra2Count;
             this.extra1Offset = extra1Offset; this.extra2Offset = extra2Offset;
+            Log.i("Hello", "RfidReader.setExtraBankData: DebugABC, Extra6, extra1Bank = " + extra1Bank + ", extra2Bank = " + extra2Bank);
         }
         public void setExtraBankData(RfidReader.TagType tagType, String mDid) {
             extra2Bank = 2;
             extra2Offset = 0;
             extra2Count = 2;
-            Log.i("Hello", "tagType = " + (tagType == null ? "null" : tagType.toString()) + ", mDid = " + mDid);
+            Log.i("Hello", "RfidReader.setExtraBankData: DebugABC, tagType = " + (tagType == null ? "null" : tagType.toString()) + ", mDid = " + mDid);
             if (mDid == null) mDid = "";
-            if (mDid.matches("E2801101") || mDid.matches("E2801102") || mDid.matches("E2801103") || mDid.matches("E2801104") || mDid.matches("E2801105")) {
+            if (true && (tagType == TAG_IMPINJ_M775 || tagType == TAG_IMPINJ_M780 || tagType == TAG_IMPINJ_M830 || tagType == TAG_IMPINJ_M770 || tagType == TAG_IMPINJ_M730)) {
                 extra1Bank = 0;
                 extra1Offset = 4;
                 extra1Count = 1;
-                if (mDid.matches("E2801101")) extra2Count = 6;
-            } else if (mDid.matches("E200B0")) {
+                if (tagType == TAG_IMPINJ_M775) extra2Count = 6;
+            } else if (tagType == TagType.TAG_EM_BAP /*mDid.matches("E200B0")*/) {
                 extra1Bank = 2;
                 extra1Offset = 0;
                 extra1Count = 2;
                 extra2Bank = 3;
                 extra2Offset = 0x2d;
                 extra2Count = 1;
-            } else if (mDid.matches("E203510")) {
-                extra1Bank = 2;
-                extra1Offset = 0;
-                extra1Count = 2;
-                extra2Bank = 3;
-                extra2Offset = 8;
-                extra2Count = 2;
-            } else if (mDid.matches("E283A")) {
-                extra1Bank = 2;
-                extra1Offset = 0;
-                extra1Count = 2;
-                extra2Bank = 3;
-                extra2Offset = 0;
-                extra2Count = 8;
-            } else if (mDid.indexOf("E280B12") == 0) {
-                extra1Bank = 2;
-                extra1Offset = 0;
-                extra1Count = 2;
-                extra2Bank = 3;
-                extra2Offset = 0x120;
-                extra2Count = 1;
-            } else if (mDid.indexOf("E280B0") == 0) {
+            } else if (tagType == TagType.TAG_EM_COLDCHAIN /*mDid.indexOf("E280B0") == 0*/) {
                 extra1Bank = 3;
                 extra1Offset = 188;
                 extra1Count = 2;
                 //extra2Bank = 3;
                 //extra2Offset = 0x10d;
                 //extra2Count = 1;
-            } else if (mDid.indexOf("E281D") == 0) { //need atmel firmware 0.2.20
+            } else if (tagType == TagType.TAG_EM_AURASENSE || tagType == TagType.TAG_EM_AURASENSE_ATBOOT || tagType == TagType.TAG_EM_AURASENSE_ATSELECT /*mDid.indexOf("E280B12") == 0*/) {
+                extra1Bank = 2;
+                extra1Offset = 0;
+                extra1Count = 2;
+                extra2Bank = 3;
+                extra2Offset = 0x120;
+                extra2Count = 1;
+            } else if (tagType == TagType.TAG_KILOWAY) { //mDid.indexOf("E281D") == 0) { //need atmel firmware 0.2.20
                 extra1Bank = 0;
                 extra1Offset = 4;
                 extra1Count = 1;
                 extra2Count = 6;
-            } else if (mDid.indexOf("E201E") == 0) {
+            } else if (tagType == TagType.TAG_LONGJING) { //mDid.indexOf("E201E") == 0) {
                 extra1Bank = 3;
                 extra1Offset = 112;
                 extra1Count = 1;
                 extra2Count = 6;
-            } else if (mDid.matches("E282402")) {
+            } else if (tagType == TagType.TAG_MAGNUS_S2) { //mDid.matches("E282402")) {
                 extra1Bank = 0;
                 extra1Offset = 11;
                 extra1Count = 1;
                 extra2Bank = 0;
                 extra2Offset = 13;
                 extra2Count = 1;
-            } else if (mDid.matches("E282403")) {
+            } else if (tagType == TagType.TAG_MAGNUS_S3) { //mDid.matches("E282403")) {
                 extra1Bank = 0;
                 extra1Offset = 12;
                 extra1Count = 3;
                 extra2Bank = 3;
                 extra2Offset = 8;
                 extra2Count = 4;
-            } else if (mDid.matches("E282405")) {
+            } else if (tagType == TagType.TAG_AXZON_XERXES) { //mDid.matches("E282405")) {
                 extra1Bank = 0;
                 extra1Offset = 10;
                 extra1Count = 5;
                 extra2Bank = 3;
                 extra2Offset = 0x12;
                 extra2Count = 4;
+            } else if (tagType == TagType.TAG_CTESIUS) { //mDid.matches("E203510")) {
+                extra1Bank = 2;
+                extra1Offset = 0;
+                extra1Count = 2;
+                extra2Bank = 3;
+                extra2Offset = 8;
+                extra2Count = 2;
+            } else if (tagType == TagType.TAG_ASYGN) { //mDid.matches("E283A")) {
+                extra1Bank = 2;
+                extra1Offset = 0;
+                extra1Count = 2;
+                extra2Bank = 3;
+                extra2Offset = 0;
+                extra2Count = 8;
             }
+            Log.i("Hello", "RfidReader.setExtraBankData: DebugABC, extra1Bank = " + extra1Bank + ", extra2Bank = " + extra2Bank);
         }
 
         public void adjustExtraBank1() {
@@ -187,33 +202,34 @@ public class RfidReader {
     }
     public int setSelectData4Inventory(RfidReader.TagType tagType, String mDid, boolean bNeedSelectedTagByTID, String stringProtectPassword, int selectFor, int selectHold) {
         int iValue = -1;
-        if (utility.DEBUG_SELECT) appendToLog("Debug_Select: RfidReader.setSelectData4Inventory with mDid = " + mDid);
+        appendToLog("RfidReader.setSelectData4Inventory: DebugABC, tagType = " + tagType.toString() + ", mDid = " + mDid + ", bNeedSelectedTagByTID = " + bNeedSelectedTagByTID);
+        if (utility.DEBUG_SELECT || true) appendToLog("Debug_Select: RfidReader.setSelectData4Inventory with tagType = " + tagType.toString() + ", mDid = " + mDid);
+
         if (mDid != null) {
             setSelectCriteriaDisable(-1);
-            if (mDid.indexOf("E280B12") == 0) {
-                if (mDid.matches("E280B12B")) {
+
+            if (tagType == TagType.TAG_EM_AURASENSE || tagType == TagType.TAG_EM_AURASENSE_ATBOOT || tagType == TagType.TAG_EM_AURASENSE_ATSELECT /*mDid.indexOf("E280B12") == 0*/) {
+                if (tagType == TagType.TAG_EM_AURASENSE_ATSELECT /*mDid.matches("E280B12B")*/) {
                     setSelectCriteria(0, true, 4, 0, 5, 1, 0x220, "8321");
                     appendToLog("Hello123: Set Sense at Select !!!");
                 } else { //if (MainActivity.mDid.matches("E280B12A")) {
                     //setSelectCriteriaDisable(-1);
                     appendToLog("Hello123: Set Sense at BOOT !!!");
                 }
-            } else if (mDid.matches("E203510")) {
-                setSelectCriteria(0, true, 7, 4, 0, 2, 0, mDid);
-            } else if (mDid.matches("E28240")) {
+            } else if (tagType == TagType.TAG_AXZON /*mDid.matches("E2824")*/) {
                 if (true || selectFor != 0) {
                     //setSelectCriteriaDisable(-1);
                     selectFor = 0;
                     iValue = selectFor;
                 }
-            } else if (mDid.matches("E282402")) {
+            } else if (tagType == TagType.TAG_MAGNUS_S2) { //mDid.matches("E282402")) {
                 appendToLog("selectFor = " + selectFor);
                 if (true || selectFor != 2) {
                     setSelectCriteria(0, true, 4, 2, 0, 3, 0xA0, "20");
                     selectFor = 2;
                     iValue = selectFor;
                 }
-            } else if (mDid.matches("E282403")) {
+            } else if (tagType == TagType.TAG_MAGNUS_S3) { //mDid.matches("E282403")) {
                 if (utility.DEBUG_SELECT) appendToLog("Debug_Select: RfidReader.setSelectData4Inventory selectFor = " + selectFor);
                 if (true || selectFor != 3) {
                     setSelectCriteria(0, true, 4, 2, 0, 3, 0xD0, "1F");
@@ -222,13 +238,15 @@ public class RfidReader {
                     selectFor = 3;
                     iValue = selectFor;
                 }
-            } else if (mDid.matches("E282405")) {
-                if (true || selectFor != 5) {
+            } else if (tagType == TagType.TAG_AXZON_XERXES) { //mDid.matches("E282405")) {
+                if (true) {
                     setSelectCriteria(0, true, 4, 5, selectHold, 3, 0x3B0, "00");
                     //setSelectCriteriaDisable(2);
                     selectFor = 5;
                     iValue = selectFor;
                 }
+            } else if (tagType == TagType.TAG_CTESIUS) { //mDid.matches("E203510")) {
+                setSelectCriteria(0, true, 7, 4, 0, 2, 0, mDid);
             } else {
                 appendToLog("MainActivity.selectFor = " + selectFor);
                 if (true || selectFor != -1) {
@@ -238,41 +256,31 @@ public class RfidReader {
                 }
             }
 
-            if (mDid.indexOf("E2806894") == 0) {
-                appendToLog("RfidReader.setSelectData 0 found " + mDid + ".indexOf[E2806894] == 0");
-                if (mDid.matches("E2806894A")) {
+            if (true /*mDid.indexOf("E2806894") == 0*/) {
+                appendToLog("RfidReader.setSelectData4Inventory: 0 mDid = " + mDid + ", tagType = " + tagType.toString() + ", bNeedSelectedTagByTID = " + bNeedSelectedTagByTID);
+                if (tagType == TagType.TAG_NXP_UCODE8_EPC /*mDid.matches("E2806894A")*/) {
                     appendToLog("RfidReader.setSelectData 1 found E2806894A");
                     //setSelectCriteriaDisable(1);
-                } else if (mDid.matches("E2806894B")) {
+                } else if (tagType == TagType.TAG_NXP_UCODE8_EPCTID /*mDid.matches("E2806894B")*/) {
                     appendToLog("RfidReader.setSelectData 2 found E2806894B");
                     appendToLog("BtDataOut BBB 2");
                     setSelectCriteria(0, true, 4, 0, 1, 0x203, "1", true);
-                    setSelectCriteria(1, true, 4, 2, 2, 0, "E2806894", false);
-                } else if (mDid.matches("E2806894C") || mDid.matches("E2806894d")) {
+                    setSelectCriteria(1, true, 4, 2, 2, 0, getsTid(TagType.TAG_NXP_UCODE8)/*"E2806894"*/, false);
+                } else if (tagType == TagType.TAG_NXP_UCODE8_EPCBRAND /*mDid.matches("E2806894C")*/ || tagType == TagType.TAG_NXP_UCODE8_EPCBRANDTID /*mDid.matches("E2806894d")*/) {
                     appendToLog("RfidReader.setSelectData 3 found " + mDid);
                     setSelectCriteria(0, true, 4, 0, 1, 0x204, "1", true);
-                    setSelectCriteria(1, true, 4, 2, 2, 0, "E2806894", false);
+                    setSelectCriteria(1, true, 4, 2, 2, 0, getsTid(TAG_NXP_UCODE8) /*"E2806894"*/, false);
                 }
-                mDid = "E2806894";
+                //mDid = "E2806894";
             }
 
+            appendToLog("RfidReader.setSelectData4Inventory: bNeedSelectedTagByTID = " + bNeedSelectedTagByTID);
             if (bNeedSelectedTagByTID) {
+                appendToLog("RfidReader.setSelectData4Inventory: tagType = " + tagType.toString());
+                mDid = getsTid(tagType);
+                appendToLog("RfidReader.setSelectData4Inventory: mDid after getsTid = " + mDid);
+
                 String strMdid = mDid;
-                if (strMdid.indexOf("E28011") == 0) {
-                    int iValue1 = Integer.valueOf(strMdid.substring(6, 8), 16);
-                    iValue1 &= 0x0F;
-                    appendToLog(String.format("iValue1 = 0x%X", iValue1));
-                    if (iValue1 == 1) strMdid = "E2C011A2";
-                    else if (iValue1 == 2) strMdid = "E28011C";
-                    else if (iValue1 == 3) strMdid = "E28011B";
-                    else if (iValue1 == 4) strMdid = "E28011A";
-                    else if (iValue1 == 5) strMdid = "E280119";
-                    else if (iValue1 == 6) strMdid = "E2801171";
-                    else if (iValue1 == 7) strMdid = "E2801170";
-                    else if (iValue1 == 8) strMdid = "E2801150";
-                    else
-                        strMdid = "E2001"; //strMdid.substring(0, 5); even E2801 or E2C01 will return
-                }
                 if (stringProtectPassword != null) {
                     if (stringProtectPassword.trim().length() == 0)
                         stringProtectPassword = "00000000";
@@ -284,6 +292,78 @@ public class RfidReader {
             }
         }
         return iValue;
+    }
+
+    public String getsTid(TagType tagType) {
+        String sTid = "";
+        if (tagType == TagType.TAG_IMPINJ_M775) sTid = "E2C011"; //"E2C011A2";
+        else if (tagType == TagType.TAG_IMPINJ_M780) sTid = "E28011C";
+        else if (tagType == TAG_IMPINJ_M830) sTid = "E28011B";
+        else if (tagType == TAG_IMPINJ_M770) sTid = "E28011A";
+        else if (tagType == TAG_IMPINJ_M730) sTid = "E280119";
+        else if (tagType == TagType.TAG_IMPINJ_MONZA_R6A) sTid = "E2801171";
+        else if (tagType == TagType.TAG_IMPINJ_MONZA_R6P) sTid = "E2801170";
+        else if (tagType == TagType.TAG_IMPINJ_MONZA_R6) sTid = "E2801160";
+        else if (tagType == TagType.TAG_IMPINJ_MONZA_X8K) sTid = "E2801150";
+        else if (tagType == TagType.TAG_IMPINJ_noUSER) sTid = "E2001";
+        else if (tagType == TAG_IMPINJ) sTid = "E28011";
+
+        else if (tagType == TagType.TAG_ALIEN) sTid = "E2003";
+        else if (tagType == TagType.TAG_NXP) sTid = "E2806";
+        else if (tagType == TagType.TAG_NXP_UCODEDNA || tagType == TAG_NXP_UCODEDNA_AUTHMODE) sTid = "E2C06";
+        else if (tagType == TagType.TAG_NXP_UCODE8 || tagType == TagType.TAG_NXP_UCODE8_EPC || tagType == TagType.TAG_NXP_UCODE8_EPCTID || tagType == TagType.TAG_NXP_UCODE8_EPCBRAND || tagType == TagType.TAG_NXP_UCODE8_EPCBRANDTID) sTid = "E2806894";
+        else if (tagType == TAG_EM) sTid = "E280B";
+        else if (tagType == TagType.TAG_EM_BAP) sTid = "E200B0";
+        else if (tagType == TagType.TAG_EM_COLDCHAIN) sTid = "E280B0";
+        else if (tagType == TagType.TAG_EM_AURASENSE || tagType == TagType.TAG_EM_AURASENSE_ATBOOT || tagType == TagType.TAG_EM_AURASENSE_ATSELECT) sTid = "E280B12";
+        else if (tagType == TagType.TAG_KILOWAY) sTid = "E281D";
+        else if (tagType == TagType.TAG_LONGJING) sTid = "E201E";
+        else if (tagType == TagType.TAG_AXZON) sTid = "E2824";
+        else if (tagType == TagType.TAG_MAGNUS_S1) sTid = "E282401";
+        else if (tagType == TagType.TAG_MAGNUS_S2) sTid = "E282402";
+        else if (tagType == TagType.TAG_MAGNUS_S3) sTid = "E282403";
+        else if (tagType == TagType.TAG_AXZON_XERXES) sTid = "E282405";
+        else if (tagType == TagType.TAG_FDMICRO) sTid = "E2827001";
+        else if (tagType == TagType.TAG_CTESIUS) sTid = "E203510";
+        else if (tagType == TagType.TAG_ASYGN) sTid = "E283A";
+        return sTid;
+    }
+
+    public TagType getagType(String sTid) {
+        TagType tagType = TagType.TAG_NULL;
+        if (sTid == null) return tagType;
+        if (sTid.indexOf("E2C011") == 0) tagType = TagType.TAG_IMPINJ_M775; //E2C011A2
+        else if (sTid.indexOf("E28011C") == 0) tagType = TagType.TAG_IMPINJ_M780;
+        else if (sTid.indexOf("E28011B") == 0) tagType = TAG_IMPINJ_M830;
+        else if (sTid.indexOf("E28011A") == 0) tagType = TAG_IMPINJ_M770;
+        else if (sTid.indexOf("E280119") == 0) tagType = TAG_IMPINJ_M730;
+        else if (sTid.indexOf("E2801171") == 0) tagType = TagType.TAG_IMPINJ_MONZA_R6A;
+        else if (sTid.indexOf("E2801170") == 0) tagType = TagType.TAG_IMPINJ_MONZA_R6P;
+        else if (sTid.indexOf("E2801160") == 0) tagType = TagType.TAG_IMPINJ_MONZA_R6;
+        else if (sTid.indexOf("E2801150") == 0) tagType = TagType.TAG_IMPINJ_MONZA_X8K;
+
+        else if (sTid.indexOf("E2001") == 0) tagType = TagType.TAG_IMPINJ_noUSER;
+        else if (sTid.indexOf("E28011") == 0) tagType = TagType.TAG_IMPINJ;
+
+        else if (sTid.indexOf("E2003") == 0) tagType = TagType.TAG_ALIEN;
+        else if (sTid.indexOf("E2806894") == 0) tagType = TagType.TAG_NXP_UCODE8;
+        else if (sTid.indexOf("E2806") == 0) tagType = TagType.TAG_NXP;
+        else if (sTid.indexOf("E2C06") == 0) tagType = TagType.TAG_NXP_UCODEDNA; //TAG_NXP_UCODEDNA_AUTHMODE
+        else if (sTid.indexOf("E200B0") == 0) tagType = TagType.TAG_EM_BAP;
+        else if (sTid.indexOf("E280B0") == 0) tagType = TagType.TAG_EM_COLDCHAIN;
+        else if (sTid.indexOf("E280B12") == 0) tagType = TagType.TAG_EM_AURASENSE;
+        else if (sTid.indexOf("E280B") == 0) tagType = TagType.TAG_EM;
+        else if (sTid.indexOf("E281D") == 0) tagType = TagType.TAG_KILOWAY;
+        else if (sTid.indexOf("E201E") == 0) tagType = TagType.TAG_LONGJING;
+        else if (sTid.indexOf("E282401") == 0) tagType = TagType.TAG_MAGNUS_S1;
+        else if (sTid.indexOf("E282402") == 0) tagType = TagType.TAG_MAGNUS_S2;
+        else if (sTid.indexOf("E282403") == 0) tagType = TagType.TAG_MAGNUS_S3;
+        else if (sTid.indexOf("E282405") == 0) tagType = TagType.TAG_AXZON_XERXES;
+        else if (sTid.indexOf("E2824") == 0) tagType = TagType.TAG_AXZON;
+        else if (sTid.indexOf("E2827001") == 0) tagType = TagType.TAG_FDMICRO;
+        else if (sTid.indexOf("E203510") == 0) tagType = TagType.TAG_CTESIUS;
+        else if (sTid.indexOf("E283A") == 0) tagType = TagType.TAG_ASYGN;
+        return tagType;
     }
 
     //============ utility ============
@@ -1962,7 +2042,7 @@ public class RfidReader {
         if (utility.DEBUG_SELECT) appendToLog("Debug_Select: RfidReader.setSelectedTag1[selectOne = " + selectOne + ", selectMask = "
                 + selectMask + ", selectBank = " + selectBank + ", selectOffset = " + selectOffset + ", delay = "
                 + delay + ", pwrlevel = " + pwrlevel + ", qValue = " + qValue + ", matchRep = " + matchRep);
-        boolean setSuccess = true, DEBUG = false;
+        boolean setSuccess = true, DEBUG = true;
         if (selectMask == null)   selectMask = "";
 
         if (preMatchDataChanged == false) {
@@ -2004,7 +2084,7 @@ public class RfidReader {
         if (setSuccess) setSuccess = setMatchRep(matchRep);
         if (DEBUG) appendToLog("setSelectCriteria after setMatchRep, setSuccess = " + setSuccess);
         if (setSuccess) setSuccess = setTagDelay2RfidReader(tagDelayDefaultNormalSetting);
-        if (DEBUG) appendToLog("setSelectCriteria after setTagDelay, setSuccess = " + setSuccess);
+        if (DEBUG) appendToLog("setSelectCriteria after setTagDelay to " + tagDelayDefaultNormalSetting + ", setSuccess = " + setSuccess);
         if (setSuccess) setSuccess = (bis108 ? rfidReaderChipR2000.rx000Setting.setCycleDelay(cycleDelaySetting) : rfidReaderChipE710.rx000Setting.setCycleDelay(cycleDelaySetting));
         if (DEBUG) appendToLog("setSelectCriteria after setCycleDelay, setSuccess = " + setSuccess);
         if (utility.DEBUG_COMPACT) appendToLog("Debug_Compact 3: RfidReadder.setSelectedTag1 goes to setInvModeCompact");
@@ -4087,6 +4167,7 @@ public class RfidReader {
         }
     }
     public String getSerialNumber() {
+        if (rfidToWriteSize() != 0) return null;
         return (bis108 ? rfidReaderChipR2000.rx000OemSetting.getSerialNumber() : rfidReaderChipE710.rx000Setting.getBoardSerialNumber());
     }
     public boolean isInventoring() {

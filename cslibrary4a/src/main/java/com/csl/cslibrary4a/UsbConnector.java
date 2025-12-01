@@ -565,7 +565,7 @@ class UsbConnector {
     }
 
 /*
-    private class UsbAsyncTask extends AsyncTask<String, String, String> {
+    private class UsbAsyncTask extends AsyncTask<Void, String, String> {
         protected MainActivity ma;
 
         public UsbAsyncTask() {

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Cs108Library4A {
+    String stringVersion = "0";
     final boolean DEBUG = false;
     final boolean DEBUG_FILE = false;
     private Handler mHandler = new Handler();
@@ -102,11 +103,7 @@ public class Cs108Library4A {
         }
     }
     public String getlibraryVersion() {
-        String version = BuildConfig.VERSION_NAME;
-        //int iVersion = Integer.parseInt(version) + 10;
-        version = "15.0"; //+ String.valueOf(iVersion);
-        appendToLog("version = " + version);
-        return utility.getCombinedVersion(version);
+        return utility.getCombinedVersion(utility.StringVersionHeader + stringVersion);
     }
     public String checkVersion() {
         return csReaderConnector.checkVersion();
@@ -326,7 +323,7 @@ public class Cs108Library4A {
         return bluetoothGatt.getReaderDeviceConnected().getName();
     }
     public boolean isBleConnected() {
-        boolean DEBUG = true;
+        boolean DEBUG = false;
         boolean bleConnectionNew = csReaderConnector.isConnected();
         if (DEBUG) appendToLog("Cs108Library4A.isBleConnected: bleConnectionNew = " + bleConnectionNew);
         if (bleConnectionNew) {
@@ -1157,7 +1154,7 @@ public class Cs108Library4A {
             appendToLog("barcode2TriggerMode = " + csReaderConnector.settingData.barcode2TriggerMode + ", result = " + result + ", barcodeAutoStarted = " + barcodeAutoStarted);
             if (csReaderConnector.settingData.barcode2TriggerMode && result) {
                 if (barcodeAutoStarted && result) {  appendToLog("TTestPoint 8"); barcodeAutoStarted = false; result = true; }
-                else {  appendToLog("TTestPoint 9"); result = barcodeNewland.barcodeSendCommand(new byte[] { 0x1b, 0x30 }); }
+                result = barcodeNewland.barcodeSendCommand(new byte[] { 0x1b, 0x30 });
             } else  appendToLog("TTestPoint 10");
         }
         return result;
@@ -1859,7 +1856,19 @@ public class Cs108Library4A {
     public int setSelectData(RfidReader.TagType tagType, String mDid, boolean bNeedSelectedTagByTID, String stringProtectPassword, int selectFor, int selectHold) {
         return csReaderConnector.rfidReader.setSelectData4Inventory(tagType, mDid, bNeedSelectedTagByTID, stringProtectPassword, selectFor, selectHold);
     }
-    public int setOtherInventoryData(RfidReader.TagType tagType, String mDid) {
-        return -1;
+    public String getsTid(RfidReader.TagType tagType) {
+        return csReaderConnector.rfidReader.getsTid(tagType);
+    }
+    public RfidReader.TagType getagType(String sTid) {
+        return csReaderConnector.rfidReader.getagType(sTid);
+    }
+    public boolean setOtherInventoryData(RfidReader.TagType tagType, String mDid) {
+        appendToLog("Cs108Library4A.setOtherInventoryData: tagtype = " + (tagType == null ? "null" : tagType.toString()));
+        if (tagType == RfidReader.TagType.TAG_NXP_UCODEDNA) {
+            return setInvAuthenticate(false);
+        } else if (tagType == RfidReader.TagType.TAG_NXP_UCODEDNA_AUTHMODE) {
+            return setInvAuthenticate(true);
+        }
+        return false;
     }
 }

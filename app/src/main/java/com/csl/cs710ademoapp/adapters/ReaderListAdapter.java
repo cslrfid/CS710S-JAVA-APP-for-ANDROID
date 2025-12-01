@@ -69,8 +69,11 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
         }
         if (reader.getUpcSerial() != null) {
             if (reader.getUpcSerial().length() != 0)  {
-                if (text1.length() != 0) text1 += "\n";
-                text1 += reader.getUpcSerial();
+                if (true) text1 = reader.getUpcSerial();
+                else {
+                    if (text1.length() != 0) text1 += "\n";
+                    text1 += reader.getUpcSerial();
+                }
             }
         }
         if (MainActivity.csLibrary4A.isBleScanning()) {

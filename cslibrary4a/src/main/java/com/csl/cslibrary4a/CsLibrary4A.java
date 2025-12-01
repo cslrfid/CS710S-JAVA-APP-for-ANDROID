@@ -9,7 +9,6 @@ import static android.bluetooth.BluetoothDevice.DEVICE_TYPE_CLASSIC;
 import static android.bluetooth.BluetoothDevice.DEVICE_TYPE_DUAL;
 import static android.bluetooth.BluetoothDevice.DEVICE_TYPE_LE;
 import static android.bluetooth.BluetoothDevice.DEVICE_TYPE_UNKNOWN;
-import static android.bluetooth.BluetoothProfile.GATT;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
@@ -33,8 +32,8 @@ import java.util.List;
 import java.util.Set;
 
 public class CsLibrary4A {
+    String stringVersion = "0";
     boolean DEBUG = false, DEBUG2 = false;
-    String stringVersion = "18.0";
     Utility utility;
     Cs710Library4A cs710Library4A;
     Cs108Library4A cs108Library4A;
@@ -58,7 +57,7 @@ public class CsLibrary4A {
         String string108 = (cs108Library4A != null ? cs108Library4A.getlibraryVersion() : string710); appendToLog("string108 = " + string108);
         int iPos2 = string108.indexOf(".");
         int iPos3 = string108.substring(iPos2 + 1).indexOf(".");
-        return stringVersion + "-" + string710.substring(iPos0 + iPos1 + 2) + "-" + string108.substring(iPos2 + iPos3 + 2);
+        return utility.StringVersionHeader + stringVersion + "-" + string710.substring(iPos0 + iPos1 + 2) + "-" + string108.substring(iPos2 + iPos3 + 2);
     }
     public String checkVersion() {
         if (DEBUG) Log.i("Hello2", "checkVersion");
@@ -2373,12 +2372,26 @@ public class CsLibrary4A {
         else Log.i("Hello2", "setSelectData" + stringNOTCONNECT);
         return -1;
     }
-    public int setOtherInventoryData(RfidReader.TagType tagType, String mDid) {
+    public String getsTid(RfidReader.TagType tagType) {
+        if (DEBUG2) Log.i("Hello2", "getsTid");
+        if (isCs108Connected()) return cs108Library4A.getsTid(tagType);
+        else if (isCs710Connected()) return cs710Library4A.getsTid(tagType);
+        else Log.i("Hello2", "getsTid" + stringNOTCONNECT);
+        return null;
+    }
+    public RfidReader.TagType getagType(String sTid) {
+        if (DEBUG2) Log.i("Hello2", "getagType");
+        if (isCs108Connected()) return cs108Library4A.getagType(sTid);
+        else if (isCs710Connected()) return cs710Library4A.getagType(sTid);
+        else Log.i("Hello2", "getagType" + stringNOTCONNECT);
+        return null;
+    }
+    public boolean setOtherInventoryData(RfidReader.TagType tagType, String mDid) {
         if (DEBUG2) Log.i("Hello2", "setOtherInventoryData");
         //appendToLog("BtDataOut: tagType = " + (tagType == null ? "null" : tagType.toString()) + ", mDid = " + mDid);
         if (isCs108Connected()) return cs108Library4A.setOtherInventoryData(tagType, mDid);
         else if (isCs710Connected()) return cs710Library4A.setOtherInventoryData(tagType, mDid);
         else Log.i("Hello2", "setOtherInventoryData" + stringNOTCONNECT);
-        return -1;
+        return false;
     }
 }

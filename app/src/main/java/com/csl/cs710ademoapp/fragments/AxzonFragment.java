@@ -1,14 +1,21 @@
 package com.csl.cs710ademoapp.fragments;
 
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_AXZON;
+
+import androidx.annotation.NonNull;
+import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
 import android.os.Bundle;
 
 import com.csl.cslibrary4a.AdapterTab;
+import com.csl.cslibrary4a.RfidReader;
 import com.google.android.material.tabs.TabLayout;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,12 +34,12 @@ public class AxzonFragment extends CommonFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        super.onCreateView(inflater, container, savedInstanceState, true);
+        super.onCreateView(inflater, container, savedInstanceState);
         return inflater.inflate(R.layout.custom_tabbed_layout, container, false);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onMenuItemSelectedA(MenuItem item) {
         InventoryRfidiMultiFragment fragment = (InventoryRfidiMultiFragment) adapter.fragment0;
         if (item.getItemId() == R.id.menuAction_clear) {
             fragment.clearTagsList();
@@ -49,12 +56,26 @@ public class AxzonFragment extends CommonFragment {
         } else if (item.getItemId() == R.id.menuAction_share) {
             fragment.shareTagsList();
             return true;
-        } else return super.onOptionsItemSelected(item);
+        } else return super.onMenuItemSelectedA(item);
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        MainActivity.csLibrary4A.appendToLog("AxzonFragment.onViewCreated: going to addMenuProvider");
+        getActivity().addMenuProvider(new MenuProvider() {
+            @Override
+            public void onCreateMenu(@org.jspecify.annotations.NonNull Menu menu, @org.jspecify.annotations.NonNull MenuInflater menuInflater) {
+                MainActivity.csLibrary4A.appendToLog("AxzonFragment.onViewCreated.onCreateMenu");
+                onCreateMenuA(menu, menuInflater);
+            }
+
+            @Override
+            public boolean onMenuItemSelected(@org.jspecify.annotations.NonNull MenuItem item) {
+                MainActivity.csLibrary4A.appendToLog("AxzonFragment.onViewCreated.onMenuItemSelected");
+                return onMenuItemSelectedA(item);
+            }
+        }, getViewLifecycleOwner());
+        super.onViewCreated(view, savedInstanceState);
 
         actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         actionBar.setIcon(R.drawable.dl_inv);
@@ -62,19 +83,19 @@ public class AxzonFragment extends CommonFragment {
         if (false) actionBar.setTitle(R.string.title_activity_axzon);
         else {
             String stringTitle = getResources().getString(R.string.title_activity_axzon);
-            if (MainActivity.mDid.matches("E282402")) stringTitle = "S2";
-            else if (MainActivity.mDid.matches("E282403")) stringTitle = "S3";
-            if (MainActivity.mDid.matches("E282405")) stringTitle = "Xerxes";
+            if (MainActivity.tagType == RfidReader.TagType.TAG_MAGNUS_S2) stringTitle = "S2";
+            else if (MainActivity.tagType == RfidReader.TagType.TAG_MAGNUS_S3) stringTitle = "S3";
+            if (MainActivity.tagType == RfidReader.TagType.TAG_AXZON_XERXES) stringTitle = "Xerxes";
             actionBar.setTitle(stringTitle);
          }
 
         boolean bXervesTag = false;
-        if (MainActivity.mDid != null) if (MainActivity.mDid.matches("E282405")) bXervesTag = true;
+        if (MainActivity.tagType == RfidReader.TagType.TAG_AXZON_XERXES) bXervesTag = true;
 
         TabLayout tabLayout = (TabLayout) getActivity().findViewById(R.id.OperationsTabLayout);
 
         adapter = new AdapterTab(getActivity().getSupportFragmentManager(), (bXervesTag ? 4 : 2));
-        adapter.setFragment(0, InventoryRfidiMultiFragment.newInstance(true, null, ""));
+        adapter.setFragment(0, InventoryRfidiMultiFragment.newInstance(true, TAG_AXZON, ""));
         adapter.setFragment(1, AccessMicronFragment.newInstance(true));
         adapter.setFragment(2, new AccessXerxesLoggerFragment());
         adapter.setFragment(3, new AccessUcodeFragment());
@@ -149,11 +170,13 @@ public class AxzonFragment extends CommonFragment {
         if (adapter.fragment1 != null) if (adapter.fragment1.getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.RESUMED)) adapter.fragment1.onDestroy();
         if (adapter.fragment2 != null) if (adapter.fragment2.getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.RESUMED)) adapter.fragment2.onDestroy();
         if (adapter.fragment3 != null) if (adapter.fragment3.getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.RESUMED)) adapter.fragment3.onDestroy();
-        if (MainActivity.selectFor != -1) {
-            MainActivity.csLibrary4A.setSelectCriteriaDisable(-1);
-            MainActivity.selectFor = -1;
+        if (MainActivity.csLibrary4A != null) {
+            if (MainActivity.selectFor != -1) {
+                MainActivity.csLibrary4A.setSelectCriteriaDisable(-1);
+                MainActivity.selectFor = -1;
+            }
+            MainActivity.csLibrary4A.restoreAfterTagSelect();
         }
-        MainActivity.csLibrary4A.restoreAfterTagSelect();
         super.onDestroy();
     }
 

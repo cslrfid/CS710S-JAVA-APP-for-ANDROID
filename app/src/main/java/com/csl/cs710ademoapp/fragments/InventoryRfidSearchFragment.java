@@ -3,8 +3,9 @@ package com.csl.cs710ademoapp.fragments;
 import static com.csl.cs710ademoapp.MainActivity.tagSelected;
 
 import android.app.Activity;
-import android.os.AsyncTask;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -23,6 +24,7 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.csl.cs710ademoapp.AsyncTaskA;
 import com.csl.cs710ademoapp.CustomMediaPlayer;
 import com.csl.cs710ademoapp.InventoryRfidTask;
 import com.csl.cs710ademoapp.SelectTag;
@@ -59,13 +61,14 @@ public class InventoryRfidSearchFragment extends CommonFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        super.onCreateView(inflater, container, savedInstanceState, true);
+        super.onCreateView(inflater, container, savedInstanceState);
         return inflater.inflate(R.layout.fragment_geiger_search, container, false);
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        if (!isTabbed) menuFragment = true;
+        super.onViewCreated(view, savedInstanceState);
 
         if (!isTabbed) {
             androidx.appcompat.app.ActionBar actionBar;
@@ -204,11 +207,11 @@ public class InventoryRfidSearchFragment extends CommonFragment {
 
     @Override
     public void onDestroy() {
-        MainActivity.csLibrary4A.setNotificationListener(null);
+        if (MainActivity.csLibrary4A != null) MainActivity.csLibrary4A.setNotificationListener(null);
         if (geigerSearchTask != null) {
             geigerSearchTask.taskCancelReason = InventoryRfidTask.TaskCancelRReason.DESTORY;
         }
-        MainActivity.csLibrary4A.restoreAfterTagSelect();
+        if (MainActivity.csLibrary4A != null) MainActivity.csLibrary4A.restoreAfterTagSelect();
         super.onDestroy();
     }
 
@@ -240,7 +243,10 @@ public class InventoryRfidSearchFragment extends CommonFragment {
         if (tagSelected != null) {
             if (tagSelected.getSelected() == true) {
                 if (tagSelected.getTid() != null) {
-                    if (tagSelected.getTid().indexOf("E281D") == 0 || tagSelected.getTid().indexOf("E201E") == 0) {
+                    RfidReader.TagType tagType = MainActivity.csLibrary4A.getagType(tagSelected.getTid());
+                    if (tagType == RfidReader.TagType.TAG_KILOWAY || tagType == RfidReader.TagType.TAG_LONGJING) {
+                    //if (tagSelected.getTid().indexOf(MainActivity.csLibrary4A.getsTid(RfidReader.TagType.TAG_KILOWAY) /*"E281D"*/) == 0
+                    //        || tagSelected.getTid().indexOf(MainActivity.csLibrary4A.getsTid(RfidReader.TagType.TAG_LONGJING) /*"E201E"*/) == 0) {
                         memoryBankSpinner.setSelection(1);
                     }
                 }
@@ -306,7 +312,7 @@ public class InventoryRfidSearchFragment extends CommonFragment {
     void startStopHandler(boolean buttonTrigger) {
         boolean started = false;
         if (geigerSearchTask != null) {
-            if (geigerSearchTask.getStatus() == AsyncTask.Status.RUNNING) started = true;
+            if (geigerSearchTask.getStatus() == AsyncTaskA.Status.RUNNING) started = true;
         }
         if (buttonTrigger == true &&
                 ((started && MainActivity.csLibrary4A.getTriggerButtonStatus())
@@ -335,7 +341,11 @@ public class InventoryRfidSearchFragment extends CommonFragment {
         started = true; boolean invalidRequest = false;
         if (tagSelected != null) {
             if (tagSelected.getTid() != null) {
-                if (tagSelected.getTid().indexOf("E201E") == 0) {
+                MainActivity.csLibrary4A.appendToLog("InventoryRfidSearchFragment.startInventoryTask: tagSelected.getTid = " + tagSelected.getTid());
+                RfidReader.TagType tagType = MainActivity.csLibrary4A.getagType(tagSelected.getTid());
+                if (tagType == RfidReader.TagType.TAG_LONGJING) {
+                //if (tagSelected.getTid().indexOf(MainActivity.csLibrary4A.getsTid(RfidReader.TagType.TAG_LONGJING) /*"E201E"*/) == 0) {
+                    MainActivity.csLibrary4A.appendToLog("InventoryRfidSearchFragment.startInventoryTask: found TAG_LONGJING");
                     MainActivity.csLibrary4A.setTagRead(1);
                     MainActivity.csLibrary4A.setAccessBank(3);
                     MainActivity.csLibrary4A.setAccessOffset(112);
@@ -355,9 +365,11 @@ public class InventoryRfidSearchFragment extends CommonFragment {
             MainActivity.csLibrary4A.startOperation(RfidReaderChipData.OperationTypes.TAG_SEARCHING);
         }
         MainActivity.csLibrary4A.appendToLog("invalidRequest = " + invalidRequest);
-        geigerSearchTask = new InventoryRfidTask(getContext(), -1,-1, 0, 0, 0, 0, invalidRequest, true,
-                null, null, geigerTagRssiView, RfidReader.TagType.TAG_NULL, null,
-                geigerRunTime, geigerTagGotView, geigerVoltageLevelView, null, button, rfidRateView);
+        geigerSearchTask = new InventoryRfidTask(getContext(), -1,-1, 0, 0, 0, 0,
+                invalidRequest, true, false,
+                null, null, RfidReader.TagType.TAG_NULL, null,
+                geigerTagRssiView, geigerTagGotView,
+                geigerRunTime, geigerVoltageLevelView, rfidYieldView, button, rfidRateView);
         geigerSearchTask.execute();
     }
 }

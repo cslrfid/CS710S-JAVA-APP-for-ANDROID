@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.Manifest.permission.BLUETOOTH_SCAN;
 import static android.content.Context.LOCATION_SERVICE;
 
 public class BluetoothGatt extends BluetoothGattCallback {
@@ -674,7 +676,7 @@ public class BluetoothGatt extends BluetoothGattCallback {
                 scanning = false; result = true;
             } else {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    if (true) appendToLog("BluetoothGatt.scanLeDevice: scanLeDevice(" + enable + "): START with mleScanner. ActivityCompat.checkSelfPermission(activity, Manifest.permission.BLUETOOTH_SCAN) = " + ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN));
+                    if (true) appendToLog("BluetoothGatt.scanLeDevice: scanLeDevice(" + enable + "): START with mleScanner. ActivityCompat.checkSelfPermission(activity, Manifest.permission.BLUETOOTH_SCAN) = " + ActivityCompat.checkSelfPermission(context, BLUETOOTH_SCAN));
                     if (isBLUETOOTH_CONNECTinvalid()) return false;
                     else bluetoothLeScanner.startScan(mScanCallBack);
                 } else {
@@ -967,6 +969,12 @@ public class BluetoothGatt extends BluetoothGattCallback {
 
     public boolean isBLUETOOTH_CONNECTinvalid() {
         boolean bValue = false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ActivityCompat.checkSelfPermission(context, BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(context, BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                appendToLog("isBLUETOOTH_CONNECTinvalid is false");
+                bValue = true;
+            }
+        }
 /*
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && (
                 ActivityCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED
@@ -1009,7 +1017,7 @@ public class BluetoothGatt extends BluetoothGattCallback {
     boolean checkSelfPermissionBLUETOOTH() {
         boolean bValue = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) bValue = true;
+            if (ActivityCompat.checkSelfPermission(context, BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) bValue = true;
         } else if (ActivityCompat.checkSelfPermission(context.getApplicationContext(), Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED) bValue = true;
         if (false) Log.i("Hello3", "checkSelfPermissionBLUETOOTH bValue = " + bValue);
         return bValue;
@@ -1047,7 +1055,7 @@ public class BluetoothGatt extends BluetoothGattCallback {
         if (readerDevice == null) readerDevice = readerDeviceConnected;
         if (readerDevice != null) {
             BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(context, BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                 appendToLog("BluetoothGatt.removeBond, Fragment: BLUETOOTH_CONNECT is not permitted");
                 // TODO: Consider calling
                 //    ActivityCompat#requestPermissions

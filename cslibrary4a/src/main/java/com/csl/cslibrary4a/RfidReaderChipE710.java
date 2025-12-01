@@ -2163,6 +2163,7 @@ public class RfidReaderChipE710 {
                 if (DEBUG) appendToLog("0 accessPassword = " + byteArrayToString(accessPassword));
                 byte[] bytes = new byte[4];
                 if (password == null) password = "";
+                if (password.length() > 8) password = password.substring(0, 8);
                 String hexString = "0123456789ABCDEF";
                 for (int j = 0; j < 16; j++) {
                     if (j + 1 <= password.length()) {
