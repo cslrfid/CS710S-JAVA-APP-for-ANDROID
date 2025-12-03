@@ -5,7 +5,6 @@ class RfidReaderChipData {
         TAG_RDOEM,
         TAG_INVENTORY_COMPACT, TAG_INVENTORY, TAG_SEARCHING
     }
-
     enum class HostCommands {
         NULL, CMD_WROEM, CMD_RDOEM, CMD_ENGTEST, CMD_MBPRDREG, CMD_MBPWRREG,
         CMD_18K6CINV, CMD_18K6CREAD, CMD_18K6CWRITE, CMD_18K6CLOCK, CMD_18K6CKILL, CMD_SETPWRMGMTCFG, CMD_18K6CAUTHENTICATE, CMD_UNTRACEABLE,
@@ -19,7 +18,6 @@ class RfidReaderChipData {
         CMD_18K6CINV_COMPACT, CMD_18K6CINV_COMPACT_SELECT,
         CMD_18K6CINV_MB, CMD_18K6CINV_MB_SELECT
     }
-
     enum class HostCmdResponseTypes {
         NULL,
         TYPE_COMMAND_BEGIN,
@@ -30,7 +28,6 @@ class RfidReaderChipData {
         TYPE_COMMAND_ACTIVE,
         TYPE_COMMAND_ABORT_RETURN
     }
-
     class Rx000pkgData {
         @JvmField
         var responseType: HostCmdResponseTypes? = null
@@ -69,7 +66,6 @@ class RfidReaderChipData {
         @JvmField
         var decodedError: String? = null
     }
-
     enum class CsvColumn {
         RESERVE_BANK,
         EPC_BANK,

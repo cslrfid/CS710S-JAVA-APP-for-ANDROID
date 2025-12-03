@@ -1,6 +1,7 @@
-package com.csl.cs710ademoapp;
+package com.csl.cslibrary4a;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,10 +11,10 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
-import static com.csl.cs710ademoapp.MainActivity.csLibrary4A;
 
 public class CustomPopupWindow {
     Context context;
+
     public CustomPopupWindow(Context context) {
         this.context = context;
     }
@@ -27,7 +28,7 @@ public class CustomPopupWindow {
         TextView textViewDismiss = (TextView)popupView.findViewById(R.id.dismissMessage);
         //int iLenghtMax = 300;
         //if (message.length() > iLenghtMax) message = message.substring(0, iLenghtMax) + " .....";
-        csLibrary4A.appendToLog("SaveList2ExternalTask: popupStart message = " + message);
+        appendToLog("SaveList2ExternalTask: popupStart message = " + message);
         textViewDismiss.setText(message);
         Button btnDismiss = (Button)popupView.findViewById(R.id.dismiss);
         if (wait) btnDismiss.setVisibility(View.GONE);
@@ -39,5 +40,9 @@ public class CustomPopupWindow {
                 }
             });
         }
+    }
+
+    public void appendToLog(String s) {
+        Log.i ("Hello", s);
     }
 }
