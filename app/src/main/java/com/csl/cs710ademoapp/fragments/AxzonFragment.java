@@ -1,7 +1,5 @@
 package com.csl.cs710ademoapp.fragments;
 
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_AXZON;
-
 import androidx.annotation.NonNull;
 import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;
@@ -88,7 +86,7 @@ public class AxzonFragment extends CommonFragment {
 
         adapter = new CustomTabAdapter(this, tabs.length);
         adapter.setFragment(0, AccessMicronFragment.newInstance(true));
-        adapter.setFragment(1, InventoryRfidiMultiFragment.newInstance(true, TAG_AXZON, ""));
+        adapter.setFragment(1, InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_AXZON, ""));
         adapter.setFragment(2, new AccessOpusLoggerFragment());
         adapter.setFragment(3, new AccessUcodeFragment());
 

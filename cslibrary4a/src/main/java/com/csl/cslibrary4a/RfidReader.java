@@ -1,21 +1,15 @@
 package com.csl.cslibrary4a;
 
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_EM;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_M730;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_M775;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_M770;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_M780;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_M830;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_NXP_UCODE8;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_NXP_UCODEDNA_AUTHMODE;
 import static java.lang.Math.log10;
 
 import android.content.Context;
 import android.util.Log;
 
-import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
+
+import com.csl.cslibrary4a1.AesCmac;
+import com.csl.cslibrary4a1.RfidConnector;
+import com.csl.cslibrary4a1.Utility;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -23,16 +17,21 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import javax.crypto.Cipher;
+import javax.crypto.Mac;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
 public class RfidReader {
     final boolean DEBUG = false;
     public boolean bFirmware_reset_before = false;
-    RfidConnector rfidConnector; public RfidReaderChipR2000 rfidReaderChipR2000; public RfidReaderChipE710 rfidReaderChipE710;
+    RfidConnector rfidConnector; public _RfidReaderChipR2000 rfidReaderChipR2000; public _RfidReaderChipE710 rfidReaderChipE710;
     ArrayList<RfidConnector.CsReaderRfidData> mRx000ToWrite;
     ArrayList<RfidReaderChipData.Rx000pkgData> mRx000ToRead;
     public ArrayList<RfidConnector.CsReaderRfidData> mRfidToWrite;
     CountryChannelData countryChannelData;
-    Context context; Utility utility; boolean bis108; BluetoothGatt bluetoothGatt; SettingData settingData; NotificationConnector notificationConnector;
-    public RfidReader(Context context, Utility utility, CsReaderConnector csReaderConnector, boolean bis108, BluetoothGatt bluetoothGatt, SettingData settingData, NotificationConnector notificationConnector) {
+    Context context; Utility utility; boolean bis108; _BluetoothGatt bluetoothGatt; _SettingData settingData; NotificationConnector notificationConnector;
+    public RfidReader(Context context, Utility utility, _CsReaderConnector csReaderConnector, boolean bis108, _BluetoothGatt bluetoothGatt, _SettingData settingData, NotificationConnector notificationConnector) {
         this.context = context;
         this.utility = utility;
         this.bis108 = bis108;
@@ -43,12 +42,12 @@ public class RfidReader {
         rfidConnector = new RfidConnector(context, utility); mRfidToWrite = rfidConnector.mRfidToWrite;
         if (bis108) {
             appendToLog("bis108: new RfidReaderChipR2000 is created");
-            rfidReaderChipR2000 = new RfidReaderChipR2000(context, utility, csReaderConnector);
+            rfidReaderChipR2000 = new _RfidReaderChipR2000(context, utility, csReaderConnector);
             mRx000ToWrite = rfidReaderChipR2000.mRx000ToWrite;
             mRx000ToRead = rfidReaderChipR2000.mRx000ToRead;
         } else {
             appendToLog("bis108: new RfidReaderChipE710 is created");
-            rfidReaderChipE710 = new RfidReaderChipE710(context, utility, csReaderConnector);
+            rfidReaderChipE710 = new _RfidReaderChipE710(context, utility, csReaderConnector);
             mRx000ToWrite = rfidReaderChipE710.mRx000ToWrite;
             mRx000ToRead = rfidReaderChipE710.mRx000ToRead;
             rfidConnector.rfidConnectorCallback = new RfidConnector.RfidConnectorCallback(){
@@ -112,17 +111,17 @@ public class RfidReader {
             this.extra1Offset = extra1Offset; this.extra2Offset = extra2Offset;
             Log.i("Hello", "RfidReader.setExtraBankData: DebugABC, Extra6, extra1Bank = " + extra1Bank + ", extra2Bank = " + extra2Bank);
         }
-        public void setExtraBankData(RfidReader.TagType tagType, String mDid) {
+        public void setExtraBankData(TagType tagType, String mDid) {
             extra2Bank = 2;
             extra2Offset = 0;
             extra2Count = 2;
             Log.i("Hello", "RfidReader.setExtraBankData: DebugABC, tagType = " + (tagType == null ? "null" : tagType.toString()) + ", mDid = " + mDid);
             if (mDid == null) mDid = "";
-            if (true && (tagType == TAG_IMPINJ_M775 || tagType == TAG_IMPINJ_M780 || tagType == TAG_IMPINJ_M830 || tagType == TAG_IMPINJ_M770 || tagType == TAG_IMPINJ_M730)) {
+            if (true && (tagType == TagType.TAG_IMPINJ_M775 || tagType == TagType.TAG_IMPINJ_M780 || tagType == TagType.TAG_IMPINJ_M830 || tagType == TagType.TAG_IMPINJ_M770 || tagType == TagType.TAG_IMPINJ_M730)) {
                 extra1Bank = 0;
                 extra1Offset = 4;
                 extra1Count = 1;
-                if (tagType == TAG_IMPINJ_M775) extra2Count = 6;
+                if (tagType == TagType.TAG_IMPINJ_M775) extra2Count = 6;
             } else if (tagType == TagType.TAG_EM_BAP /*mDid.matches("E200B0")*/) {
                 extra1Bank = 2;
                 extra1Offset = 0;
@@ -206,7 +205,7 @@ public class RfidReader {
             if (extra2Bank == 1) extra2Offset += 2;
         }
     }
-    public int setSelectData4Inventory(RfidReader.TagType tagType, String mDid, boolean bNeedSelectedTagByTID, String stringProtectPassword, int selectFor, int selectHold) {
+    public int setSelectData4Inventory(TagType tagType, String mDid, boolean bNeedSelectedTagByTID, String stringProtectPassword, int selectFor, int selectHold) {
         int iValue = -1;
         appendToLog("RfidReader.setSelectData4Inventory: DebugABC, tagType = " + tagType.toString() + ", mDid = " + mDid + ", bNeedSelectedTagByTID = " + bNeedSelectedTagByTID);
         if (utility.DEBUG_SELECT || true) appendToLog("Debug_Select: RfidReader.setSelectData4Inventory with tagType = " + tagType.toString() + ", mDid = " + mDid);
@@ -275,7 +274,7 @@ public class RfidReader {
                 } else if (tagType == TagType.TAG_NXP_UCODE8_EPCBRAND /*mDid.matches("E2806894C")*/ || tagType == TagType.TAG_NXP_UCODE8_EPCBRANDTID /*mDid.matches("E2806894d")*/) {
                     appendToLog("RfidReader.setSelectData 3 found " + mDid);
                     setSelectCriteria(0, true, 4, 0, 1, 0x204, "1", true);
-                    setSelectCriteria(1, true, 4, 2, 2, 0, getsTid(TAG_NXP_UCODE8) /*"E2806894"*/, false);
+                    setSelectCriteria(1, true, 4, 2, 2, 0, getsTid(TagType.TAG_NXP_UCODE8) /*"E2806894"*/, false);
                 }
                 //mDid = "E2806894";
             }
@@ -304,21 +303,21 @@ public class RfidReader {
         String sTid = "";
         if (tagType == TagType.TAG_IMPINJ_M775) sTid = "E2C011"; //"E2C011A2";
         else if (tagType == TagType.TAG_IMPINJ_M780) sTid = "E28011C";
-        else if (tagType == TAG_IMPINJ_M830) sTid = "E28011B";
-        else if (tagType == TAG_IMPINJ_M770) sTid = "E28011A";
-        else if (tagType == TAG_IMPINJ_M730) sTid = "E280119";
+        else if (tagType == TagType.TAG_IMPINJ_M830) sTid = "E28011B";
+        else if (tagType == TagType.TAG_IMPINJ_M770) sTid = "E28011A";
+        else if (tagType == TagType.TAG_IMPINJ_M730) sTid = "E280119";
         else if (tagType == TagType.TAG_IMPINJ_MONZA_R6A) sTid = "E2801171";
         else if (tagType == TagType.TAG_IMPINJ_MONZA_R6P) sTid = "E2801170";
         else if (tagType == TagType.TAG_IMPINJ_MONZA_R6) sTid = "E2801160";
         else if (tagType == TagType.TAG_IMPINJ_MONZA_X8K) sTid = "E2801150";
         else if (tagType == TagType.TAG_IMPINJ_noUSER) sTid = "E2001";
-        else if (tagType == TAG_IMPINJ) sTid = "E28011";
+        else if (tagType == TagType.TAG_IMPINJ) sTid = "E28011";
 
         else if (tagType == TagType.TAG_ALIEN) sTid = "E2003";
         else if (tagType == TagType.TAG_NXP) sTid = "E2806";
-        else if (tagType == TagType.TAG_NXP_UCODEDNA || tagType == TAG_NXP_UCODEDNA_AUTHMODE) sTid = "E2C06";
+        else if (tagType == TagType.TAG_NXP_UCODEDNA || tagType == TagType.TAG_NXP_UCODEDNA_AUTHMODE) sTid = "E2C06";
         else if (tagType == TagType.TAG_NXP_UCODE8 || tagType == TagType.TAG_NXP_UCODE8_EPC || tagType == TagType.TAG_NXP_UCODE8_EPCTID || tagType == TagType.TAG_NXP_UCODE8_EPCBRAND || tagType == TagType.TAG_NXP_UCODE8_EPCBRANDTID) sTid = "E2806894";
-        else if (tagType == TAG_EM) sTid = "E280B";
+        else if (tagType == TagType.TAG_EM) sTid = "E280B";
         else if (tagType == TagType.TAG_EM_BAP) sTid = "E200B0";
         else if (tagType == TagType.TAG_EM_COLDCHAIN) sTid = "E280B0";
         else if (tagType == TagType.TAG_EM_AURASENSE || tagType == TagType.TAG_EM_AURASENSE_ATBOOT || tagType == TagType.TAG_EM_AURASENSE_ATSELECT) sTid = "E280B12";
@@ -341,9 +340,9 @@ public class RfidReader {
         if (sTid == null) return tagType;
         if (sTid.indexOf("E2C011") == 0) tagType = TagType.TAG_IMPINJ_M775; //E2C011A2
         else if (sTid.indexOf("E28011C") == 0) tagType = TagType.TAG_IMPINJ_M780;
-        else if (sTid.indexOf("E28011B") == 0) tagType = TAG_IMPINJ_M830;
-        else if (sTid.indexOf("E28011A") == 0) tagType = TAG_IMPINJ_M770;
-        else if (sTid.indexOf("E280119") == 0) tagType = TAG_IMPINJ_M730;
+        else if (sTid.indexOf("E28011B") == 0) tagType = TagType.TAG_IMPINJ_M830;
+        else if (sTid.indexOf("E28011A") == 0) tagType = TagType.TAG_IMPINJ_M770;
+        else if (sTid.indexOf("E280119") == 0) tagType = TagType.TAG_IMPINJ_M730;
         else if (sTid.indexOf("E2801171") == 0) tagType = TagType.TAG_IMPINJ_MONZA_R6A;
         else if (sTid.indexOf("E2801170") == 0) tagType = TagType.TAG_IMPINJ_MONZA_R6P;
         else if (sTid.indexOf("E2801160") == 0) tagType = TagType.TAG_IMPINJ_MONZA_R6;
@@ -2222,7 +2221,7 @@ public class RfidReader {
         switch (getCountryCode()) {
             case 1:
                 RegionCodes RegionCodes;
-                regionList = new RfidReader.RegionCodes[]{
+                regionList = new RegionCodes[]{
                         RfidReader.RegionCodes.Albania1, RfidReader.RegionCodes.Algeria1, RfidReader.RegionCodes.Algeria2, RfidReader.RegionCodes.Armenia, RfidReader.RegionCodes.Austria1,
                         RfidReader.RegionCodes.Azerbaijan, RfidReader.RegionCodes.Bahrain, RfidReader.RegionCodes.Bangladesh, RfidReader.RegionCodes.Belarus, RfidReader.RegionCodes.Belgium1,
                         RfidReader.RegionCodes.Bosnia, RfidReader.RegionCodes.Botswana, RfidReader.RegionCodes.Brunei1, RfidReader.RegionCodes.Bulgaria1, RfidReader.RegionCodes.Cameroon,
@@ -2281,28 +2280,28 @@ public class RfidReader {
                 }
                 break;
             case 4:
-                regionList = new RfidReader.RegionCodes[]{
+                regionList = new RegionCodes[]{
                         RfidReader.RegionCodes.Taiwan1, RfidReader.RegionCodes.Taiwan2
                 };
                 break;
             case 6:
-                regionList = new RfidReader.RegionCodes[]{
+                regionList = new RegionCodes[]{
                         RfidReader.RegionCodes.Korea
                 };
                 break;
             case 7:
-                regionList = new RfidReader.RegionCodes[]{
+                regionList = new RegionCodes[]{
                         RfidReader.RegionCodes.Algeria4, RfidReader.RegionCodes.Brunei2, RfidReader.RegionCodes.Cambodia, RfidReader.RegionCodes.China, RfidReader.RegionCodes.Indonesia,
                         RfidReader.RegionCodes.KoreaDPR, RfidReader.RegionCodes.Macao, RfidReader.RegionCodes.Malaysia, RfidReader.RegionCodes.Mongolia, RfidReader.RegionCodes.Vietnam2
                 };
                 break;
             case 8:
-                regionList = new RfidReader.RegionCodes[]{
+                regionList = new RegionCodes[]{
                         RfidReader.RegionCodes.Japan4, RfidReader.RegionCodes.Japan6
                 };
                 break;
             case 9:
-                regionList = new RfidReader.RegionCodes[]{
+                regionList = new RegionCodes[]{
                         RfidReader.RegionCodes.Algeria3, RfidReader.RegionCodes.Austria2, RfidReader.RegionCodes.Belgium2, RfidReader.RegionCodes.Bulgaria2, RfidReader.RegionCodes.Cyprus2,
                         RfidReader.RegionCodes.Czech2, RfidReader.RegionCodes.Denmark2, RfidReader.RegionCodes.Finland2, RfidReader.RegionCodes.Hungary2, RfidReader.RegionCodes.Ireland2,
                         RfidReader.RegionCodes.Israel, RfidReader.RegionCodes.Liechtenstein2, RfidReader.RegionCodes.Lithuania2, RfidReader.RegionCodes.Luxembourg2, RfidReader.RegionCodes.Malta2,
@@ -2322,8 +2321,8 @@ public class RfidReader {
         if (DEBUG) appendToLog("3b getCountryList: getCountryEnum is " + iValue);
         if (iValue < 0) return null;
 
-        iValue += RfidReader.RegionCodes.Albania1.ordinal() - 1;
-        regionCode = RfidReader.RegionCodes.values()[iValue];
+        iValue += RegionCodes.Albania1.ordinal() - 1;
+        regionCode = RegionCodes.values()[iValue];
         if (DEBUG) appendToLog("3C getCountryList: regionCode is " + regionCode.toString());
         return regionList;
     }
@@ -3472,7 +3471,7 @@ public class RfidReader {
         return bValue;
     }
     public boolean setSelectCriteria(int index, boolean enable, int target, int action, int bank, int offset, String mask, boolean maskbit) {
-        if (index == 0) settingData.preFilterData = new SettingData.PreFilterData(enable, target, action, bank, offset, mask, maskbit);
+        if (index == 0) settingData.preFilterData = new _SettingData.PreFilterData(enable, target, action, bank, offset, mask, maskbit);
         if (index < 0) index = findFirstEmptySelect();
         if (index < 0) {
             appendToLog("cs710Library4A: no index is available !!!"); return false;
@@ -3515,7 +3514,7 @@ public class RfidReader {
             }
 
             if (index == 0)
-                settingData.preFilterData = new SettingData.PreFilterData(enable, target, action, bank, offset, mask, false);
+                settingData.preFilterData = new _SettingData.PreFilterData(enable, target, action, bank, offset, mask, false);
             if (mask == null) mask = "";
             if (mask.length() > 64) mask = mask.substring(0, 64);
             boolean result = true;
@@ -3660,7 +3659,7 @@ public class RfidReader {
         if (strLength * 4 != iValue1)  strLength++;
         return strValue.substring(0, strLength);
     }
-    String getSpecialCountryVersion() {
+    public String getSpecialCountryVersion() {
         boolean DEBUG = false;
         if (bis108) return rfidReaderChipR2000.rx000OemSetting.getSpecialCountryVersion();
         String strSpecialCountryCode = null;
@@ -3699,7 +3698,7 @@ public class RfidReader {
     }
     public PostMatchData postMatchData;
     public boolean setPostMatchCriteria(boolean enable, boolean target, int offset, String mask) {
-        postMatchData = new RfidReader.PostMatchData(enable, target, offset, mask, getAntennaCycle(), getPwrlevel(), getInvAlgo(), getQValue());
+        postMatchData = new PostMatchData(enable, target, offset, mask, getAntennaCycle(), getPwrlevel(), getInvAlgo(), getQValue());
         boolean result = (bis108 ? rfidReaderChipR2000.rx000Setting.setInvMatchEnable(enable ? 1 : 0, target ? 1 : 0, mask == null ? -1 : mask.length() * 4, offset)
                 : rfidReaderChipE710.rx000Setting.setInvMatchEnable(enable ? 1 : 0, target ? 1 : 0, mask == null ? -1 : mask.length() * 4, offset));
         if (result && mask != null) result = (bis108 ? rfidReaderChipR2000.rx000Setting.setInvMatchData(mask) : rfidReaderChipE710.rx000Setting.setInvMatchData(mask));
@@ -3786,7 +3785,7 @@ public class RfidReader {
     }
     public boolean abortOperation() {
         appendToLog("RfidReader.abortOperation: BtDataOut");
-        boolean bRetValue = (bis108 ? rfidReaderChipR2000.sendControlCommand(RfidReaderChipR2000.ControlCommands.ABORT) : rfidReaderChipE710.sendHostRegRequestHST_CMD(RfidReaderChipData.HostCommands.NULL));
+        boolean bRetValue = (bis108 ? rfidReaderChipR2000.sendControlCommand(_RfidReaderChipR2000.ControlCommands.ABORT) : rfidReaderChipE710.sendHostRegRequestHST_CMD(RfidReaderChipData.HostCommands.NULL));
         //setInventoring(false);
         return bRetValue;
     }
@@ -4352,5 +4351,64 @@ public class RfidReader {
     }
     public boolean turnOn(boolean onStatus) {
         return (bis108 ? rfidReaderChipR2000.turnOn(onStatus): rfidReaderChipE710.turnOn(onStatus));
+    }
+    public byte[] getProtMode2DecryptedData(byte[] key1, String strAlgo, byte[] dataIn, byte[] iv) {
+        byte[] decValue = null;
+        SecretKeySpec secretKey;
+        Cipher cipher;
+        try {
+            if (true) {
+                AesCmac mac = null;
+                mac = new AesCmac();
+                secretKey = new SecretKeySpec(key1, "AES");
+                mac.init(secretKey);  //set master key
+                mac.updateBlock(dataIn); //given input
+                decValue = mac.doFinal();
+            } else if (true) {
+                cipher = Cipher.getInstance(strAlgo);
+                secretKey = new SecretKeySpec(key1, "AES");
+                cipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(iv));
+
+                // First calculate k0 from zero bytes
+                byte[] k0 = new byte[16];
+                cipher.update(k0, 0, k0.length, k0, 0);
+
+                // Calculate values for k1 and k2
+                byte[] k1 = doubleSubKey(k0);
+                byte[] k2 = doubleSubKey(k1);
+                cipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(iv));
+                int bufferCount;
+            } else if (false) {
+                secretKey = new SecretKeySpec(key1, "AES");
+                Mac hmac = Mac.getInstance("HmacSHA256"); //HmacMD5, HmacSHA1, HmacSHA256
+                hmac.init(secretKey);
+                hmac.update(iv);
+                decValue = hmac.doFinal(dataIn);
+                appendToLog("decValue1.length = " + decValue.length);
+            } else {
+                secretKey = new SecretKeySpec(key1, "AES");
+                cipher = Cipher.getInstance(strAlgo);
+                cipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(iv));
+                decValue = cipher.doFinal(dataIn);
+            }
+        } catch (Exception ex) {
+            appendToLog("Error while encrypting: " + ex.toString());
+        }
+        return decValue;
+    }
+    private byte[] doubleSubKey(byte[] k) {
+        byte[] ret = new byte[k.length];
+
+        boolean firstBitSet = ((k[0]&0x80) != 0);
+        for (int i=0; i<k.length; i++) {
+            ret[i] = (byte) (k[i] << 1);
+            if (i+1 < k.length && ((k[i+1]&0x80) != 0)) {
+                ret[i] |= 0x01;
+            }
+        }
+        if (firstBitSet) {
+            ret[ret.length-1] ^= (byte) 0x87;
+        }
+        return ret;
     }
 }

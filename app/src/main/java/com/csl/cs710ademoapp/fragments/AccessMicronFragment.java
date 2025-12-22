@@ -1,12 +1,5 @@
 package com.csl.cs710ademoapp.fragments;
 
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_AXZON;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_AXZON_OPUS;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_MAGNUS_S1;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_MAGNUS_S2;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_MAGNUS_S3;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_AXZON_XERXES;
-
 import androidx.annotation.NonNull;
 
 import android.graphics.Color;
@@ -25,7 +18,7 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.csl.cslibrary4a.AccessTaskCustom;
+import com.csl.cslibrary4a.CustomAccessTask;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.MainActivity;
@@ -57,7 +50,7 @@ public class AccessMicronFragment extends CommonFragment {
     ReadWriteTypes readWriteTypes;
     boolean operationRead = false;
 
-    private AccessTaskCustom accessTask;
+    private CustomAccessTask accessTask;
     private int modelCode = 0, selectHold = 15;
     private int calCode1, calTemp1, calCode2, calTemp2, calVer = -1;
     private boolean changedSelectIndex = false;
@@ -87,7 +80,7 @@ public class AccessMicronFragment extends CommonFragment {
         editText.setText(MainActivity.config.configHumidityThreshold);
         TableRow tableRow = (TableRow) view.findViewById(R.id.accessMNHumidityThresholdRow);
         MainActivity.csLibrary4A.appendToLog("AccessMicronFragment.onViewCreated: DebugABC, MainActivity.tagType = " + MainActivity.tagType.toString());
-        if (MainActivity.tagType == TAG_AXZON) tableRow.setVisibility(View.GONE);
+        if (MainActivity.tagType == RfidReader.TagType.TAG_AXZON) tableRow.setVisibility(View.GONE);
 
         textViewConfigOk = (TextView) view.findViewById(R.id.accessMNModelCodeOK);
         textViewCalibrationOk = (TextView) view.findViewById(R.id.accessMNCalibrationOK);
@@ -122,11 +115,11 @@ public class AccessMicronFragment extends CommonFragment {
         spinnerTagType.setAdapter(arrayAdapterTagType);
         spinnerTagType.setEnabled(true );
         if (true) {
-            if (MainActivity.tagType == TAG_AXZON) spinnerTagType.setSelection(0);
-            else if (MainActivity.tagType == TAG_MAGNUS_S2) spinnerTagType.setSelection(1);
-            else if (MainActivity.tagType == TAG_MAGNUS_S3) spinnerTagType.setSelection(2);
-            else if (MainActivity.tagType == TAG_AXZON_XERXES) spinnerTagType.setSelection(3);
-            else if (MainActivity.tagType == TAG_AXZON_OPUS) spinnerTagType.setSelection(4);
+            if (MainActivity.tagType == RfidReader.TagType.TAG_AXZON) spinnerTagType.setSelection(0);
+            else if (MainActivity.tagType == RfidReader.TagType.TAG_MAGNUS_S2) spinnerTagType.setSelection(1);
+            else if (MainActivity.tagType == RfidReader.TagType.TAG_MAGNUS_S3) spinnerTagType.setSelection(2);
+            else if (MainActivity.tagType == RfidReader.TagType.TAG_AXZON_XERXES) spinnerTagType.setSelection(3);
+            else if (MainActivity.tagType == RfidReader.TagType.TAG_AXZON_OPUS) spinnerTagType.setSelection(4);
         }
         spinnerTagType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -140,20 +133,20 @@ public class AccessMicronFragment extends CommonFragment {
 
                 switch (spinnerTagType.getSelectedItemPosition()) {
                     case 0:
-                        MainActivity.tagType = TAG_AXZON; MainActivity.mDid = ""; //""E2824";
+                        MainActivity.tagType = RfidReader.TagType.TAG_AXZON; MainActivity.mDid = ""; //""E2824";
                         break;
                     case 1:
-                        MainActivity.tagType = TAG_MAGNUS_S2; MainActivity.mDid = ""; //""E282402";
+                        MainActivity.tagType = RfidReader.TagType.TAG_MAGNUS_S2; MainActivity.mDid = ""; //""E282402";
                         break;
                     case 2:
-                        MainActivity.tagType = TAG_MAGNUS_S3; MainActivity.mDid = ""; //""E282403";
+                        MainActivity.tagType = RfidReader.TagType.TAG_MAGNUS_S3; MainActivity.mDid = ""; //""E282403";
                         break;
                     case 3:
                         //tabLayout.getTabAt(2).setCustomView(View.VISIBLE);
-                        MainActivity.tagType = TAG_AXZON_XERXES; MainActivity.mDid = ""; //""E282405";
+                        MainActivity.tagType = RfidReader.TagType.TAG_AXZON_XERXES; MainActivity.mDid = ""; //""E282405";
                         break;
                     case 4:
-                        MainActivity.tagType = TAG_AXZON_OPUS; MainActivity.mDid = ""; //""E2C24500";
+                        MainActivity.tagType = RfidReader.TagType.TAG_AXZON_OPUS; MainActivity.mDid = ""; //""E2C24500";
                         break;
                 }
                 MainActivity.csLibrary4A.appendToLog("AccessMicroFragment.onItemSelected: MainActivity.tagType = " + MainActivity.tagType.toString());
@@ -252,7 +245,7 @@ public class AccessMicronFragment extends CommonFragment {
 
             }
         });
-        if (MainActivity.tagType == TAG_AXZON) spinnerSensorUnit.setEnabled(false);
+        if (MainActivity.tagType == RfidReader.TagType.TAG_AXZON) spinnerSensorUnit.setEnabled(false);
 
         ArrayAdapter<CharSequence> arrayAdapterTemperatureUnit = ArrayAdapter.createFromResource(getActivity(), R.array.temperature_unit_options, R.layout.custom_spinner_layout);
         arrayAdapterTemperatureUnit.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -364,15 +357,15 @@ public class AccessMicronFragment extends CommonFragment {
                     textViewModelCode.setText(tagSelected.getTid().substring(5));
 
                 } else if (tagSelected.getTagTypeExpected() == null) {
-                } else if (tagSelected.getTagTypeExpected() == TAG_MAGNUS_S1) {
+                } else if (tagSelected.getTagTypeExpected() == RfidReader.TagType.TAG_MAGNUS_S1) {
                     textViewModelCode.setText("01"); modelCode = 1;
-                } else if (tagSelected.getTagTypeExpected() == TAG_MAGNUS_S2) {
+                } else if (tagSelected.getTagTypeExpected() == RfidReader.TagType.TAG_MAGNUS_S2) {
                     textViewModelCode.setText("02"); modelCode = 2;
-                } else if (tagSelected.getTagTypeExpected() == TAG_MAGNUS_S3) {
+                } else if (tagSelected.getTagTypeExpected() == RfidReader.TagType.TAG_MAGNUS_S3) {
                     textViewModelCode.setText("03"); modelCode = 3;
-                } else if (tagSelected.getTagTypeExpected() == TAG_AXZON_XERXES) {
+                } else if (tagSelected.getTagTypeExpected() == RfidReader.TagType.TAG_AXZON_XERXES) {
                     textViewModelCode.setText("05"); modelCode = 5;
-                } else if (tagSelected.getTagTypeExpected() == TAG_AXZON_OPUS) {
+                } else if (tagSelected.getTagTypeExpected() == RfidReader.TagType.TAG_AXZON_OPUS) {
                     textViewModelCode.setText("50"); modelCode = 50;
                 }
 
@@ -482,15 +475,15 @@ public class AccessMicronFragment extends CommonFragment {
         if (strTid == null) return false;
         if (strTid.length() <= 7) return false;
         RfidReader.TagType tagType = MainActivity.csLibrary4A.getagType(strTid);
-        if (tagType == TAG_MAGNUS_S1) {
+        if (tagType == RfidReader.TagType.TAG_MAGNUS_S1) {
             modelCode = 1; return true;
-        } else if (tagType == TAG_MAGNUS_S2) {
+        } else if (tagType == RfidReader.TagType.TAG_MAGNUS_S2) {
             modelCode = 2; return true;
-        } else if (tagType == TAG_MAGNUS_S3) {
+        } else if (tagType == RfidReader.TagType.TAG_MAGNUS_S3) {
             modelCode = 3; return true;
-        } else if (tagType == TAG_AXZON_XERXES) {
+        } else if (tagType == RfidReader.TagType.TAG_AXZON_XERXES) {
             modelCode = 5; return true;
-        } else if (tagType == TAG_AXZON_OPUS) {
+        } else if (tagType == RfidReader.TagType.TAG_AXZON_OPUS) {
             modelCode = 50; return true;
         }
         return false;

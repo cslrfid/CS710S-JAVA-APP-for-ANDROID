@@ -3,6 +3,9 @@ package com.csl.cslibrary4a;
 import android.content.Context;
 import android.widget.Toast;
 
+import com.csl.cslibrary4a1.ConnectorData;
+import com.csl.cslibrary4a1.Utility;
+
 import java.util.ArrayList;
 
 public class NotificationConnector {

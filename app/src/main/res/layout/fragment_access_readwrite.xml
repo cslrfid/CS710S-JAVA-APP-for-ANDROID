@@ -45,46 +45,42 @@
             </TableRow>
 
      <TableRow
-         android:id="@+id/accessRWReserveTitleRow"
+         android:id="@+id/accessRWKIllPwdRow"
          android:layout_width="match_parent"
          android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/accessRWReserveOK"
+            android:id="@+id/accessRWKillPwdOK"
             android:layout_width="wrap_content" />
 
         <CheckBox
-            android:id="@+id/accessRWReserveTitle"
+            android:id="@+id/accessRWKillPwdTitle"
             android:layout_width="0dp"
             android:layout_weight="1"
-            style="@style/style_normal_font"
-            android:text="@string/reserve_title" />
-    </TableRow>
-
-    <TableRow
-        android:id="@+id/accessRWReserveValueRow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingLeft="15dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="left|center_vertical"
             style="@style/style_normal_font"
             android:text="@string/kill_pwd_title" />
 
-        <include
-            android:id="@+id/accessRWKillPwdValue"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            layout="@layout/custom_edittext_password" />
+         <include
+             android:id="@+id/accessRWKillPwdValue"
+             android:layout_width="0dp"
+             android:layout_weight="1"
+             android:layout_height="wrap_content"
+             layout="@layout/custom_edittext_password" />
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/accessRWAccPwdRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="left|center_vertical"
+            android:id="@+id/accessRWAccPwdOK"
+            android:layout_width="wrap_content" />
+
+        <CheckBox
+            android:id="@+id/accessRWAccPwdTitle"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             style="@style/style_normal_font"
             android:text="@string/access_pwd_title" />
 
@@ -92,7 +88,7 @@
             android:id="@+id/accessRWAccPwdValue"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             layout="@layout/custom_edittext_password" />
     </TableRow>
 

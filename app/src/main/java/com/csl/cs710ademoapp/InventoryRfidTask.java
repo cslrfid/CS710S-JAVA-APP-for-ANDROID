@@ -2,7 +2,6 @@ package com.csl.cs710ademoapp;
 
 import android.content.Context;
 import android.os.Handler;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;

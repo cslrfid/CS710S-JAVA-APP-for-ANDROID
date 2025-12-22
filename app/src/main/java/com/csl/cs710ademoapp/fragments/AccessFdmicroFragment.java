@@ -16,7 +16,7 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.csl.cslibrary4a.AccessTaskCustom;
+import com.csl.cslibrary4a.CustomAccessTask;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cslibrary4a.CustomPopupWindow;
 import com.csl.cs710ademoapp.MainActivity;
@@ -43,7 +43,7 @@ public class AccessFdmicroFragment extends CommonFragment {
     SimpleDateFormat formatter;
 
     boolean operationRunning = false, operationRead = false, operationReadTemperature = false, operationReadBattery = false, operationSetLogging = false, operationCheckLogging = false, operationStopLogging = false, operationGetLogging = false;
-    AccessTaskCustom accessTask;
+    CustomAccessTask accessTask;
 
     void clearOperationSelect() {
         operationReadTemperature = false; operationReadBattery = false; operationSetLogging = false; operationCheckLogging = false; operationStopLogging = false; operationGetLogging = false;
@@ -552,7 +552,7 @@ public class AccessFdmicroFragment extends CommonFragment {
         int selectBank = selectTag.spinnerSelectBank.getSelectedItemPosition() + 1;
         int selectOffset = Integer.valueOf(selectTag.editTextSelectOffset.getText().toString());
         boolean invalid = false;
-        accessTask = new AccessTaskCustom((operationRead ? buttonRead : buttonWrite), null, invalid, true,
+        accessTask = new CustomAccessTask((operationRead ? buttonRead : buttonWrite), null, invalid, true,
                 selectMask, selectBank, selectOffset,
                 selectTag.editTextAccessPassword.getText().toString(),
                 Integer.valueOf(selectTag.editTextAccessAntennaPower.getText().toString()),

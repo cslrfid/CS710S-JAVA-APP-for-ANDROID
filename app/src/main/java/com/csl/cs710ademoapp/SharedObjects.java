@@ -53,8 +53,8 @@ public class SharedObjects {
 
     public SharedObjects(Context context) {
         this.context = context;
-        playerO = new CustomMediaPlayer(context, MainActivity.csLibrary4A, "beeplow.mp3");
-        playerN = new CustomMediaPlayer(context, MainActivity.csLibrary4A, "beephigh.mp3");
-        playerL = new CustomMediaPlayer(context, MainActivity.csLibrary4A, "beep3s1khz.wav");
+        playerO = new CustomMediaPlayer(context, "beeplow.mp3");
+        playerN = new CustomMediaPlayer(context, "beephigh.mp3");
+        playerL = new CustomMediaPlayer(context, "beep3s1khz.wav");
     }
 }

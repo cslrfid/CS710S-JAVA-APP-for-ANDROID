@@ -23,11 +23,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.csl.cslibrary4a.ScanData;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.CustomProgressDialog;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
-import com.csl.cslibrary4a.BluetoothGatt;
 import com.csl.cslibrary4a.ReaderDevice;
 import com.csl.cs710ademoapp.adapters.ReaderListAdapter;
 
@@ -38,7 +38,7 @@ public class ConnectionFragment extends CommonFragment {
     private ReaderListAdapter readerListAdapter;
     private ArrayList<ReaderDevice> readersList = MainActivity.sharedObjects.readersList;
 
-    private ArrayList<BluetoothGatt.CsScanData> mScanResultList = new ArrayList<>();
+    private ArrayList<ScanData> mScanResultList = new ArrayList<>();
     private Handler mHandler = new Handler();
     private DeviceConnectTask deviceConnectTask;
     private TextView textview;
@@ -188,8 +188,8 @@ public class ConnectionFragment extends CommonFragment {
         protected String doInBackground(Void... a) {
             while (isCancelled() == false) {
                 if (wait4process == false) {
-                    BluetoothGatt.CsScanData csScanData = MainActivity.csLibrary4A.getNewDeviceScanned();
-                    if (csScanData != null) mScanResultList.add(csScanData);
+                    ScanData scanData = MainActivity.csLibrary4A.getNewDeviceScanned();
+                    if (scanData != null) mScanResultList.add(scanData);
                     if (scanning == false || mScanResultList.size() != 0 || System.currentTimeMillis() - timeMillisUpdate > 10000) {
                         wait4process = true; publishProgress("");
                     }
@@ -207,7 +207,7 @@ public class ConnectionFragment extends CommonFragment {
             }
             boolean listUpdated = false;
             while (mScanResultList.size() != 0) {
-                BluetoothGatt.CsScanData scanResultA = mScanResultList.get(0);
+                ScanData scanResultA = mScanResultList.get(0);
                 mScanResultList.remove(0);
                 if (getActivity() == null) continue;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

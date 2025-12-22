@@ -6,13 +6,13 @@ import android.widget.Button;
 
 public class TagAxzonOpus {
     public static SelectData selectData;
-    TagBanks tagBanks;
+    _TagBanks tagBanks;
     String TAG = "Hello";
 
     public final float fNO_SUCH_SETTING = 65522;
     public final int iNO_SUCH_SETTING = 65522;
     public TagAxzonOpus(Context context, CsLibrary4A csLibrary4A, CustomMediaPlayer playerN, CustomMediaPlayer playerO, Button buttonRead, Button buttonWrite) {
-        tagBanks = new TagBanks(context, csLibrary4A, playerN, playerO, buttonRead, buttonWrite);
+        tagBanks = new _TagBanks(context, csLibrary4A, playerN, playerO, buttonRead, buttonWrite);
     }
     public CustomAsyncTask.Status getReadWriteStatus() {
         return tagBanks.getReadWriteStatus();

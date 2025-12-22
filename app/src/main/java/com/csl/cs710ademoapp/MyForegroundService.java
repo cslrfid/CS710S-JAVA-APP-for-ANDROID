@@ -32,7 +32,7 @@ import androidx.core.app.NotificationCompat;
 
 import com.csl.cs710ademoapp.fragments.AboutFragment;
 import com.csl.cs710ademoapp.fragments.DirectWedgeFragment;
-import com.csl.cslibrary4a.BluetoothGatt;
+import com.csl.cslibrary4a.ScanData;
 import com.csl.cslibrary4a.ReaderDevice;
 import com.csl.cslibrary4a.RfidReaderChipData;
 
@@ -152,20 +152,20 @@ public class MyForegroundService extends Service {
                                 if (MainActivity.csLibrary4A.isBleConnected()) {
                                     foregroundServiceState = CONNECTED;
                                 } else if (isForegroundEnable()) {
-                                    BluetoothGatt.CsScanData csScanData = null;
+                                    ScanData scanData = null;
                                     while (true) {
-                                        csScanData = MainActivity.csLibrary4A.getNewDeviceScanned();
-                                        Log.i(TAG, "cs108ScanData is " + (csScanData == null ? "null" : "valid") + ", foregroundReader = " + MainActivity.csLibrary4A.getForegroundReader());
-                                        if (csScanData == null) break;
-                                        strMessage += ("\n" + csScanData.device.getAddress());
-                                        if (csScanData.device.getAddress().matches(MainActivity.csLibrary4A.getForegroundReader())) { //"84:C6:92:9D:DD:52")) {
-                                            readerDevice = new ReaderDevice(csScanData.device.getName(), csScanData.device.getAddress(), false, "", 1,
-                                                    csScanData.rssi, csScanData.serviceUUID, csScanData.hasServicePower);
+                                        scanData = MainActivity.csLibrary4A.getNewDeviceScanned();
+                                        Log.i(TAG, "cs108ScanData is " + (scanData == null ? "null" : "valid") + ", foregroundReader = " + MainActivity.csLibrary4A.getForegroundReader());
+                                        if (scanData == null) break;
+                                        strMessage += ("\n" + scanData.device.getAddress());
+                                        if (scanData.device.getAddress().matches(MainActivity.csLibrary4A.getForegroundReader())) { //"84:C6:92:9D:DD:52")) {
+                                            readerDevice = new ReaderDevice(scanData.device.getName(), scanData.device.getAddress(), false, "", 1,
+                                                    scanData.rssi, scanData.serviceUUID, scanData.hasServicePower);
                                             String strInfo = "";
-                                            if (csScanData.device.getBondState() == 12) {
+                                            if (scanData.device.getBondState() == 12) {
                                                 strInfo += "BOND_BONDED\n";
                                             }
-                                            readerDevice.setDetails(strInfo + "scanRecord=" + MainActivity.csLibrary4A.byteArrayToString(csScanData.scanRecord));
+                                            readerDevice.setDetails(strInfo + "scanRecord=" + MainActivity.csLibrary4A.byteArrayToString(scanData.scanRecord));
 
                                             MainActivity.csLibrary4A.scanLeDevice(false);
                                             MainActivity.csLibrary4A.connect(readerDevice);
@@ -174,8 +174,8 @@ public class MyForegroundService extends Service {
                                             break;
                                         }
                                     }
-                                    if (foregroundServiceState != CONNECT && csScanData != null)
-                                        strMessage += ("\n" + csScanData.device.getAddress());
+                                    if (foregroundServiceState != CONNECT && scanData != null)
+                                        strMessage += ("\n" + scanData.device.getAddress());
                                 } else {
                                     Log.i(TAG, "Stop ScanLeDevice");
                                     MainActivity.csLibrary4A.scanLeDevice(false);

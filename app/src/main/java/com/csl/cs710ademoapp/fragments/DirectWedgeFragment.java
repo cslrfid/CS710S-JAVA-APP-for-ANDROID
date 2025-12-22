@@ -45,13 +45,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.csl.cslibrary4a.ScanData;
 import com.csl.cslibrary4a.CustomPopupWindow;
 import com.csl.cs710ademoapp.MyForegroundService;
 import com.csl.cs710ademoapp.adapters.ReaderListAdapter;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cs710ademoapp.CustomAlertDialog;
-import com.csl.cslibrary4a.BluetoothGatt;
 import com.csl.cslibrary4a.ReaderDevice;
 
 import java.util.ArrayList;
@@ -337,9 +337,9 @@ public class DirectWedgeFragment extends CommonFragment {
                     listUpdated = true;
                 } else {
                     while (true) {
-                        BluetoothGatt.CsScanData csScanData = MainActivity.csLibrary4A.getNewDeviceScanned();
-                        if (csScanData != null) {
-                            BluetoothGatt.CsScanData scanResultA = csScanData;
+                        ScanData scanData = MainActivity.csLibrary4A.getNewDeviceScanned();
+                        if (scanData != null) {
+                            ScanData scanResultA = scanData;
                             if (scanResultA.device == null) continue;
                             if (getActivity() == null) continue;
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

@@ -19,14 +19,13 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.csl.cslibrary4a.AccessTaskCustom;
+import com.csl.cslibrary4a.CustomAccessTask;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cs710ademoapp.SaveList2ExternalTask;
 import com.csl.cs710ademoapp.SelectTag;
-import com.csl.cslibrary4a.AesCmac;
 import com.csl.cslibrary4a.ReaderDevice;
 import com.csl.cslibrary4a.RfidReader;
 import com.csl.cslibrary4a.RfidReaderChipData;
@@ -68,7 +67,7 @@ public class AccessUcodeFragment extends CommonFragment {
     ReadWriteTypes readWriteTypes;
     boolean bImpinJTag = false;
 
-    private AccessTaskCustom accessTask;
+    private CustomAccessTask accessTask;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -524,22 +523,6 @@ public class AccessUcodeFragment extends CommonFragment {
             }
         }
     }
-
-    private byte[] doubleSubKey(byte[] k) {
-        byte[] ret = new byte[k.length];
-
-        boolean firstBitSet = ((k[0]&0x80) != 0);
-        for (int i=0; i<k.length; i++) {
-            ret[i] = (byte) (k[i] << 1);
-            if (i+1 < k.length && ((k[i+1]&0x80) != 0)) {
-                ret[i] |= 0x01;
-            }
-        }
-        if (firstBitSet) {
-            ret[ret.length-1] ^= (byte) 0x87;
-        }
-        return ret;
-    }
     boolean processAESdata(String strData) {
         boolean retValue = false;
         String strKey, strKey0, strKey1;
@@ -611,40 +594,7 @@ public class AccessUcodeFragment extends CommonFragment {
                     textViewAuthResponseDecodedCustom.setText(MainActivity.csLibrary4A.byteArrayToString(decValue16));
 
                     if (protMode >= 2) {
-                        if (true) {
-                            AesCmac mac = null;
-                            mac = new AesCmac();
-                            secretKey = new SecretKeySpec(key1, "AES");
-                            mac.init(secretKey);  //set master key
-                            mac.updateBlock(dataIn); //given input
-                            decValue = mac.doFinal();
-                        } else if (true) {
-                            cipher = Cipher.getInstance(strAlgo);
-                            secretKey = new SecretKeySpec(key1, "AES");
-                            cipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(iv));
-
-                            // First calculate k0 from zero bytes
-                            byte[] k0 = new byte[16];
-                            cipher.update(k0, 0, k0.length, k0, 0);
-
-                            // Calculate values for k1 and k2
-                            byte[] k1 = doubleSubKey(k0);
-                            byte[] k2 = doubleSubKey(k1);
-                            cipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(iv));
-                            int bufferCount;
-                        } else if (false) {
-                            secretKey = new SecretKeySpec(key1, "AES");
-                            Mac hmac = Mac.getInstance("HmacSHA256"); //HmacMD5, HmacSHA1, HmacSHA256
-                            hmac.init(secretKey);
-                            hmac.update(iv);
-                            decValue = hmac.doFinal(dataIn);
-                            MainActivity.csLibrary4A.appendToLog("decValue1.length = " + decValue.length);
-                        } else {
-                            secretKey = new SecretKeySpec(key1, "AES");
-                            cipher = Cipher.getInstance(strAlgo);
-                            cipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(iv));
-                            decValue = cipher.doFinal(dataIn);
-                        }
+                        decValue = MainActivity.csLibrary4A.getProtMode2DecryptedData(key1, strAlgo, dataIn, iv);
                         String strMac = MainActivity.csLibrary4A.byteArrayToString(decValue).substring(0, 24);
                         editTextAuthResponseEncodedMac.setText(strMac);
 

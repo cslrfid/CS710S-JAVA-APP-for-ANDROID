@@ -16,7 +16,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.csl.cslibrary4a.AccessTaskCustom;
+import com.csl.cslibrary4a.CustomAccessTask;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.MainActivity;
@@ -44,7 +44,7 @@ public class AccessColdChainFragment extends CommonFragment {
     boolean operationRead = false;
     ReadWriteTypes readWriteTypes;
 
-    private AccessTaskCustom accessTask;
+    private CustomAccessTask accessTask;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -313,7 +313,7 @@ public class AccessColdChainFragment extends CommonFragment {
                     if (readWriteTypes == ReadWriteTypes.TEMPERATURE) hostCommand = RfidReaderChipData.HostCommands.CMD_GETSENSORDATA;
                     else if (operationRead) hostCommand = RfidReaderChipData.HostCommands.CMD_18K6CREAD;
                     else hostCommand = RfidReaderChipData.HostCommands.CMD_18K6CWRITE;
-                    accessTask = new AccessTaskCustom((operationRead ? buttonRead : buttonWrite), null, invalid, true,
+                    accessTask = new CustomAccessTask((operationRead ? buttonRead : buttonWrite), null, invalid, true,
                             editTextRWTagID.getText().toString(), 1, 32,
                             editTextAccessRWAccPassword.getText().toString(),
                             Integer.valueOf(editTextaccessRWAntennaPower.getText().toString()),

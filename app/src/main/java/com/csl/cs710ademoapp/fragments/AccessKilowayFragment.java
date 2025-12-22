@@ -12,7 +12,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.csl.cslibrary4a.AccessTaskCustom;
+import com.csl.cslibrary4a.CustomAccessTask;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
@@ -34,7 +34,7 @@ public class AccessKilowayFragment extends CommonFragment {
     }
     ReadWriteTypes readWriteTypes;
 
-    private AccessTaskCustom accessTask;
+    private CustomAccessTask accessTask;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);

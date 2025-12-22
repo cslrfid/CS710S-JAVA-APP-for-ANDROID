@@ -1,7 +1,5 @@
 package com.csl.cs710ademoapp.fragments;
 
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_FDMICRO;
-
 import android.os.Bundle;
 
 import com.csl.cs710ademoapp.MainActivity;
@@ -22,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.csl.cs710ademoapp.R;
+import com.csl.cslibrary4a.RfidReader;
 
 public class FdmicroFragment extends CommonFragment {
     private ActionBar actionBar;
@@ -78,7 +77,7 @@ public class FdmicroFragment extends CommonFragment {
         actionBar.setTitle(R.string.title_activity_fdMicro);
 
         adapter = new CustomTabAdapter(this, tabs.length);
-        adapter.setFragment(0, InventoryRfidiMultiFragment.newInstance(true, TAG_FDMICRO, "")); //""E2827001"));
+        adapter.setFragment(0, InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_FDMICRO, "")); //""E2827001"));
         adapter.setFragment(1, new AccessFdmicroFragment());
 
         viewPager = (ViewPager2) getActivity().findViewById(R.id.OperationsPager2);

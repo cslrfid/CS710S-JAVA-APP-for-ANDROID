@@ -1,10 +1,12 @@
 package com.csl.cs710ademoapp;
 
+import static android.Manifest.permission.BLUETOOTH_SCAN;
 import static android.content.Context.WIFI_SERVICE;
 import static com.csl.cs710ademoapp.MainActivity.csLibrary4A;
 import static com.csl.cs710ademoapp.MainActivity.context;
 
 import android.bluetooth.BluetoothAdapter;
+import android.content.pm.PackageManager;
 import android.media.MediaScannerConnection;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
@@ -12,6 +14,8 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.Settings;
 import android.util.Log;
+
+import androidx.core.app.ActivityCompat;
 
 import com.csl.cslibrary4a.CustomPopupWindow;
 import com.csl.cslibrary4a.ReaderDevice;
@@ -64,6 +68,9 @@ public class SaveList2ExternalTask extends AsyncTask<Void,Void,String> {
     public SaveList2ExternalTask(ArrayList<ReaderDevice> tagsList) {
         this.tagsList = tagsList;
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ActivityCompat.checkSelfPermission(context, BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) return;
+        }
         stringBluetoothMAC = BluetoothAdapter.getDefaultAdapter().getAddress().replaceAll(":", "");
         csLibrary4A.appendToLog("stringBluetoothMac from getMacAddress = " + stringBluetoothMAC);
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S) { }

@@ -45,7 +45,7 @@ public class AccessReadWriteFragment extends CommonFragment {
 
     String accEpcValue = ""; String accXpcValue = ""; String accTidValue = ""; String accUserValue = "";
     enum ReadWriteTypes {
-        NULL, RESERVE, PC, EPC, XPC, TID, USER, EPC1
+        NULL, KILLPWD, ACCPWD, PC, EPC, XPC, TID, USER, EPC1
     }
     boolean operationRead = false;
     ReadWriteTypes readWriteTypes;
@@ -310,8 +310,8 @@ public class AccessReadWriteFragment extends CommonFragment {
         }
     };
 
-    TextView textViewReserveOk, textViewPcOk, textViewEpcOk, textViewTidOk, textViewUserOk, textViewEpc1Ok;
-    CheckBox checkBoxReserve, checkBoxPc, checkBoxEpc, checkBoxTid, checkBoxUser, checkBoxEpc1;
+    TextView textViewKillPwdOk, textViewAccPwdOk, textViewPcOk, textViewEpcOk, textViewTidOk, textViewUserOk, textViewEpc1Ok;
+    CheckBox checkBoxKillPwd, checkBoxAccPwd, checkBoxPc, checkBoxEpc, checkBoxTid, checkBoxUser, checkBoxEpc1;
     int accessBank, accSize, accOffset; String accWriteData;
     int restartCounter = 0; int restartAccessBank = -1;
     boolean processResult() {
@@ -324,8 +324,11 @@ public class AccessReadWriteFragment extends CommonFragment {
             accessResult = accessTask.getResult();
             if (DEBUG) MainActivity.csLibrary4A.appendToLog("processResult(): accessResult = " + accessResult);
             if (accessResult == null) {
-                if (readWriteTypes == ReadWriteTypes.RESERVE) {
-                    textViewReserveOk.setText("E"); checkBoxReserve.setChecked(false);
+                if (readWriteTypes == ReadWriteTypes.KILLPWD) {
+                    textViewKillPwdOk.setText("E"); checkBoxKillPwd.setChecked(false);
+                }
+                if (readWriteTypes == ReadWriteTypes.ACCPWD) {
+                    textViewAccPwdOk.setText("E"); checkBoxAccPwd.setChecked(false);
                 }
                 if (readWriteTypes == ReadWriteTypes.PC) {
                     textViewPcOk.setText("E"); checkBoxPc.setChecked(false);
@@ -344,8 +347,9 @@ public class AccessReadWriteFragment extends CommonFragment {
                 }
             } else {
                 if (DEBUG) MainActivity.csLibrary4A.appendToLog("accessResult = " + accessResult);
-                if (readWriteTypes == ReadWriteTypes.RESERVE) {
-                    textViewReserveOk.setText("O"); checkBoxReserve.setChecked(false);
+                if (readWriteTypes == ReadWriteTypes.KILLPWD) {
+                    textViewKillPwdOk.setText("O");
+                    checkBoxKillPwd.setChecked(false);
                     readWriteTypes = ReadWriteTypes.NULL;
                     if (accessResult.length() == 0 || operationRead == false) {
                     } else if (accessResult.length() < 8) {
@@ -353,12 +357,14 @@ public class AccessReadWriteFragment extends CommonFragment {
                     } else {
                         editTextAccessRWKillPwd.setText(accessResult.substring(0, 8));
                     }
-                    if (accessResult.length() <= 8) {
-                        editTextAccessRWAccPwd.setText("");
-                    } else if (accessResult.length() < 16) {
-                        editTextAccessRWAccPwd.setText(accessResult.subSequence(8, accessResult.length()));
+                } else if (readWriteTypes == ReadWriteTypes.ACCPWD) {
+                    textViewAccPwdOk.setText("O"); checkBoxAccPwd.setChecked(false);
+                    readWriteTypes = ReadWriteTypes.NULL;
+                    if (accessResult.length() == 0 || operationRead == false) {
+                    } else if (accessResult.length() < 8) {
+                        editTextAccessRWAccPwd.setText(accessResult);
                     } else {
-                        editTextAccessRWAccPwd.setText(accessResult.subSequence(8, 16));
+                        editTextAccessRWAccPwd.setText(accessResult.substring(0, 8));
                     }
                 } else if (readWriteTypes == ReadWriteTypes.PC) {
                     textViewPcOk.setText("O"); checkBoxPc.setChecked(false);
@@ -446,34 +452,42 @@ public class AccessReadWriteFragment extends CommonFragment {
         String writeData = "";
         boolean invalidRequest1 = false;
 
-        textViewReserveOk = (TextView) getActivity().findViewById(R.id.accessRWReserveOK);
+        textViewKillPwdOk = (TextView) getActivity().findViewById(R.id.accessRWKillPwdOK);
+        textViewAccPwdOk = (TextView) getActivity().findViewById(R.id.accessRWAccPwdOK);
         textViewPcOk = (TextView) getActivity().findViewById(R.id.accessRWPcOK);
         textViewEpcOk = (TextView) getActivity().findViewById(R.id.accessRWEpcOK);
         textViewTidOk = (TextView) getActivity().findViewById(R.id.accessRWTidOK);
         textViewUserOk = (TextView) getActivity().findViewById(R.id.accessRWUserOK);
         textViewEpc1Ok = (TextView) getActivity().findViewById(R.id.accessRWEpc1OK);
 
-        checkBoxReserve = (CheckBox) getActivity().findViewById(R.id.accessRWReserveTitle);
+        checkBoxKillPwd = (CheckBox) getActivity().findViewById(R.id.accessRWKillPwdTitle);
+        checkBoxAccPwd = (CheckBox) getActivity().findViewById(R.id.accessRWAccPwdTitle);
         checkBoxPc = (CheckBox) getActivity().findViewById(R.id.accessRWPcTitle);
         checkBoxEpc = (CheckBox) getActivity().findViewById(R.id.accessRWEpcTitle);
         checkBoxTid = (CheckBox) getActivity().findViewById(R.id.accessRWTidTitle);
         checkBoxUser = (CheckBox) getActivity().findViewById(R.id.accessRWUserTitle);
         checkBoxEpc1 = (CheckBox) getActivity().findViewById(R.id.accessRWEpc1);
 
-        if (checkBoxReserve.isChecked() == true) {
-            textViewReserveOk.setText("");
-            accessBank = 0; accOffset = 0; accSize = 4; readWriteTypes = ReadWriteTypes.RESERVE;
+        if (checkBoxKillPwd.isChecked() == true) {
+            textViewKillPwdOk.setText("");
+            accessBank = 0; accOffset = 0; accSize = 2;
+            readWriteTypes = ReadWriteTypes.KILLPWD;
             if (operationRead) {
                 editTextAccessRWKillPwd.setText("");
-                editTextAccessRWAccPwd.setText("");
             } else {
                 String strValue = editTextAccessRWKillPwd.getText().toString();
-                String strValue1 = editTextAccessRWAccPwd.getText().toString();
-                if (strValue.length() != 8 || strValue1.length() != 8) {
-                    invalidRequest1 = true;
-                } else {
-                    writeData = strValue + strValue1;
-                }
+                if (strValue.length() != 8) invalidRequest1 = true;
+                else writeData = strValue;
+            }
+        } else if (checkBoxAccPwd.isChecked() == true) {
+            textViewAccPwdOk.setText("");
+            accessBank = 0; accOffset = 2; accSize = 2; readWriteTypes = ReadWriteTypes.ACCPWD;
+            if (operationRead) {
+                editTextAccessRWAccPwd.setText("");
+            } else {
+                String strValue = editTextAccessRWAccPwd.getText().toString();
+                if (strValue.length() != 8) invalidRequest1 = true;
+                else writeData = strValue;
             }
         } else if (checkBoxPc.isChecked() == true || ((checkBoxEpc.isChecked() == true) && (strPCValueRef.length() != 4) )) {
             textViewPcOk.setText("");

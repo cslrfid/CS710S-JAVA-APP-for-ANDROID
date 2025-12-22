@@ -1,10 +1,5 @@
 package com.csl.cs710ademoapp;
 
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_ALIEN;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_ASYGN;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_CTESIUS;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_EM_BAP;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -237,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new ImpinjFragment();
                 break;
             case ALIEN:
-                fragment = InventoryRfidiMultiFragment.newInstance(true, TAG_ALIEN, "" /*"E2003"*/);
+                fragment = InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_ALIEN, "" /*"E2003"*/);
                 break;
             case UCODE8:
                 fragment = new Ucode8Fragment();
@@ -246,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new UcodeFragment();
                 break;
             case BAPCARD:
-                fragment = InventoryRfidiMultiFragment.newInstance(true, TAG_EM_BAP, "" /*"E200B0"*/);
+                fragment = InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_EM_BAP, "" /*"E200B0"*/);
                 break;
             case COLDCHAIN:
                 fragment = new ColdChainFragment();
@@ -267,10 +262,10 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new FdmicroFragment();
                 break;
             case CTESIUS:
-                fragment = InventoryRfidiMultiFragment.newInstance(true, TAG_CTESIUS, ""); //""E203510");
+                fragment = InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_CTESIUS, ""); //""E203510");
                 break;
             case ASYGNTAG:
-                fragment = InventoryRfidiMultiFragment.newInstance(true, TAG_ASYGN, ""); //""E283A");
+                fragment = InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_ASYGN, ""); //""E283A");
                 break;
 
             case REGISTER:

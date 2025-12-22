@@ -4,18 +4,17 @@ import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.util.Log;
 
 import java.io.IOException;
 
 public class CustomMediaPlayer {
     final boolean DEBUG = false;
     Context context;
-    CsLibrary4A csLibrary4A;
     MediaPlayer player; boolean starting = false;
 
-    public CustomMediaPlayer(Context context, CsLibrary4A csLibrary4A, String file) {
+    public CustomMediaPlayer(Context context, String file) {
         this.context = context;
-        this.csLibrary4A = csLibrary4A;
         player = null;
         try {
             AssetFileDescriptor afd = context.getAssets().openFd(file);
@@ -26,11 +25,11 @@ public class CustomMediaPlayer {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
                     starting = false;
-                    if (DEBUG) csLibrary4A.appendToLog("MediaPlayer is completed.");
+                    if (DEBUG) Log.i("Hello", "MediaPlayer is completed.");
                 }
             });
         } catch (IOException e) {
-            csLibrary4A.appendToLog("mp3 setup FAIL");
+            Log.i("Hello", "mp3 setup FAIL");
         }
     }
 
@@ -50,7 +49,7 @@ public class CustomMediaPlayer {
             AudioManager audioManager = ((AudioManager) context.getSystemService(Context.AUDIO_SERVICE));
             int iVolumeMax = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
             int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-            csLibrary4A.appendToLog("Hello8: currentVolume = " + currentVolume);
+            Log.i("Hello", "currentVolume = " + currentVolume);
             if (currentVolume > 0) {
                 int volume12 = volume1 + volume2;
                 volume12 = ( volume12 * iVolumeMax ) / 600;

@@ -24,7 +24,6 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cslibrary4a.CustomMediaPlayer;
 import com.csl.cs710ademoapp.InventoryRfidTask;
 import com.csl.cs710ademoapp.SelectTag;

@@ -10,7 +10,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.csl.cslibrary4a.AccessTaskCustom;
+import com.csl.cslibrary4a.CustomAccessTask;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.MainActivity;
@@ -23,7 +23,7 @@ public class AccessSecurityKillFragment extends CommonFragment {
     private EditText editTextTagID, editTextPassword, editTextAntennaPower;
     private Button button;
 
-    private AccessTaskCustom accessTask;
+    private CustomAccessTask accessTask;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

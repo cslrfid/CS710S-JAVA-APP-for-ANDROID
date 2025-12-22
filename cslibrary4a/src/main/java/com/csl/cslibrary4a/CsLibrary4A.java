@@ -1,68 +1,45 @@
 package com.csl.cslibrary4a;
 
-import static android.bluetooth.BluetoothClass.Service.LE_AUDIO;
-import static android.bluetooth.BluetoothClass.Service.LIMITED_DISCOVERABILITY;
-import static android.bluetooth.BluetoothDevice.BOND_BONDED;
-import static android.bluetooth.BluetoothDevice.BOND_BONDING;
-import static android.bluetooth.BluetoothDevice.BOND_NONE;
-import static android.bluetooth.BluetoothDevice.DEVICE_TYPE_CLASSIC;
-import static android.bluetooth.BluetoothDevice.DEVICE_TYPE_DUAL;
-import static android.bluetooth.BluetoothDevice.DEVICE_TYPE_LE;
-import static android.bluetooth.BluetoothDevice.DEVICE_TYPE_UNKNOWN;
-
-import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGattCallback;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothManager;
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.os.ParcelUuid;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.core.app.ActivityCompat;
+import com.csl.cslibrary4a1.Utility;
 
-import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Set;
 
 public class CsLibrary4A {
-    String stringVersion = "7";
+    String stringVersion = "9";
     boolean DEBUG = false, DEBUG2 = false;
     Utility utility;
     Cs710Library4A cs710Library4A;
     Cs108Library4A cs108Library4A;
     Context context; TextView textViewLog;
-    public AccessTaskCustom getAccessTaskCustom(Button button, boolean invalidRequest, boolean selectOne,
-                                   String selectMask, int selectBank, int selectOffset,
-                                   String strPassword, int powerLevel, RfidReaderChipData.HostCommands hostCommand,
-                                   boolean bEnableErrorPopWindow, Runnable updateRunnable,
+    public CustomAccessTask getAccessTaskCustom(Button button, boolean invalidRequest, boolean selectOne,
+                                                String selectMask, int selectBank, int selectOffset,
+                                                String strPassword, int powerLevel, RfidReaderChipData.HostCommands hostCommand,
+                                                boolean bEnableErrorPopWindow, Runnable updateRunnable,
                                                 CustomMediaPlayer playerN, CustomMediaPlayer playerO) {
-        AccessTaskCustom accessTaskCustom = new AccessTaskCustom(button, invalidRequest, selectOne,
+        CustomAccessTask customAccessTask = new CustomAccessTask(button, invalidRequest, selectOne,
                 selectMask, selectBank, selectOffset,
                 strPassword, powerLevel, hostCommand,
                 bEnableErrorPopWindow, updateRunnable,
                 context, this, playerN, playerO);
-        return accessTaskCustom;
+        return customAccessTask;
     }
-    public AccessTaskCustom getAccessTaskCustom(Button button, TextView textViewWriteCount, boolean invalidRequest, boolean selectOne,
-                                   String selectMask, int selectBank, int selectOffset,
-                                   String strPassword, int powerLevel, RfidReaderChipData.HostCommands hostCommand,
-                                   int qValue, int repeat, boolean resetCount, boolean bSkipClearFilter,
-                                   TextView registerRunTime, TextView registerTagGot, TextView registerVoltageLevel, TextView registerYieldView, TextView registerTotalView,
-                                   CustomMediaPlayer playerN, CustomMediaPlayer playerO) {
-        AccessTaskCustom accessTaskCustom = new AccessTaskCustom(button, textViewWriteCount, invalidRequest, selectOne,
+    public CustomAccessTask getAccessTaskCustom(Button button, TextView textViewWriteCount, boolean invalidRequest, boolean selectOne,
+                                                String selectMask, int selectBank, int selectOffset,
+                                                String strPassword, int powerLevel, RfidReaderChipData.HostCommands hostCommand,
+                                                int qValue, int repeat, boolean resetCount, boolean bSkipClearFilter,
+                                                TextView registerRunTime, TextView registerTagGot, TextView registerVoltageLevel, TextView registerYieldView, TextView registerTotalView,
+                                                CustomMediaPlayer playerN, CustomMediaPlayer playerO) {
+        CustomAccessTask customAccessTask = new CustomAccessTask(button, textViewWriteCount, invalidRequest, selectOne,
                 selectMask, selectBank, selectOffset,
                 strPassword, powerLevel, hostCommand,
                 qValue, repeat, resetCount, bSkipClearFilter,
                 registerRunTime, registerTagGot, registerVoltageLevel, registerYieldView, registerTotalView, context, this, playerN, playerO);
-        return accessTaskCustom;
+        return customAccessTask;
     }
 
     public CsLibrary4A(Context context, TextView textViewLog) {
@@ -131,8 +108,8 @@ public class CsLibrary4A {
     public String getUpcSerialDetail(String strUpcSerial) {
         return utility.getUpcSerialDetail(strUpcSerial);
     }
-    public String getEpc4upcSerial(Utility.EpcClass epcClass, String filter, String companyPrefix, String itemReference, String serialNumber) {
-        return utility.getEpc4upcSerial(epcClass, filter, companyPrefix, itemReference, serialNumber);
+    public String getEpc4upcSerial(int iEpcClass, String filter, String companyPrefix, String itemReference, String serialNumber) {
+        return utility.getEpc4upcSerial(iEpcClass, filter, companyPrefix, itemReference, serialNumber);
     }
     public boolean checkHostProcessorVersion(String version, int majorVersion, int minorVersion, int buildVersion) {
         return utility.checkHostProcessorVersion(version, majorVersion, minorVersion, buildVersion);
@@ -151,182 +128,34 @@ public class CsLibrary4A {
         boolean bValue = false, bValue1 = false, bValue7 = false, DEBUG = true;
         if (DEBUG) appendToLog("CsLibrary.scanLeDevice[" + enable + "]");
 
-        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (bluetoothAdapter == null) {
-            appendToLog("CsLibrary.scanLeDevice: bluetoothAdapter is null");
-            // device doesn't support bluetooth
-        } else {
-            appendToLog("CsLibrary.scanLeDevice: bluetoothAdapter is valid");
-
-            // Do whatever you want to do with your bluetoothAdapter
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                appendToLog("CsLibrary.scanLeDevice: bluetoothConnect permission is not granted");
-            } else {
-                appendToLog("CsLibrary.scanLeDevice: bluetoothConnect permission is granted");
-
-                BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-                //List<BluetoothDevice> bluetoothDevices = bluetoothManager.getConnectedDevices(GATT);
-                Set<BluetoothDevice> bluetoothDevices = bluetoothAdapter.getBondedDevices();
-                appendToLog("CsLibrary.scanLeDevice: bluetoothDevices size = " + bluetoothDevices.size());
-                int i = 0;
-                for (BluetoothDevice bluetoothDevice : bluetoothDevices) {
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", Name = " + bluetoothDevice.getName());
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", Address = " + bluetoothDevice.getAddress());
-                    String string = "CsLibrary.scanLeDevice: " + i + ", Type = " + bluetoothDevice.getType();
-                    switch (bluetoothDevice.getType()) {
-                        case DEVICE_TYPE_CLASSIC:
-                            string += " Classic - BR/EDR device";
-                            break;
-                        case DEVICE_TYPE_LE:
-                            string += " Low Energy - LE only device";
-                            break;
-                        case DEVICE_TYPE_DUAL:
-                            string += " Dual Mode - BR/EDR/LE device";
-                            break;
-                        default:
-                        case DEVICE_TYPE_UNKNOWN:
-                            string += " Unknown device";
-                            break;
-                    }
-                    appendToLog(string);
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", bluetoothClass = " + bluetoothDevice.getBluetoothClass().toString());
-                    int iDeviceClass = bluetoothDevice.getBluetoothClass().getDeviceClass();
-                    int iDeviceClassService = iDeviceClass >> 13;
-                    int iDeviceClassMajor = (iDeviceClass & 0x1F00) >> 8;
-                    int iDeviceClassMinor = (iDeviceClass & 0xFF) >> 2;
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", bluetoothClass = " + String.format("%X", iDeviceClass)
-                            + ", " + String.format("%X", iDeviceClassService)
-                            + ", " + String.format("%X", iDeviceClassMajor)
-                            + ", " + String.format("%X", iDeviceClassMinor));
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", doesClassMatch[Profile_HID] = " + bluetoothDevice.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_HID));
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", doesClassMatch[Profile_HEADSET] = " + bluetoothDevice.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_HEADSET));
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", doesClassMatch[Profile_A2DP] = " + bluetoothDevice.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_A2DP));
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", hasService[LIMITED_DISCOVERABILITY] = " + bluetoothDevice.getBluetoothClass().hasService(LIMITED_DISCOVERABILITY));
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", hasService[LE_AUDIO] = " + bluetoothDevice.getBluetoothClass().hasService(LE_AUDIO));
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", describeContents = " + bluetoothDevice.describeContents());
-                    boolean connected = false;
-                    try {
-                        Method m = bluetoothDevice.getClass().getMethod("isConnected", (Class[]) null);
-                        connected = (boolean) m.invoke(bluetoothDevice, (Object[]) null);
-                    } catch (Exception ex) {
-                        appendToLog("CsLibrary.scanLeDevice: Exception " + ex.toString());
-                    }
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", connected = " + connected);
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-                        appendToLog("CsLibrary.scanLeDevice: " + i + ", AddressType = " + bluetoothDevice.getAddressType());
-                    }
-                    string = "CsLibrary.scanLeDevice: " + i + ", BondState = ";
-                    switch (bluetoothDevice.getBondState()) {
-                        case BOND_NONE:
-                            string += "None";
-                            break;
-                        case BOND_BONDING:
-                            string += "Bonding";
-                            break;
-                        case BOND_BONDED:
-                            string  += "Bonded";
-                            break;
-                        default:
-                            string += "Unknown";
-                            break;
-                    }
-                    appendToLog(string);
-                    ParcelUuid[] parcelUuids = bluetoothDevice.getUuids();
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", Uuids.size = " + (parcelUuids == null ? "null" : parcelUuids.length));
-                    for (int k = 0; parcelUuids != null && k < parcelUuids.length; k++) {
-                        String string0 = "", string1 = "", string2 = parcelUuids[k].toString();
-                        String string3 = string2.split("-")[0];
-                        appendToLog("CsLibrary.scanLeDevice: string3 = " + string3);
-                        int iString2 = 0;
-                        if (string3.substring(0, 4).matches("0000")) iString2 = Integer.parseInt(string3, 16);
-                        if (iString2 >= 0x1000 && iString2 < 0x1410) string0 = "SDP ";
-                        else if (iString2 >= 0x1800 && iString2 < 0x1860) string0 = "GATT ";
-                        if (iString2 == 0x1101) string1 = "Serial Port, ";
-                        else if (iString2 == 0x110b) string1 = "Audio Sink, ";
-                        else if (iString2 == 0x110e) string1 = "A/V Remote Control, ";
-                        else if (iString2 == 0x1124) string1 = "HID, ";
-                        else if (iString2 == 0x180f) string1 = "Battery, ";
-                        else if (iString2 == 0x1812) {
-                            string1 = "Human Interface Device, ";
-/*
-                            UUID UUID_READER_SERVICE = UUID.fromString(string2);
-                            BluetoothGattService s = bluetoothGatt.getService(service);
-                            mReaderStreamOutCharacteristic = getCharacteristic(UUID_READER_SERVICE, UUID_READER_STREAM_OUT_CHARACTERISTIC);
-                            mReaderStreamInCharacteristic = getCharacteristic(UUID_READER_SERVICE, UUID_READER_STREAM_IN_CHARACTERISTIC);
-*/
-                        }
-                        appendToLog("CsLibrary.scanLeDevice: " + i + "," + k + ", " + string0 + "Service Class: " + string1 + string2);
-                    }
-
-                    if (false) {
-                        android.bluetooth.BluetoothGatt bluetoothGatt = bluetoothDevice.connectGatt(context, false, new BluetoothGattCallback() {
-                            @Override
-                            public void onCharacteristicChanged(android.bluetooth.BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-                                appendToLog("CsLibrary.scanLeDevice: onCharacteristicChanged");
-                                super.onCharacteristicChanged(gatt, characteristic);
-                            }
-                        });
-                        appendToLog("CsLibrary.scanLeDevice: " + i + ", connectGatt is " + (bluetoothGatt != null ? "valid" : "false"));
-                        if (bluetoothGatt != null) {
-                            List<BluetoothGattService> bluetoothGattServices = bluetoothGatt.getServices();
-                            appendToLog("CsLibrary.scanLeDevice: " + i + ", bluetoothGattServices size is " + bluetoothGattServices.size());
-                            for (int a = 0; a < bluetoothGattServices.size(); a++) {
-                                appendToLog("CsLibrary.scanLeDevice: " + i + "," + a + " bluetoothGattService is " + bluetoothGattServices.get(a).toString());
-                            }
-                        }
-                    }
-
-                    String stringClassCode = bluetoothDevice.getBluetoothClass().toString().toUpperCase();
-                    if (connected && (stringClassCode.matches("1F00") || stringClassCode.matches("540"))) {
-                        if (false) {
-                            BluetoothGatt.CsScanData scanResultA = new BluetoothGatt.CsScanData(bluetoothDevice, 0, null);
-                            scanResultA.serviceUUID = 6;
-                            cs710Library4A.csReaderConnector.mScanResultList.add(scanResultA);
-                            appendToLog("CsLibrary.scanLeDevice: mScanResultList.size = " + cs710Library4A.mScanResultList.size());
-                        } else {
-                            cs710Library4A.bluetoothGatt.removeBond(bluetoothDevice);
-                        }
-                    }
-                    i++;
-                }
-            }
-        }
-
         bValue1 = (cs108Library4A != null && cs108Library4A.scanLeDevice(enable));
         if (!context.getPackageName().contains("cs108ademoapp")) bValue7 = cs710Library4A.scanLeDevice(enable);
         if (bValue1 || bValue7) bValue = true;
         return bValue;
     }
-    public BluetoothGatt.CsScanData getNewDeviceScanned() {
+    public ScanData getNewDeviceScanned() {
         if (DEBUG2) Log.i("Hello2", "getNewDeviceScanned");
-        BluetoothGatt.CsScanData csScanData1;
-        BluetoothGatt.CsScanData csScanData7 = cs710Library4A.getNewDeviceScanned();
-        BluetoothGatt.CsScanData csScanData = null;
-        if (csScanData7 == null) {
-            csScanData1 = (cs108Library4A == null ? null : cs108Library4A.getNewDeviceScanned());
-            if (true) csScanData = csScanData1;
-            else if (csScanData1 != null) {
-                csScanData = new BluetoothGatt.CsScanData(csScanData1.device, csScanData1.rssi, csScanData1.scanRecord);
-                csScanData.serviceUUID = csScanData1.serviceUUID;
+        ScanData scanData1;
+        ScanData scanData7 = cs710Library4A.getNewDeviceScanned();
+        ScanData scanData = null;
+        if (scanData7 == null) {
+            scanData1 = (cs108Library4A == null ? null : cs108Library4A.getNewDeviceScanned());
+            if (true) scanData = scanData1;
+            else if (scanData1 != null) {
+                scanData = new ScanData(scanData1.device, scanData1.rssi, scanData1.scanRecord);
+                scanData.serviceUUID = scanData1.serviceUUID;
             }
         } else if (true) {
-            csScanData = csScanData7;
+            scanData = scanData7;
         } else {
-            csScanData = new BluetoothGatt.CsScanData(csScanData7.device, csScanData7.rssi, csScanData7.scanRecord);
-            csScanData.serviceUUID = csScanData7.serviceUUID;
+            scanData = new ScanData(scanData7.device, scanData7.rssi, scanData7.scanRecord);
+            scanData.serviceUUID = scanData7.serviceUUID;
         }
-        if (csScanData != null) {
+        if (scanData != null) {
             //appendToLog("DeviceFinder, CsLibrary4A.getNewDeviceScanned: csScanData.getAddress is " + csScanData.getAddress());
         }
         //if (csScanData != null) appendToLog("found982 with name = " + csScanData.name + ", device.name = " + csScanData.device.getName());
-        return csScanData;
+        return scanData;
     }
     public String getBluetoothDeviceAddress() {
         if (DEBUG) Log.i("Hello2", "getBluetoothDeviceAddress");
@@ -363,43 +192,22 @@ public class CsLibrary4A {
         return bValue;
     }
     public void connect(ReaderDevice readerDevice) {
+        appendToLog("CsLibrary.connect: removeBond, going to cs710Library4A.connect");
         if (DEBUG || true) Log.i("Hello", "CsLibrary4A.connect: readerDevice is " + (readerDevice != null ? "valid" : "null") + ", iServiceUuidConnectedBefore = " + iServiceUuidConnectedBefore);
-        cs710Library4A.bluetoothGatt.removeBond(readerDevice);
         int iServiceUuid = -1;
         if (readerDevice == null) iServiceUuid = iServiceUuidConnectedBefore;
         else iServiceUuid = readerDevice.getServiceUUID();
         Log.i("Hello", "CsLibrary4A.connect: iServiceUuid = " + iServiceUuid);
         if (iServiceUuid == 0 || iServiceUuid == 1 || iServiceUuid == 4) {
-            if (true) {
-                appendToLog("CsLibrary4A.connect: going to connect cs108");
-                if (cs108Library4A == null) cs108Library4A = new Cs108Library4A(context, textViewLog);
-                cs108Library4A.connect(readerDevice); iServiceUuidConnectedBefore = 0;
-            } else {
-                if (true) {
-                    cs108Library4A.connect(readerDevice);
-                    iServiceUuidConnectedBefore = 0;
-                } else {
-                    ReaderDevice readerDevice1 = null;
-                    if (readerDevice != null) readerDevice1 = new ReaderDevice(
-                            readerDevice.getName(), readerDevice.getAddress(), readerDevice.getSelected(),
-                            readerDevice.getDetails(), readerDevice.getCount(), readerDevice.getRssi(),
-                            readerDevice.getServiceUUID(), readerDevice.getHasServicePower());
-                    cs108Library4A.connect(readerDevice1);
-                    iServiceUuidConnectedBefore = 0;
-                }
-            }
+            appendToLog("CsLibrary4A.connect: going to connect cs108");
+            if (cs108Library4A == null) cs108Library4A = new Cs108Library4A(context, textViewLog);
+            cs108Library4A.connect(readerDevice); iServiceUuidConnectedBefore = 0;
         } else if (iServiceUuid == 2 || iServiceUuid == 3 || iServiceUuid == 5 || iServiceUuid == 6) {
             appendToLog("CsLibrary4A.connect: going to connect cs710");
             cs710Library4A.connect(readerDevice); iServiceUuidConnectedBefore = 2;
         } else appendToLog("CsLibrary4A.connect: invalid serviceUUID = " + (readerDevice == null ? "null" : readerDevice.getServiceUUID()));
     }
     public void disconnect(boolean tempDisconnect) {
-        //appendToLog("CsLibrary4A.disconnect, Fragment: Starts");
-        //ReaderDevice readerDevice = null;
-        //if (isCs108Connected() && cs108Library4A != null) readerDevice = cs108Library4A.readerDeviceConnect;
-        //else if (isCs710Connected() && cs710Library4A != null) readerDevice = cs710Library4A.readerDeviceConnect;
-        //cs710Library4A.bluetoothGatt.removeBond(readerDevice);
-
         if (isCs108Connected()) cs108Library4A.disconnect(tempDisconnect);
         else if (isCs710Connected()) cs710Library4A.disconnect(tempDisconnect);
     }
@@ -1961,6 +1769,20 @@ public class CsLibrary4A {
         else Log.i("Hello2", "setServerImpinjPassword" + stringNOTCONNECT);
         return false;
     }
+    public String getPartnerReaderName() {
+        if (DEBUG) Log.i("Hello2", "getPartnerReaderName");
+        if (isCs108Connected()) return cs108Library4A.getPartnerReaderName();
+        else if (isCs710Connected()) return cs710Library4A.getPartnerReaderName();
+        else Log.i("Hello2", "getPartnerReaderName" + stringNOTCONNECT);
+        return null;
+    }
+    public boolean setPartnerReaderName(String partnerReaderName) {
+        if (DEBUG) Log.i("Hello2", "setPartnerReaderName");
+        if (isCs108Connected()) return cs108Library4A.setPartnerReaderName(partnerReaderName);
+        else if (isCs710Connected()) return cs710Library4A.setPartnerReaderName(partnerReaderName);
+        else Log.i("Hello2", "setPartnerReaderName" + stringNOTCONNECT);
+        return false;
+    }
 
     public int getBatteryDisplaySetting() {
         if (DEBUG) Log.i("Hello2", "getBatteryDisplaySetting");
@@ -2381,5 +2203,19 @@ public class CsLibrary4A {
         else if (isCs710Connected()) return cs710Library4A.setOtherInventoryData(tagType, mDid);
         else Log.i("Hello2", "setOtherInventoryData" + stringNOTCONNECT);
         return false;
+    }
+    public String[] getEpcClassList() {
+        if (DEBUG) Log.i("Hello2", "getEpcClassList");
+        if (isCs108Connected()) return cs108Library4A.getEpcClassList();
+        else if (isCs710Connected()) return cs710Library4A.getEpcClassList();
+        else Log.i("Hello2", "getEpcClassList" + stringNOTCONNECT);
+        return null;
+    }
+    public byte[] getProtMode2DecryptedData(byte[] key1, String strAlgo, byte[] dataIn, byte[] iv) {
+        if (DEBUG) Log.i("Hello2", "getProtMode2DecryptedData");
+        if (isCs108Connected()) return cs108Library4A.getProtMode2DecryptedData(key1, strAlgo, dataIn, iv);
+        else if (isCs710Connected()) return cs710Library4A.getProtMode2DecryptedData(key1, strAlgo, dataIn, iv);
+        else Log.i("Hello2", "getProtMode2DecryptedData" + stringNOTCONNECT);
+        return null;
     }
 }

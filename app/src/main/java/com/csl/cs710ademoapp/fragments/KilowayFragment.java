@@ -1,7 +1,5 @@
 package com.csl.cs710ademoapp.fragments;
 
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_KILOWAY;
-
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,6 +18,7 @@ import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cslibrary4a.CustomTabAdapter;
 import com.csl.cslibrary4a.CustomTabLayout;
+import com.csl.cslibrary4a.RfidReader;
 
 public class KilowayFragment extends CommonFragment {
     private ActionBar actionBar;
@@ -78,7 +77,7 @@ public class KilowayFragment extends CommonFragment {
         actionBar.setTitle(R.string.title_activity_kiloway);
 
         adapter = new CustomTabAdapter(this, tabs.length);
-        adapter.setFragment(0, InventoryRfidiMultiFragment.newInstance(true, TAG_KILOWAY, "" /*""E281D"*/));
+        adapter.setFragment(0, InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_KILOWAY, "" /*""E281D"*/));
         adapter.setFragment(1, new InventoryRfidSearchFragment(true));
         adapter.setFragment(2, new AccessKilowayFragment(false));
 

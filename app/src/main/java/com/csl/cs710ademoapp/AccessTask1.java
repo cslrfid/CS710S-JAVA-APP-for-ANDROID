@@ -4,8 +4,7 @@ import android.content.Context;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.csl.cslibrary4a.AccessTaskCustom;
-import com.csl.cslibrary4a.CsLibrary4A;
+import com.csl.cslibrary4a.CustomAccessTask;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cslibrary4a.CustomMediaPlayer;
 import com.csl.cslibrary4a.RfidReaderChipData;
@@ -21,7 +20,7 @@ public class AccessTask1 {
     RfidReaderChipData.HostCommands hostCommand;
     Runnable updateRunnable = null;
 
-    AccessTaskCustom accessTask;
+    CustomAccessTask accessTask;
     Context context;
     CustomMediaPlayer playerN, playerO;
     public AccessTask1(Button button, boolean invalidRequest,

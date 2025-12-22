@@ -30,7 +30,7 @@ public class SettingAdminFragment extends CommonFragment {
     View viewFragment;
     private CheckBox checkBoxTriggerReporting, checkBoxInventoryBeep, checkBoxInventoryVibrate, checkBoxSaveFileEnable, checkBoxSaveCloudEnable, checkBoxSaveNewCloudEnable, checkBoxSaveAllCloudEnable, checkBoxDebugEnable, checkBoxForegroundService;
     private CheckBox checkBoxCsvColumnResBank, checkBoxCsvColumnEpcBank, checkBoxCsvColumnTidBank, checkBoxCsvColumnUserBank, checkBoxCsvColumnPhase, checkBoxCsvColumnChannel, checkBoxCsvColumnTime, checkBoxCsvColumnTimeZone, checkBoxCsvColumnLocation, checkBoxCsvColumnDirection, checkBoxCsvColumnOthers;
-    private EditText editTextDeviceName, editTextCycleDelay, editTextTriggerReportingCount, editTextBeepCount, editTextVibrateTime, editTextVibrateWindow, editTextServer, editTextServerTimeout, editTextServerMqtt, editTextTopicMqtt, editTextForegroundDupElim, editTextServerImpinj, editTextServerImpinjName, editTextServerImpinjPasword;
+    private EditText editTextDeviceName, editTextCycleDelay, editTextTriggerReportingCount, editTextBeepCount, editTextVibrateTime, editTextVibrateWindow, editTextServer, editTextServerTimeout, editTextServerMqtt, editTextTopicMqtt, editTextForegroundDupElim, editTextServerImpinj, editTextServerImpinjName, editTextServerImpinjPasword, editTextPartnerReaderName;
     private RadioButton radioButtonCloudSaveNone, radioButtonCloudSaveHttp, radioButtonCloudSaveMqtt;
     private TextView textViewReaderModel;
     private Spinner spinnerQueryBattery, spinnerQueryRssi, spinnerQueryVibrateMode, spinnerSavingFormat;
@@ -51,7 +51,7 @@ public class SettingAdminFragment extends CommonFragment {
     int iVibrateTime = -1; int iVibrateTimeMin = 1; int iVibrateTimeMax = 999;
     int iVibrateWindow = -1; int iVibrateWindowMin = 1; int iVibrateWindowMax = 4;
     boolean triggerReporting, inventoryBeep, inventoryVibrate, saveFileEnable, saveCloudEnable, saveNewCloudEnable, saveAllCloudEnable, debugEnable, foregroundServiceEnable;
-    String serverName, serverMqtt, topicMqtt, serverImpinj, serverImpinjName, serverImpinjPasword;
+    String serverName, serverMqtt, topicMqtt, serverImpinj, serverImpinjName, serverImpinjPasword, partnerReaderName;
     int buttonCloudSave = -1, iForegroundDupElimNew = -1;
     int iServerTimeout = -1; int iServerTimeoutMin = 3; int iServerTimeoutMax = 9;
 
@@ -191,6 +191,7 @@ public class SettingAdminFragment extends CommonFragment {
         editTextServerImpinj = (EditText) view.findViewById(R.id.settingAdminServerImpinj);
         editTextServerImpinjName = (EditText) view.findViewById(R.id.settingAdminServerImpinjName);
         editTextServerImpinjPasword = (EditText) view.findViewById(R.id.settingAdminServerImpinjPassword);
+        editTextPartnerReaderName = (EditText) view.findViewById(R.id.settingAdminPartnerReaderName);
 
         TextView textViewAdminServerConnectTimeoutLabel = (TextView) view.findViewById(R.id.settingAdminServerConnectTimeoutLabel);
         String stringAdminServerConnectTimeoutLabel  = textViewAdminServerConnectTimeoutLabel.getText().toString();
@@ -369,6 +370,7 @@ public class SettingAdminFragment extends CommonFragment {
                         serverImpinj = editTextServerImpinj.getText().toString();
                         serverImpinjName = editTextServerImpinjName.getText().toString();
                         serverImpinjPasword = editTextServerImpinjPasword.getText().toString();
+                        partnerReaderName = editTextPartnerReaderName.getText().toString();
                         debugEnable = checkBoxDebugEnable.isChecked();
                         foregroundServiceEnable = checkBoxForegroundService.isChecked();
                         settingUpdate();
@@ -482,6 +484,7 @@ public class SettingAdminFragment extends CommonFragment {
             editTextServerImpinj.setText(MainActivity.csLibrary4A.getServerImpinjLocation());
             editTextServerImpinjName.setText(MainActivity.csLibrary4A.getServerImpinjName());
             editTextServerImpinjPasword.setText(MainActivity.csLibrary4A.getServerImpinjPassword());
+            editTextPartnerReaderName.setText(MainActivity.csLibrary4A.getPartnerReaderName());
             if (updating == false) {
                 String name = MainActivity.csLibrary4A.getBluetoothICFirmwareName();
                 if (name == null)   {
@@ -713,6 +716,15 @@ public class SettingAdminFragment extends CommonFragment {
             if (string.length() != serverImpinjPasword.length() || string.matches(serverImpinjPasword) == false || sameCheck == false) {
                 sameSetting = false;
                 if (MainActivity.csLibrary4A.setServerImpinjPassword(serverImpinjPasword) == false)
+                    invalidRequest = true;
+            }
+        }
+        if (invalidRequest == false && editTextPartnerReaderName != null) {
+            String string = MainActivity.csLibrary4A.getPartnerReaderName(); if (string == null) string = "";
+            MainActivity.csLibrary4A.appendToLog("old partnerReaderName = " + string + ", new = " + partnerReaderName + ", matched = " + string.matches(partnerReaderName));
+            if (string.length() != partnerReaderName.length() || string.matches(partnerReaderName) == false || sameCheck == false) {
+                sameSetting = false;
+                if (MainActivity.csLibrary4A.setPartnerReaderName(partnerReaderName) == false)
                     invalidRequest = true;
             }
         }

@@ -24,7 +24,7 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.csl.cslibrary4a.AccessTaskCustom;
+import com.csl.cslibrary4a.CustomAccessTask;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cslibrary4a.CustomPopupWindow;
 import com.csl.cs710ademoapp.InventoryBarcodeTask;
@@ -34,7 +34,6 @@ import com.csl.cs710ademoapp.R;
 import com.csl.cslibrary4a.NotificationConnector;
 import com.csl.cslibrary4a.ReaderDevice;
 import com.csl.cslibrary4a.RfidReaderChipData;
-import com.csl.cslibrary4a.Utility;
 
 import java.util.ArrayList;
 
@@ -51,7 +50,7 @@ public class AccessRegisterFragment extends CommonFragment {
 
     InventoryRfidTask inventoryRfidTask;
     InventoryBarcodeTask inventoryBarcodeTask;
-    AccessTaskCustom accessTask;
+    CustomAccessTask accessTask;
 
     ReaderDevice tagSelected = MainActivity.tagSelected;
     boolean newWriteData;
@@ -112,7 +111,9 @@ public class AccessRegisterFragment extends CommonFragment {
         spinnerAccessBank.setAdapter(targetAdapter);
 
         spinnerWriteEpcClass = (Spinner) getActivity().findViewById(R.id.registerWriteEpcClass);
-        targetAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.write_Epc_options, R.layout.custom_spinner_layout);
+        //targetAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.write_Epc_options, R.layout.custom_spinner_layout);
+        String[] strEpcClassList = MainActivity.csLibrary4A.getEpcClassList();
+        targetAdapter = new ArrayAdapter(getActivity(), R.layout.custom_spinner_layout, strEpcClassList);
         targetAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerWriteEpcClass.setAdapter(targetAdapter);
         spinnerWriteEpcClass.setEnabled(false);
@@ -245,7 +246,7 @@ public class AccessRegisterFragment extends CommonFragment {
             @Override
             public void onClick(View view) {
                 String strValue = MainActivity.csLibrary4A.getEpc4upcSerial(
-                        Utility.EpcClass.values()[spinnerWriteEpcClass.getSelectedItemPosition()],
+                        spinnerWriteEpcClass.getSelectedItemPosition(),
                         editTextWriteEpcFilter.getText().toString(),
                         editTextWriteEpcCompanyPrefix.getText().toString(),
                         editTextWriteEpcItemReference.getText().toString(),
@@ -341,7 +342,7 @@ public class AccessRegisterFragment extends CommonFragment {
         mHandler.removeCallbacks(runnableSelect);
         mHandler.removeCallbacks(runnableAuto123);
         if (inventoryBarcodeTask != null) inventoryBarcodeTask.taskCancelReason = InventoryBarcodeTask.TaskCancelRReason.DESTORY;
-        if (accessTask != null) accessTask.taskCancelReason = AccessTaskCustom.TaskCancelRReason.DESTORY;
+        if (accessTask != null) accessTask.taskCancelReason = CustomAccessTask.TaskCancelRReason.DESTORY;
         if (DEBUG) MainActivity.csLibrary4A.appendToLog("AcccessRegisterFragment().onDestory(): onDestory()");
         if (MainActivity.csLibrary4A != null) {
             MainActivity.csLibrary4A.setSameCheck(true);
@@ -530,8 +531,8 @@ public class AccessRegisterFragment extends CommonFragment {
         boolean validResult = true;
         if (runningBarcode) { }
         else if (runningAccessTask) {
-            if (buttonTrigger) accessTask.taskCancelReason = AccessTaskCustom.TaskCancelRReason.BUTTON_RELEASE;
-            else accessTask.taskCancelReason = AccessTaskCustom.TaskCancelRReason.STOP;
+            if (buttonTrigger) accessTask.taskCancelReason = CustomAccessTask.TaskCancelRReason.BUTTON_RELEASE;
+            else accessTask.taskCancelReason = CustomAccessTask.TaskCancelRReason.STOP;
         } else {
             if (MainActivity.csLibrary4A.isBleConnected() == false) {
                 Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();

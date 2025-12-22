@@ -11,7 +11,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.csl.cslibrary4a.AccessTaskCustom;
+import com.csl.cslibrary4a.CustomAccessTask;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.MainActivity;
@@ -33,7 +33,7 @@ public class AccessEm4325PassiveFragment extends CommonFragment {
     boolean operationRead = false;
     ReadWriteTypes readWriteTypes;
 
-    private AccessTaskCustom accessTask;
+    private CustomAccessTask accessTask;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -173,7 +173,7 @@ public class AccessEm4325PassiveFragment extends CommonFragment {
                     else if (operationRead) hostCommand = RfidReaderChipData.HostCommands.CMD_18K6CREAD;
                     else hostCommand = RfidReaderChipData.HostCommands.CMD_18K6CWRITE;
                     MainActivity.csLibrary4A.appendToLog("hostCommand = " + hostCommand.toString());
-                    accessTask = new AccessTaskCustom(buttonRead, null, invalid, true,
+                    accessTask = new CustomAccessTask(buttonRead, null, invalid, true,
                             editTextRWTagID.getText().toString(), 1, 32,
                             editTextAccessRWAccPassword.getText().toString(),
                             Integer.valueOf(editTextaccessRWAntennaPower.getText().toString()),

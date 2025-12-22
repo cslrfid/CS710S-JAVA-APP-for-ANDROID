@@ -1,16 +1,5 @@
 package com.csl.cs710ademoapp.fragments;
 
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_M730;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_M775;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_M770;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_M780;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_M830;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_MONZA_R6;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_MONZA_R6A;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_MONZA_R6P;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_IMPINJ_MONZA_X8K;
-
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -29,7 +18,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.csl.cslibrary4a.AccessTaskCustom;
+import com.csl.cslibrary4a.CustomAccessTask;
 import com.csl.cs710ademoapp.AccessTask1;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cslibrary4a.CustomPopupWindow;
@@ -38,6 +27,7 @@ import com.csl.cs710ademoapp.R;
 import com.csl.cs710ademoapp.SelectTag;
 import com.csl.cslibrary4a.CustomTabLayout;
 import com.csl.cslibrary4a.ReaderDevice;
+import com.csl.cslibrary4a.RfidReader;
 import com.csl.cslibrary4a.RfidReaderChipData;
 
 public class AccessImpinjFragment extends CommonFragment {
@@ -56,7 +46,7 @@ public class AccessImpinjFragment extends CommonFragment {
     TextView textViewAuthenticatedResult, textViewAutotuneValue, textViewProtectValue, textViewProtectNormalValue, textViewEpc128Value, textViewConfiguration;
     Button button, buttonAutoTuneValueRead, buttonProtectValueRead, buttonProtectResumeRead, buttonEpc128ValueRead, buttonRead, buttonWrite;
     boolean operationRead = false;
-    AccessTaskCustom accessTask;
+    CustomAccessTask accessTask;
     AccessTask1 accessTask1;
     int iRunType = -1; String stringNewAutoTuneConfig = null;
     int unprotecting = 0;
@@ -189,7 +179,7 @@ public class AccessImpinjFragment extends CommonFragment {
 
                     textViewAuthenticatedResult.setText("");
                     boolean invalidRequest = MainActivity.csLibrary4A.setAuthenticateConfiguration();
-                    accessTask = new AccessTaskCustom(button, null, false, true,
+                    accessTask = new CustomAccessTask(button, null, false, true,
                             selectTag.editTextTagID.getText().toString(), 1, 32,
                             selectTag.editTextAccessPassword.getText().toString(), Integer.valueOf(selectTag.editTextAccessAntennaPower.getText().toString()), RfidReaderChipData.HostCommands.CMD_18K6CAUTHENTICATE,
                             -1, -1, false, false,
@@ -225,7 +215,7 @@ public class AccessImpinjFragment extends CommonFragment {
                     else if (itagSelect == impinjTag.monza_R6.ordinal()) iAccOffset = 0x0E;
                     MainActivity.csLibrary4A.appendToLog(String.format("AutoTune offset is 0x%X", iAccOffset));
                     if (set_before_access(0, iAccOffset, 1) == false) invalidRequest = true;
-                    accessTask = new AccessTaskCustom(buttonAutoTuneValueRead, null, invalidRequest, true,
+                    accessTask = new CustomAccessTask(buttonAutoTuneValueRead, null, invalidRequest, true,
                             selectTag.editTextTagID.getText().toString(), 1, 32,
                             selectTag.editTextAccessPassword.getText().toString(), Integer.valueOf(selectTag.editTextAccessAntennaPower.getText().toString()), RfidReaderChipData.HostCommands.CMD_18K6CREAD,
                             -1, -1, false, checkProtectedBoxBeforeAccess(),
@@ -250,7 +240,7 @@ public class AccessImpinjFragment extends CommonFragment {
                     textViewProtectValue.setText("");
                     boolean invalidRequest = false;
                     if (set_before_access(1, 2, 6) == false) invalidRequest = true;
-                    accessTask = new AccessTaskCustom(buttonProtectValueRead, null, invalidRequest, true,
+                    accessTask = new CustomAccessTask(buttonProtectValueRead, null, invalidRequest, true,
                             selectTag.editTextTagID.getText().toString(), 1, 32,
                             selectTag.editTextAccessPassword.getText().toString(), Integer.valueOf(selectTag.editTextAccessAntennaPower.getText().toString()), RfidReaderChipData.HostCommands.CMD_18K6CREAD,
                             -1, -1, false, checkProtectedBoxBeforeAccess(),
@@ -271,23 +261,23 @@ public class AccessImpinjFragment extends CommonFragment {
                     if (isZeroPassword()) return;
                     if (isRfidConnectionValid() == false) return;
                     if (isRunningAccessTask()) {
-                        if (accessTask != null) accessTask.taskCancelReason = AccessTaskCustom.TaskCancelRReason.DESTORY;
+                        if (accessTask != null) accessTask.taskCancelReason = CustomAccessTask.TaskCancelRReason.DESTORY;
                     }
 
                     MainActivity.csLibrary4A.appendToLog("AccessImpinjFragment.onViewCreated.buttonProtectResumeRead.onClick: unprotecting = " + unprotecting);
                     if (unprotecting > 0) stopProtectResuming();
                     else {
                         unprotecting = 1;
-                        if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m775.ordinal())  selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(TAG_IMPINJ_M775)/*"E2C011"*/); //E2C011A2
-                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m780.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(TAG_IMPINJ_M780));
-                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m830.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(TAG_IMPINJ_M780));
-                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m770.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(TAG_IMPINJ_M770));
-                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m730.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(TAG_IMPINJ_M730));
-                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.monza_R6A.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(TAG_IMPINJ_MONZA_R6A));
-                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.monza_R6P.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(TAG_IMPINJ_MONZA_R6P));
-                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.monza_R6.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(TAG_IMPINJ_MONZA_R6));
-                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.monza_x8k.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(TAG_IMPINJ_MONZA_X8K));
-                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.others.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(TAG_IMPINJ));
+                        if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m775.ordinal())  selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(RfidReader.TagType.TAG_IMPINJ_M775)/*"E2C011"*/); //E2C011A2
+                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m780.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(RfidReader.TagType.TAG_IMPINJ_M780));
+                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m830.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(RfidReader.TagType.TAG_IMPINJ_M780));
+                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m770.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(RfidReader.TagType.TAG_IMPINJ_M770));
+                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m730.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(RfidReader.TagType.TAG_IMPINJ_M730));
+                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.monza_R6A.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(RfidReader.TagType.TAG_IMPINJ_MONZA_R6A));
+                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.monza_R6P.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(RfidReader.TagType.TAG_IMPINJ_MONZA_R6P));
+                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.monza_R6.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(RfidReader.TagType.TAG_IMPINJ_MONZA_R6));
+                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.monza_x8k.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(RfidReader.TagType.TAG_IMPINJ_MONZA_X8K));
+                        else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.others.ordinal()) selectTag.editTextTagID.setText(MainActivity.csLibrary4A.getsTid(RfidReader.TagType.TAG_IMPINJ));
                         selectTag.spinnerSelectBank.setSelection(1);
                         checkBoxProtectSelect.setChecked(true);
                         buttonProtectResumeRead.setText("Stop resuming to normal");
@@ -308,7 +298,7 @@ public class AccessImpinjFragment extends CommonFragment {
                     textViewEpc128Value.setText("");
                     boolean invalidRequest = false;
                     if (set_before_access(1, 2, 8) == false) invalidRequest = true;
-                    accessTask = new AccessTaskCustom(buttonEpc128ValueRead, null, invalidRequest, true,
+                    accessTask = new CustomAccessTask(buttonEpc128ValueRead, null, invalidRequest, true,
                             selectTag.editTextTagID.getText().toString(), 1, 32,
                             selectTag.editTextAccessPassword.getText().toString(), Integer.valueOf(selectTag.editTextAccessAntennaPower.getText().toString()), RfidReaderChipData.HostCommands.CMD_18K6CREAD,
                             -1, -1, false, checkProtectedBoxBeforeAccess(),
@@ -449,7 +439,7 @@ public class AccessImpinjFragment extends CommonFragment {
         int iSelectBank = selectTag.spinnerSelectBank.getSelectedItemPosition() + 1;
         int iSelectOffset = 32;
         if (iSelectBank != 1) iSelectOffset = 0;
-        accessTask = new AccessTaskCustom(buttonRead, null, invalidRequest, true,
+        accessTask = new CustomAccessTask(buttonRead, null, invalidRequest, true,
                 selectTag.editTextTagID.getText().toString(), iSelectBank, iSelectOffset,
                 selectTag.editTextAccessPassword.getText().toString(), Integer.valueOf(selectTag.editTextAccessAntennaPower.getText().toString()), RfidReaderChipData.HostCommands.CMD_18K6CREAD,
                 -1, -1, false, checkProtectedBoxBeforeAccess(),
@@ -521,7 +511,7 @@ public class AccessImpinjFragment extends CommonFragment {
             }
         }
 
-        accessTask = new AccessTaskCustom(buttonWrite, null, invalidRequest, true,
+        accessTask = new CustomAccessTask(buttonWrite, null, invalidRequest, true,
                 selectTag.editTextTagID.getText().toString(), 1, 32,
                 selectTag.editTextAccessPassword.getText().toString(), Integer.valueOf(selectTag.editTextAccessAntennaPower.getText().toString()), RfidReaderChipData.HostCommands.CMD_18K6CWRITE,
                 -1, -1, false, checkProtectedBoxBeforeAccess(),
@@ -738,18 +728,18 @@ public class AccessImpinjFragment extends CommonFragment {
                     MainActivity.csLibrary4A.setFastId(false);
                 }
                 if (spinnerTagSelect.getSelectedItemPosition() != impinjTag.others.ordinal()) iValue |= (spinnerTagSelect.getSelectedItemPosition() + 1);
-                if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m775.ordinal())  { MainActivity.tagType = TAG_IMPINJ_M775; MainActivity.mDid = "";
+                if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m775.ordinal())  { MainActivity.tagType = RfidReader.TagType.TAG_IMPINJ_M775; MainActivity.mDid = "";
                 MainActivity.csLibrary4A.appendToLog("AccessImpinjFragment.setUserVisibleHint2: set MainActivity.tagType as TAG_IMPINJ_M775");
                 }
-                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m780.ordinal()) { MainActivity.tagType = TAG_IMPINJ_M780; MainActivity.mDid = ""; }
-                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m830.ordinal()) { MainActivity.tagType = TAG_IMPINJ_M830; MainActivity.mDid = ""; }
-                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m770.ordinal()) { MainActivity.tagType = TAG_IMPINJ_M770; MainActivity.mDid = ""; }
-                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m730.ordinal()) { MainActivity.tagType = TAG_IMPINJ_M730; MainActivity.mDid = ""; }
-                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.monza_R6.ordinal()) { MainActivity.tagType = TAG_IMPINJ_MONZA_R6; MainActivity.mDid = ""; }
-                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.monza_R6A.ordinal()) { MainActivity.tagType = TAG_IMPINJ_MONZA_R6A; MainActivity.mDid = ""; }
-                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.monza_R6P.ordinal()) { MainActivity.tagType = TAG_IMPINJ_MONZA_R6P; MainActivity.mDid = ""; }
-                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.monza_x8k.ordinal()) { MainActivity.tagType = TAG_IMPINJ_MONZA_X8K; MainActivity.mDid = ""; }
-                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.others.ordinal()) { MainActivity.tagType = TAG_IMPINJ; MainActivity.mDid = ""; }
+                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m780.ordinal()) { MainActivity.tagType = RfidReader.TagType.TAG_IMPINJ_M780; MainActivity.mDid = ""; }
+                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m830.ordinal()) { MainActivity.tagType = RfidReader.TagType.TAG_IMPINJ_M830; MainActivity.mDid = ""; }
+                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m770.ordinal()) { MainActivity.tagType = RfidReader.TagType.TAG_IMPINJ_M770; MainActivity.mDid = ""; }
+                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.m730.ordinal()) { MainActivity.tagType = RfidReader.TagType.TAG_IMPINJ_M730; MainActivity.mDid = ""; }
+                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.monza_R6.ordinal()) { MainActivity.tagType = RfidReader.TagType.TAG_IMPINJ_MONZA_R6; MainActivity.mDid = ""; }
+                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.monza_R6A.ordinal()) { MainActivity.tagType = RfidReader.TagType.TAG_IMPINJ_MONZA_R6A; MainActivity.mDid = ""; }
+                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.monza_R6P.ordinal()) { MainActivity.tagType = RfidReader.TagType.TAG_IMPINJ_MONZA_R6P; MainActivity.mDid = ""; }
+                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.monza_x8k.ordinal()) { MainActivity.tagType = RfidReader.TagType.TAG_IMPINJ_MONZA_X8K; MainActivity.mDid = ""; }
+                else if (spinnerTagSelect.getSelectedItemPosition() == impinjTag.others.ordinal()) { MainActivity.tagType = RfidReader.TagType.TAG_IMPINJ; MainActivity.mDid = ""; }
 
                 MainActivity.mDid = "E28011" + String.format("%02X", iValue);
                 MainActivity.csLibrary4A.appendToLog("AccessImpinjFragment.setUserVisibleHint: DebugABC, MainActivity.tagType = " + MainActivity.tagType.toString());

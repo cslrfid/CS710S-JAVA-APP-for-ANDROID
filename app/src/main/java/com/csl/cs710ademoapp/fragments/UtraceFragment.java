@@ -16,7 +16,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.csl.cslibrary4a.AccessTaskCustom;
+import com.csl.cslibrary4a.CustomAccessTask;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
@@ -34,7 +34,7 @@ public class UtraceFragment extends CommonFragment {
 
     EditText editTextEpcSize;
     private Button buttonUntrace; String strUntraceButtonBackup;
-    private AccessTaskCustom accessTask;
+    private CustomAccessTask accessTask;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

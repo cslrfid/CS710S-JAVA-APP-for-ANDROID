@@ -101,9 +101,9 @@ public class AccessReadWriteUserFragment extends CommonFragment {
             }
         });
 
-        TableRow tableRow = (TableRow) getActivity().findViewById(R.id.accessRWReserveTitleRow);
+        TableRow tableRow = (TableRow) getActivity().findViewById(R.id.accessRWKIllPwdRow);
         tableRow.setVisibility(View.GONE);
-        tableRow = (TableRow) getActivity().findViewById(R.id.accessRWReserveValueRow);
+        tableRow = (TableRow) getActivity().findViewById(R.id.accessRWAccPwdRow);
         tableRow.setVisibility(View.GONE);
         tableRow = (TableRow) getActivity().findViewById(R.id.accessRWPcTitleRow);
         tableRow.setVisibility(View.GONE);
