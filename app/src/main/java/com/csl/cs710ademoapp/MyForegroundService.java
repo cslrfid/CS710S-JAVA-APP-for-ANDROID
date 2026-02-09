@@ -32,9 +32,9 @@ import androidx.core.app.NotificationCompat;
 
 import com.csl.cs710ademoapp.fragments.AboutFragment;
 import com.csl.cs710ademoapp.fragments.DirectWedgeFragment;
+import com.csl.cslibrary4a.RfidReaderData;
 import com.csl.cslibrary4a.ScanData;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderChipData;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -168,7 +168,7 @@ public class MyForegroundService extends Service {
                                             readerDevice.setDetails(strInfo + "scanRecord=" + MainActivity.csLibrary4A.byteArrayToString(scanData.scanRecord));
 
                                             MainActivity.csLibrary4A.scanLeDevice(false);
-                                            MainActivity.csLibrary4A.connect(readerDevice);
+                                            MainActivity.csLibrary4A.appendToLog("going to connect 2"); MainActivity.csLibrary4A.connect(readerDevice);
                                             foregroundServiceState = CONNECT;
                                             iConnectingCount = 0;
                                             break;
@@ -247,7 +247,7 @@ public class MyForegroundService extends Service {
                                         }
                                         if (bStartInventory) {
                                             Log.i(TAG, "Debug_Compact: MyForegroundService.onStartCommand");
-                                            MainActivity.csLibrary4A.startOperation(RfidReaderChipData.OperationTypes.TAG_INVENTORY_COMPACT);
+                                            MainActivity.csLibrary4A.startOperation(RfidReaderData.OperationTypes.TAG_INVENTORY_COMPACT);
                                             Log.i(TAG, "Server:sss startOperation");
                                             inventoryStartTimeMillis = System.currentTimeMillis();
                                             foregroundServiceState = INVENTORY;
@@ -287,7 +287,7 @@ public class MyForegroundService extends Service {
                                     if (MainActivity.csLibrary4A.getInventoryCloudSave() == 2)
                                         timePeriod = 0;
                                     if (isForegroundEnable() && MainActivity.csLibrary4A.getTriggerButtonStatus() && timePeriod < 2000L) {
-                                        RfidReaderChipData.Rx000pkgData rx000pkgData = null, rx000pkgData1 = null;
+                                        RfidReaderData.Rx000pkgData rx000pkgData = null, rx000pkgData1 = null;
                                         while (MainActivity.csLibrary4A.getTriggerButtonStatus()) {
                                             rx000pkgData = MainActivity.csLibrary4A.onRFIDEvent();
                                             Log.i(TAG, "rx000pkgData is " + (rx000pkgData == null ? "null" : "valid") +
@@ -316,8 +316,9 @@ public class MyForegroundService extends Service {
                                                 if (rx000pkgData1 != null) {
                                                     Log.i(TAG, "Server: getInventoryCloudSave = " + MainActivity.csLibrary4A.getInventoryCloudSave());
                                                     if (MainActivity.csLibrary4A.getInventoryCloudSave() == 1) {
+                                                        MainActivity.tagTypeExpected = null;
                                                         ReaderDevice readerDevice1 = new ReaderDevice("", MainActivity.csLibrary4A.byteArrayToString(rx000pkgData1.decodedEpc), false, null,
-                                                                MainActivity.csLibrary4A.byteArrayToString(rx000pkgData1.decodedPc), null, MainActivity.csLibrary4A.byteArrayToString(rx000pkgData1.decodedCrc), null, null,
+                                                                MainActivity.csLibrary4A.byteArrayToString(rx000pkgData1.decodedPc), null, MainActivity.csLibrary4A.byteArrayToString(rx000pkgData1.decodedCrc), null,
                                                                 null, -1, -1,
                                                                 null, -1, -1,
                                                                 new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS").format(new Date()), new SimpleDateFormat("z").format(new Date()).replaceAll("GMT", ""),
@@ -338,7 +339,7 @@ public class MyForegroundService extends Service {
                                                 + ", getTriggerButtonStatus = " + MainActivity.csLibrary4A.getTriggerButtonStatus() + ", timePeriod = " + timePeriod + ", ");
                                         MainActivity.csLibrary4A.abortOperation();
                                         while (true) {
-                                            RfidReaderChipData.Rx000pkgData rx000pkgData = MainActivity.csLibrary4A.onRFIDEvent();
+                                            RfidReaderData.Rx000pkgData rx000pkgData = MainActivity.csLibrary4A.onRFIDEvent();
                                             if (rx000pkgData == null) break;
                                         }
                                         if (readerDeviceArrayList.size() != 0) {

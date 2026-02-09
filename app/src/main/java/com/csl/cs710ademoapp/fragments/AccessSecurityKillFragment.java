@@ -15,9 +15,10 @@ import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
-import com.csl.cslibrary4a.NotificationConnector;
+import com.csl.cslibrary4a.SelectData;
+import com.csl.cslibrary4a.NotificationListener;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderChipData;
+import com.csl.cslibrary4a.RfidReaderData;
 
 public class AccessSecurityKillFragment extends CommonFragment {
     private EditText editTextTagID, editTextPassword, editTextAntennaPower;
@@ -107,7 +108,7 @@ public class AccessSecurityKillFragment extends CommonFragment {
     }
 
     void setNotificationListener() {
-        MainActivity.csLibrary4A.setNotificationListener(new NotificationConnector.NotificationListener() {
+        MainActivity.csLibrary4A.setNotificationListener(new NotificationListener() {
             @Override
             public void onChange() {
                 MainActivity.csLibrary4A.appendToLog("TRIGGER key is pressed.");
@@ -122,11 +123,9 @@ public class AccessSecurityKillFragment extends CommonFragment {
         String strTagID = editTextTagID.getText().toString();
         String strPassword = editTextPassword.getText().toString();
         int powerLevel = Integer.valueOf(editTextAntennaPower.getText().toString());
-        accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(button, null, invalidRequest, true,
-                strTagID, 1, 32,
-                strPassword, powerLevel, RfidReaderChipData.HostCommands.CMD_18K6CKILL,
-                0, 0, true, false,
-                null, null, null, null, null,
+        SelectData selectData = new SelectData(strTagID, strPassword, powerLevel);
+        accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(button, invalidRequest,
+                selectData, RfidReaderData.HostCommands.CMD_18K6CKILL,
                 MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
         accessTask.execute();
     }

@@ -20,7 +20,7 @@ import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cs710ademoapp.SaveList2ExternalTask;
 import com.csl.cs710ademoapp.adapters.ReaderListAdapter;
-import com.csl.cslibrary4a.NotificationConnector;
+import com.csl.cslibrary4a.NotificationListener;
 import com.csl.cslibrary4a.ReaderDevice;
 
 import java.util.Collections;
@@ -191,7 +191,7 @@ public class InventoryBarcodeFragment extends CommonFragment {
     }
 
     void setNotificationListener() {
-        MainActivity.csLibrary4A.setNotificationListener(new NotificationConnector.NotificationListener() {
+        MainActivity.csLibrary4A.setNotificationListener(new NotificationListener() {
             @Override
             public void onChange() {
                 startStopHandler(true);

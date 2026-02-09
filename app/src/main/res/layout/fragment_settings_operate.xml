@@ -514,6 +514,7 @@
                 android:id="@+id/settingOperateTestConfigurationLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:orientation="vertical">
 
                 <TableRow
@@ -533,8 +534,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="@android:color/darker_gray"
-                    android:visibility="visible"/>
+                    android:background="@android:color/darker_gray" />
 
                 <TableRow
                     android:layout_width="match_parent"

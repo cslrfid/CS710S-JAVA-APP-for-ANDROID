@@ -17,7 +17,8 @@ import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderChipData;
+import com.csl.cslibrary4a.RfidReaderData;
+import com.csl.cslibrary4a.SelectData;
 
 public class AccessKilowayFragment extends CommonFragment {
     final boolean DEBUG = true;
@@ -151,9 +152,9 @@ public class AccessKilowayFragment extends CommonFragment {
                         if (checkBoxRepeat != null && checkBoxRepeat.isChecked()) { bankProcessing = 0; checkProcessing = 0; }
                         else rerunRequest = false;
                     } else {
+                        SelectData selectData = new SelectData(editTextRWTagID.getText().toString(), "00000000", Integer.valueOf(editTextaccessRWAntennaPower.getText().toString()));
                         accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(buttonRead, invalid, true,
-                                editTextRWTagID.getText().toString(), 1, 32,
-                                "00000000", Integer.valueOf(editTextaccessRWAntennaPower.getText().toString()), RfidReaderChipData.HostCommands.CMD_18K6CREAD,
+                                selectData, RfidReaderData.HostCommands.CMD_18K6CREAD,
                                 false, null, MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
                         accessTask.execute();
                         rerunRequest = true;

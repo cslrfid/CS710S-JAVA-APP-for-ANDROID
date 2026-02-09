@@ -1,6 +1,8 @@
 include ':app'
 include ':cslibrary4a'
 include ':cslibrary4a1'
+include ':epctagcoder'
+include ':MqttAndroidClient'
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)

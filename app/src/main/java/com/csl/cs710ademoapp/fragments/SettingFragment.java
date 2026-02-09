@@ -19,7 +19,6 @@ public class SettingFragment extends CommonFragment {
     private ActionBar actionBar;
     private ViewPager2 viewPager;
     CustomTabAdapter adapter;
-    private String[] tabs = { "Operation", "Administration" };
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -35,9 +34,19 @@ public class SettingFragment extends CommonFragment {
         actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         actionBar.setTitle(R.string.title_activity_settings);
 
+        String strVersion = MainActivity.csLibrary4A.hostProcessorICGetFirmwareVersion();
+        MainActivity.csLibrary4A.appendToLog("SettingFragment.onviewCreated: strVersion = " + strVersion);
+        boolean bValid1 = MainActivity.csLibrary4A.checkHostProcessorVersion(strVersion, 2, 1, 21);
+        boolean bValid2 = MainActivity.csLibrary4A.checkHostProcessorVersion(strVersion, 2, 2, 2);
+        String[] tabs = { "Operation", "Administration", "Firmware Update" };
+        if (!bValid1 && !bValid2) {
+            tabs = new String[] { "Operation", "Administration" };
+        }
+
         adapter = new CustomTabAdapter(this, tabs.length);
         adapter.setFragment(0, new SettingOperateFragment());
         adapter.setFragment(1, new SettingAdminFragment());
+        adapter.setFragment(2, new SettingUpdateFragment());
 
         viewPager = (ViewPager2) view.findViewById(R.id.OperationsPager2);
         viewPager.setAdapter(adapter); //pagerAdapter); //mAdapter);
@@ -50,6 +59,7 @@ public class SettingFragment extends CommonFragment {
     public void onPause() {
         adapter.fragment0.onPause();
         adapter.fragment1.onPause();
+        adapter.fragment2.onPause();
         super.onPause();
     }
 
@@ -57,6 +67,7 @@ public class SettingFragment extends CommonFragment {
     public void onStop() {
         adapter.fragment0.onStop();
         adapter.fragment1.onStop();
+        adapter.fragment2.onStop();
         MainActivity.csLibrary4A.setAntennaSelect(0);
         super.onStop();
     }
@@ -65,6 +76,7 @@ public class SettingFragment extends CommonFragment {
     public void onDestroyView() {
         adapter.fragment0.onDestroyView();
         adapter.fragment1.onDestroyView();
+        adapter.fragment2.onDestroyView();
         super.onDestroyView();
     }
 
@@ -72,6 +84,7 @@ public class SettingFragment extends CommonFragment {
     public void onDestroy() {
         adapter.fragment0.onDestroy();
         adapter.fragment1.onDestroy();
+        adapter.fragment2.onDestroy();
         super.onDestroy();
     }
 
@@ -79,6 +92,7 @@ public class SettingFragment extends CommonFragment {
     public void onDetach() {
         adapter.fragment0.onDetach();
         adapter.fragment1.onDetach();
+        adapter.fragment2.onDetach();
         super.onDetach();
     }
 

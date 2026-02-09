@@ -18,7 +18,7 @@ import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cslibrary4a.CustomTabAdapter;
 import com.csl.cslibrary4a.CustomTabLayout;
-import com.csl.cslibrary4a.RfidReader;
+import com.csl.cslibrary4a.RfidReaderData;
 
 public class Ucode8Fragment extends CommonFragment {
     private ActionBar actionBar;
@@ -78,7 +78,7 @@ public class Ucode8Fragment extends CommonFragment {
 
         adapter = new CustomTabAdapter(this, tabs.length);
         adapter.setFragment(0, new AccessUcode8Fragment());
-        adapter.setFragment(1, InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_NXP_UCODE8, ""));
+        adapter.setFragment(1, InventoryRfidiMultiFragment.newInstance(true, RfidReaderData.TagType.TAG_NXP_UCODE8, ""));
         adapter.setFragment(2, new AccessUcodeFragment());
         adapter.setFragment(3, new UtraceFragment());
 

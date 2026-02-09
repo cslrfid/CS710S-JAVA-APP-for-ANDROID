@@ -164,9 +164,10 @@ public class HomeFragment extends CommonFragment {
                 if (MainActivity.sharedObjects.versionWarningShown == false) {
                     String stringPopup = MainActivity.csLibrary4A.checkVersion();
                     if (stringPopup != null && stringPopup.length() != 0) {
-                        if (stringPopup.indexOf("Unknown") != 0) stringPopup = "Firmware too old\nPlease upgrade firmware to at least:" + stringPopup;
+                        //if (stringPopup.indexOf("Unknown") != 0) stringPopup = "Firmware too old\nPlease upgrade firmware to at least:" + stringPopup;
+                        if (stringPopup.indexOf("Unknown") != 0) stringPopup = "Warning: " + stringPopup;
                         CustomPopupWindow customPopupWindow = new CustomPopupWindow((Context)getActivity());
-                        customPopupWindow.popupStart(stringPopup, false);
+                        customPopupWindow.popupStart(stringPopup);
                     }
                     MainActivity.sharedObjects.versionWarningShown = true;
                 }
@@ -182,13 +183,18 @@ public class HomeFragment extends CommonFragment {
         public void run() {
             MainActivity.csLibrary4A.appendToLog("runnableStartService: ActivityCompat.checkSelfPermission(activity, WRITE_EXTERNAL_STORAGE) = " + ActivityCompat.checkSelfPermission(context, WRITE_EXTERNAL_STORAGE));
             MainActivity.csLibrary4A.appendToLog("runnableStartService: ActivityCompat.checkSelfPermission(activity, READ_EXTERNAL_STORAGE)  = " + ActivityCompat.checkSelfPermission(context, READ_EXTERNAL_STORAGE));
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
                 if (context.checkSelfPermission(WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    MainActivity.csLibrary4A.appendToLog("HomeFragment.runnableStartService.run: requestPermissions WRITE_EXTERNAL_STORAGE and READ_EXTERNAL_STORAGE"); //
-                    requestPermissions(new String[] { WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE }, 1);
-                    //Toast.makeText(mContext, com.csl.cslibrary4a.R.string.toast_permission_not_granted, Toast.LENGTH_SHORT).show();
+                    MainActivity.csLibrary4A.appendToLog("HomeFragment.runnableStartService.run: requestPermissions WRITE_EXTERNAL_STORAGE"); //
+                    requestPermissions(new String[] { WRITE_EXTERNAL_STORAGE }, 1);
                 } else MainActivity.csLibrary4A.appendToLog("runnableStartService: WRITE_EXTERNAL_STORAGE is permitted"); ///
             } else MainActivity.csLibrary4A.appendToLog("runnableStartService: no need to handle WRITE_EXTERNAL_STORAGE");
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (context.checkSelfPermission(READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    MainActivity.csLibrary4A.appendToLog("HomeFragment.runnableStartService.run: requestPermissions READ_EXTERNAL_STORAGE"); //
+                    requestPermissions(new String[] { READ_EXTERNAL_STORAGE }, 1);
+                } else MainActivity.csLibrary4A.appendToLog("runnableStartService: READ_EXTERNAL_STORAGE is permitted"); ///
+            } else MainActivity.csLibrary4A.appendToLog("runnableStartService: no need to handle READ_EXTERNAL_STORAGE");
 
             LocationManager locationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
             MainActivity.csLibrary4A.appendToLog("runnableStartService: locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) = " + locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER));

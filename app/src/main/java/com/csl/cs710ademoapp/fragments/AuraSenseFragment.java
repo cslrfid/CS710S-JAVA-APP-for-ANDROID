@@ -20,7 +20,7 @@ import android.view.ViewGroup;
 
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
-import com.csl.cslibrary4a.RfidReader;
+import com.csl.cslibrary4a.RfidReaderData;
 
 public class AuraSenseFragment extends CommonFragment {
     private ActionBar actionBar;
@@ -78,7 +78,7 @@ public class AuraSenseFragment extends CommonFragment {
 
         adapter = new CustomTabAdapter(this, 2);
         adapter.setFragment(0, new AccessAuraSenseFragment());
-        adapter.setFragment(1, InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_EM_AURASENSE, "" /*"E280B12"*/));
+        adapter.setFragment(1, InventoryRfidiMultiFragment.newInstance(true, RfidReaderData.TagType.TAG_EM_AURASENSE, "" /*"E280B12"*/));
 
         viewPager = (ViewPager2) getActivity().findViewById(R.id.OperationsPager2);
         viewPager.setAdapter(adapter);

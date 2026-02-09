@@ -22,7 +22,7 @@ import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReader;
+import com.csl.cslibrary4a.RfidReaderData;
 import com.csl.cslibrary4a.SelectData;
 import com.csl.cslibrary4a.TagAxzonOpus;
 
@@ -288,7 +288,7 @@ public class AccessOpusLoggerFragment extends CommonFragment {
 
         MainActivity.csLibrary4A.setSameCheck(false);
 
-        tagAxzonOpus = new TagAxzonOpus(MainActivity.context, MainActivity.csLibrary4A, MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO, buttonRead, buttonWrite);
+        tagAxzonOpus = MainActivity.csLibrary4A.getTagAxzonOpus(MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO, buttonRead, buttonWrite);
     }
 
     @Override
@@ -335,13 +335,13 @@ public class AccessOpusLoggerFragment extends CommonFragment {
                 if (editTextRWTagID != null) editTextRWTagID.setText(tagSelected.getAddress());
 
                 if (tagSelected.getMdid() == null) {
-                } else if (tagSelected.getTagTypeExpected() == RfidReader.TagType.TAG_MAGNUS_S2) {
+                } else if (MainActivity.tagTypeExpected == RfidReaderData.TagType.TAG_MAGNUS_S2) {
                     modelCode = 2;
-                } else if (tagSelected.getTagTypeExpected() == RfidReader.TagType.TAG_MAGNUS_S3) {
+                } else if (MainActivity.tagTypeExpected == RfidReaderData.TagType.TAG_MAGNUS_S3) {
                     modelCode = 3;
-                } else if (tagSelected.getTagTypeExpected() == RfidReader.TagType.TAG_AXZON_XERXES) {
+                } else if (MainActivity.tagTypeExpected == RfidReaderData.TagType.TAG_AXZON_XERXES) {
                     modelCode = 5;
-                } else if (tagSelected.getTagTypeExpected() == RfidReader.TagType.TAG_AXZON_OPUS) {
+                } else if (MainActivity.tagTypeExpected == RfidReaderData.TagType.TAG_AXZON_OPUS) {
                     modelCode = 50;
                 }
 
@@ -367,11 +367,7 @@ public class AccessOpusLoggerFragment extends CommonFragment {
     void startReadWrite() {
         MainActivity.csLibrary4A.appendToLog("AccessXerxesLoggerFragment.startReadWrite: updating = " + updating);
         if (updating == false) {
-            TagAxzonOpus.selectData = new SelectData();
-            tagAxzonOpus.selectData.selectMaskEpc = editTextRWTagID.getText().toString();
-            tagAxzonOpus.selectData.selectPassword = editTextAccessRWAccPassword.getText().toString();
-            tagAxzonOpus.selectData.selectPower = Integer.valueOf(editTextaccessRWAntennaPower.getText().toString());
-
+            TagAxzonOpus.selectData = new SelectData(editTextRWTagID.getText().toString(), editTextAccessRWAccPassword.getText().toString(), Integer.valueOf(editTextaccessRWAntennaPower.getText().toString()));
             updating = true; bankProcessing = 0;
             checkProcessing = 0;
 

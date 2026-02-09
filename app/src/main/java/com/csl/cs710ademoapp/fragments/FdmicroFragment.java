@@ -2,10 +2,6 @@ package com.csl.cs710ademoapp.fragments;
 
 import android.os.Bundle;
 
-import com.csl.cs710ademoapp.MainActivity;
-import com.csl.cslibrary4a.CustomTabAdapter;
-import com.csl.cslibrary4a.CustomTabLayout;
-
 import androidx.annotation.NonNull;
 import androidx.core.view.MenuProvider;
 import androidx.appcompat.app.ActionBar;
@@ -19,8 +15,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
-import com.csl.cslibrary4a.RfidReader;
+
+import com.csl.cslibrary4a.CustomTabAdapter;
+import com.csl.cslibrary4a.CustomTabLayout;
+import com.csl.cslibrary4a.RfidReaderData;
 
 public class FdmicroFragment extends CommonFragment {
     private ActionBar actionBar;
@@ -77,7 +77,7 @@ public class FdmicroFragment extends CommonFragment {
         actionBar.setTitle(R.string.title_activity_fdMicro);
 
         adapter = new CustomTabAdapter(this, tabs.length);
-        adapter.setFragment(0, InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_FDMICRO, "")); //""E2827001"));
+        adapter.setFragment(0, InventoryRfidiMultiFragment.newInstance(true, RfidReaderData.TagType.TAG_FDMICRO, "")); //""E2827001"));
         adapter.setFragment(1, new AccessFdmicroFragment());
 
         viewPager = (ViewPager2) getActivity().findViewById(R.id.OperationsPager2);

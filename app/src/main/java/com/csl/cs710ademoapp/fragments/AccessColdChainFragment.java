@@ -22,7 +22,8 @@ import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderChipData;
+import com.csl.cslibrary4a.RfidReaderData;
+import com.csl.cslibrary4a.SelectData;
 
 public class AccessColdChainFragment extends CommonFragment {
     final boolean DEBUG = true;
@@ -309,18 +310,14 @@ public class AccessColdChainFragment extends CommonFragment {
                 MainActivity.csLibrary4A.appendToLog("processTickItems, invalid = " + invalid);
                 if (bankProcessing++ != 0 && invalid) rerunRequest = false;
                 else  {
-                    RfidReaderChipData.HostCommands hostCommand;
-                    if (readWriteTypes == ReadWriteTypes.TEMPERATURE) hostCommand = RfidReaderChipData.HostCommands.CMD_GETSENSORDATA;
-                    else if (operationRead) hostCommand = RfidReaderChipData.HostCommands.CMD_18K6CREAD;
-                    else hostCommand = RfidReaderChipData.HostCommands.CMD_18K6CWRITE;
-                    accessTask = new CustomAccessTask((operationRead ? buttonRead : buttonWrite), null, invalid, true,
-                            editTextRWTagID.getText().toString(), 1, 32,
-                            editTextAccessRWAccPassword.getText().toString(),
-                            Integer.valueOf(editTextaccessRWAntennaPower.getText().toString()),
-                            hostCommand,
-                            0, 0, true, false,
-                            null, null, null, null, null,
-                            MainActivity.context, MainActivity.csLibrary4A, MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
+                    RfidReaderData.HostCommands hostCommand;
+                    if (readWriteTypes == ReadWriteTypes.TEMPERATURE) hostCommand = RfidReaderData.HostCommands.CMD_GETSENSORDATA;
+                    else if (operationRead) hostCommand = RfidReaderData.HostCommands.CMD_18K6CREAD;
+                    else hostCommand = RfidReaderData.HostCommands.CMD_18K6CWRITE;
+                    SelectData selectData = new SelectData(editTextRWTagID.getText().toString(), editTextAccessRWAccPassword.getText().toString(), Integer.valueOf(editTextaccessRWAntennaPower.getText().toString()));
+                    accessTask = MainActivity.csLibrary4A.getAccessTaskCustom((operationRead ? buttonRead : buttonWrite), invalid,
+                            selectData, hostCommand,
+                            MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
                     accessTask.execute();
                     rerunRequest = true;
                     MainActivity.csLibrary4A.appendToLog("accessTask is created");

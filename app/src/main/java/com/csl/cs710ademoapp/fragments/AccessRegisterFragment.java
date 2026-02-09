@@ -24,16 +24,18 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.csl.cslibrary4a.CustomAccessTask;
-import com.csl.cslibrary4a.CustomAsyncTask;
-import com.csl.cslibrary4a.CustomPopupWindow;
 import com.csl.cs710ademoapp.InventoryBarcodeTask;
 import com.csl.cs710ademoapp.InventoryRfidTask;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
-import com.csl.cslibrary4a.NotificationConnector;
+
+import com.csl.cslibrary4a.CustomAccessTask;
+import com.csl.cslibrary4a.CustomAsyncTask;
+import com.csl.cslibrary4a.CustomPopupWindow;
+import com.csl.cslibrary4a.NotificationListener;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderChipData;
+import com.csl.cslibrary4a.RfidReaderData;
+import com.csl.cslibrary4a.SelectData;
 
 import java.util.ArrayList;
 
@@ -228,7 +230,7 @@ public class AccessRegisterFragment extends CommonFragment {
                     MainActivity.csLibrary4A.setTagRead(0);
                     MainActivity.csLibrary4A.setSelectedTag(strTagId, selectBank, pwrlevel);
                     MainActivity.csLibrary4A.appendToLog("Debug_Compact: AccessRegisterFragment.onViewCreated.buttonSelect.onClick");
-                    MainActivity.csLibrary4A.startOperation(RfidReaderChipData.OperationTypes.TAG_INVENTORY);
+                    MainActivity.csLibrary4A.startOperation(RfidReaderData.OperationTypes.TAG_INVENTORY);
                     inventoryRfidTask = new InventoryRfidTask();
                     inventoryRfidTask.execute();
                     MainActivity.sharedObjects.serviceArrayList.clear(); epcArrayList.clear();
@@ -356,7 +358,7 @@ public class AccessRegisterFragment extends CommonFragment {
     }
 
     void setNotificationListener() {
-        MainActivity.csLibrary4A.setNotificationListener(new NotificationConnector.NotificationListener() {
+        MainActivity.csLibrary4A.setNotificationListener(new NotificationListener() {
             @Override
             public void onChange() {
                 MainActivity.csLibrary4A.appendToLog("TRIGGER key is pressed.");
@@ -429,7 +431,7 @@ public class AccessRegisterFragment extends CommonFragment {
                         if (textViewSelectedTags.getText().toString().trim().length() == 0) bcontinue = false;
                     }
                     if (bcontinue) {
-                        customPopupWindow.popupStart("Next barcode.", false);
+                        customPopupWindow.popupStart("Next barcode.");
                         barcodeReadRequesting = true; MainActivity.csLibrary4A.appendToLog("barcodeReadRequesting = true");
                         barcodeReadDone = false; MainActivity.csLibrary4A.appendToLog("barcodeReadDone = false as popup");
                         bcontinue = false;
@@ -670,11 +672,11 @@ public class AccessRegisterFragment extends CommonFragment {
         MainActivity.csLibrary4A.appendToLog("invalidRequest1 = " + invalidRequest1
                 + ", selectMask = " + selectMask + ", selectBank1 = " + selectBank1 + ", selectOffset1 = " + selectOffset1
                 + ", password = " + password + ", power = " + antennaPower + ", repeatCount = " + repeatCount + ", resetCount = " + resetCount);
-        accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(buttonWrite, textViewWriteCount, invalidRequest1, true,
-                selectMask, selectBank1, selectOffset1,
-                password, antennaPower, RfidReaderChipData.HostCommands.CMD_18K6CWRITE,
+        SelectData selectData = new SelectData(selectMask, selectBank1, selectOffset1, password, antennaPower);
+        accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(buttonWrite, invalidRequest1, true,
+                selectData, RfidReaderData.HostCommands.CMD_18K6CWRITE,
                 selectQValue, repeatCount, resetCount, false,
-                textViewRunTime, textViewTagGot, textViewVoltageLevel, textViewYield, textViewTotal,
+                textViewWriteCount, textViewRunTime, textViewTagGot, textViewVoltageLevel, textViewYield, textViewTotal,
                 MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
         accessTask.execute();
         resetCount = false;

@@ -219,7 +219,7 @@ public class DirectWedgeFragment extends CommonFragment {
                 "7.	Switch back to the CSL Data Wedge application.  Now you can press the \"Disconnect\" button to disconnect from the reader.\n\n" +
                 "8.	Configuration button: Press the button to modify parameters such as power, prefix, suffix and delimiter.\n\n";
                 MainActivity.csLibrary4A.appendToLog(stringInfo);
-                customPopupWindow.popupStart(stringInfo, false);
+                customPopupWindow.popupStart(stringInfo);
             }
         });
 
@@ -263,7 +263,7 @@ public class DirectWedgeFragment extends CommonFragment {
     }
     void connectWedge(ReaderDevice readerDevice) {
         MainActivity.csLibrary4A.scanLeDevice(false);
-        MainActivity.csLibrary4A.connect(readerDevice); bWedgeConnecting = true; bWedgeConnected = false; bUserRequestedDisconnect = false;
+        MainActivity.csLibrary4A.appendToLog("going to connect 5"); MainActivity.csLibrary4A.connect(readerDevice); bWedgeConnecting = true; bWedgeConnected = false; bUserRequestedDisconnect = false;
         buttonConnect.setText("Connecting");
         MainActivity.csLibrary4A.setWedgeDeviceName(readerDevice.getName()); MainActivity.csLibrary4A.setWedgeDeviceAddress(readerDevice.getAddress());
         MainActivity.csLibrary4A.setWedgeDeviceUUID2p1(readerDevice.getServiceUUID());

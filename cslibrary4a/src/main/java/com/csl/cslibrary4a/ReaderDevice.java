@@ -9,7 +9,6 @@ public class ReaderDevice implements Comparable<ReaderDevice>  {
     private String details;
     int extra1Bank, extra2Bank, extra1Offset, extra2Offset;
     String strPc, strXpc, strCrc16, strMdid, strExtra1, strExtra2;
-    RfidReader.TagType tagTypeExpected;
     private int count;
     private double rssi;
     private int serviceUUID; private boolean hasServicePower;
@@ -25,7 +24,7 @@ public class ReaderDevice implements Comparable<ReaderDevice>  {
     private String compass;
 
     public ReaderDevice(String name, String address, boolean selected, String details,
-                        String strPc, String strXpc, String strCrc16, String strMdid, RfidReader.TagType tagTypeExpected,
+                        String strPc, String strXpc, String strCrc16, String strMdid,
                         String strExtra1, int extra1Bank, int extra1Offset,
                         String strExtra2, int extra2Bank, int extra2Offset,
                         String strTimeOfRead, String strTimeZone, String strLocation, String strCompass,
@@ -37,7 +36,7 @@ public class ReaderDevice implements Comparable<ReaderDevice>  {
         this.strPc = strPc;
         this.strXpc = strXpc;
         this.strCrc16 = strCrc16;
-        this.strMdid = strMdid; this.tagTypeExpected = tagTypeExpected;
+        this.strMdid = strMdid;
         Log.i("Hello", "ReaderDevice.ReadderDevice: strExtra1 = " + strExtra1 + ", extra1Bank = " + extra1Bank + ", extra1Offset = " + extra1Offset);
         this.strExtra1 = strExtra1;
         this.extra1Bank = extra1Bank;
@@ -212,10 +211,6 @@ public class ReaderDevice implements Comparable<ReaderDevice>  {
     public String getMdid() {
         return strMdid;
     }
-    public RfidReader.TagType getTagTypeExpected() {
-        return tagTypeExpected;
-    }
-
     public int getCount() {
         return count;
     }

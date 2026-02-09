@@ -78,7 +78,7 @@ public abstract class CommonFragment extends Fragment {
                 if (false && notificationData != null) {
                     MainActivity.csLibrary4A.appendToLog("2 matched Error: " + MainActivity.csLibrary4A.byteArrayToString(notificationData));
                     CustomPopupWindow customPopupWindow = new CustomPopupWindow(MainActivity.context);
-                    customPopupWindow.popupStart("Common Notification Error Code A101: " + MainActivity.csLibrary4A.byteArrayToString(notificationData), false);
+                    customPopupWindow.popupStart("Common Notification Error Code A101: " + MainActivity.csLibrary4A.byteArrayToString(notificationData));
                 }
                 reportCount = MainActivity.csLibrary4A.getTriggerReportingCount();
             }
@@ -119,7 +119,7 @@ public abstract class CommonFragment extends Fragment {
                                     @Override
                                     public void run() {
                                         if (DEBUG) MainActivity.csLibrary4A.appendToLog("Confirm is pressed");
-                                        MainActivity.csLibrary4A.connect(null);
+                                        MainActivity.csLibrary4A.appendToLog("going to connect 3"); MainActivity.csLibrary4A.connect(null);
                                     }
                                 },
                                 new Runnable() {
@@ -173,7 +173,7 @@ public abstract class CommonFragment extends Fragment {
                 if (batteryWarningPopupWindow != null)
                     batteryWarningPopupWindow.popupWindow.dismiss();
                 batteryWarningPopupWindow = new CustomPopupWindow(MainActivity.context);
-                batteryWarningPopupWindow.popupStart(strBatteryLow + "% Battery Life Left, Please Recharge CSL Reader or Replace with Freshly Charged CSL Reader battery", false);
+                batteryWarningPopupWindow.popupStart(strBatteryLow + "% Battery Life Left, Please Recharge CSL Reader or Replace with Freshly Charged CSL Reader battery");
             } else if (false && MainActivity.sharedObjects.batteryWarningShown > 10) MainActivity.sharedObjects.batteryWarningShown = 0;
 
             if (batteryCount_old == batteryCount && strText.length() != 0) {

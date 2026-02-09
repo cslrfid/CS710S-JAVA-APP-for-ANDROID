@@ -97,8 +97,6 @@ public class SettingOperateFragment extends CommonFragment {
             linearLayout0.setVisibility(View.GONE);
             LinearLayout linearLayout1 = (LinearLayout) view.findViewById(R.id.settingOperateOtherConfigurationLayout1);
             linearLayout1.setVisibility(View.GONE);
-            LinearLayout linearLayout = (LinearLayout) view.findViewById(R.id.settingOperateTestConfigurationLayout);
-            linearLayout.setVisibility(View.GONE);
         } else {
             TableRow tableRow = (TableRow) view.findViewById(R.id.settingOperateDupDelayRow);
             tableRow.setVisibility(View.GONE);
@@ -414,7 +412,7 @@ public class SettingOperateFragment extends CommonFragment {
         textViewPortChannel.setText("");
         if (MainActivity.csLibrary4A.setAntennaSelect(channel-1)) {
             String string = String.valueOf(channel);
-            if (MainActivity.csLibrary4A.getcsModel() == 203) {
+            if (MainActivity.csLibrary4A.getCsModel() == 203) {
                 String string1 = "";
                 if (channel == 1) string1 = " [external]";
                 else if (channel == 2) string1 = " [internal]";
@@ -688,7 +686,7 @@ public class SettingOperateFragment extends CommonFragment {
             if (powerLevel < powerLevelMin) invalidRequest = true;
             else if (powerLevel > MainActivity.csLibrary4A.getPowerLevelMax()) {
                 CustomPopupWindow customPopupWindow = new CustomPopupWindow(MainActivity.context);
-                customPopupWindow.popupStart("Power can only be set to 320 or below", false);
+                customPopupWindow.popupStart("Power can only be set to 320 or below");
                 invalidRequest = true;
             }
             else if (MainActivity.csLibrary4A.setPowerLevel(powerLevel) == false) invalidRequest = true;

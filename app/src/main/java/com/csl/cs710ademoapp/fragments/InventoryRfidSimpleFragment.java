@@ -27,9 +27,9 @@ import com.csl.cs710ademoapp.R;
 import com.csl.cs710ademoapp.SaveList2ExternalTask;
 import com.csl.cs710ademoapp.SharedObjects;
 import com.csl.cs710ademoapp.adapters.ReaderListAdapter;
-import com.csl.cslibrary4a.NotificationConnector;
+import com.csl.cslibrary4a.NotificationListener;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderChipData;
+import com.csl.cslibrary4a.RfidReaderData;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -245,7 +245,7 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
     }
 
     void setNotificationListener() {
-        MainActivity.csLibrary4A.setNotificationListener(new NotificationConnector.NotificationListener() {
+        MainActivity.csLibrary4A.setNotificationListener(new NotificationListener() {
             @Override
             public void onChange() {
                 MainActivity.csLibrary4A.appendToLog("TRIGGER key is pressed.");
@@ -320,11 +320,11 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
     long timeMillis, startTimeMillis, runTimeMillis, rateTimeMillis;
     int iTagTarget, iTagGot;
     Handler myHandler = new Handler(Looper.getMainLooper());
-    ArrayList<RfidReaderChipData.Rx000pkgData> uplinkPacketList = new ArrayList<>();
+    ArrayList<RfidReaderData.Rx000pkgData> uplinkPacketList = new ArrayList<>();
     Runnable runnableSimpleInentory = new Runnable() {
         @Override
         public void run() {
-            RfidReaderChipData.Rx000pkgData uplinkPacket;
+            RfidReaderData.Rx000pkgData uplinkPacket;
             if (MainActivity.csLibrary4A.isBleConnected() && bRunningInventory) {
                 while (MainActivity.csLibrary4A.rfidToWriteSize() == 0 && (iTagTarget == 0 || iTagGot < iTagTarget)) {
                     if (System.currentTimeMillis() > runTimeMillis + 1000) {
@@ -380,9 +380,9 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
         int total = 0;
 
         while (uplinkPacketList.size() != 0) {
-            RfidReaderChipData.Rx000pkgData uplinkPacket = uplinkPacketList.get(0);
+            RfidReaderData.Rx000pkgData uplinkPacket = uplinkPacketList.get(0);
             uplinkPacketList.remove(0);
-            RfidReaderChipData.Rx000pkgData tagData = uplinkPacket;
+            RfidReaderData.Rx000pkgData tagData = uplinkPacket;
 
             boolean match = false;
             total++;
@@ -412,11 +412,12 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
                 match = true;
             }
             if (match == false) {
+                MainActivity.tagTypeExpected = null;
                 deviceTag = new ReaderDevice("", MainActivity.csLibrary4A.byteArrayToString(uplinkPacket.decodedEpc), false, null,
                         MainActivity.csLibrary4A.byteArrayToString(uplinkPacket.decodedPc),
                         null,
                         (uplinkPacket.decodedCrc != null ? MainActivity.csLibrary4A.byteArrayToString(uplinkPacket.decodedCrc) : null),
-                        null, null,
+                        null,
                         null, 0, 0,
                         null, 0, 0,
                         null, null, null, null,
@@ -446,7 +447,7 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
     void startInventoryTask() {
         MainActivity.csLibrary4A.appendToLog("startInventoryTask");
         MainActivity.csLibrary4A.restoreAfterTagSelect();
-        MainActivity.csLibrary4A.startOperation(RfidReaderChipData.OperationTypes.TAG_INVENTORY_COMPACT);
+        MainActivity.csLibrary4A.startOperation(RfidReaderData.OperationTypes.TAG_INVENTORY_COMPACT);
     }
 
     private final Runnable runnableCheckReady = new Runnable() {

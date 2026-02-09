@@ -24,7 +24,7 @@ import com.csl.cslibrary4a.CustomPopupWindow;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cs710ademoapp.SettingTaskCustom;
-import com.csl.cslibrary4a.RfidReaderChipData;
+import com.csl.cslibrary4a.RfidReaderData;
 
 public class SettingAdminFragment extends CommonFragment {
     View viewFragment;
@@ -306,7 +306,7 @@ public class SettingAdminFragment extends CommonFragment {
                     mHandler.post(updateRunnable);
                     CustomPopupWindow customPopupWindow = new CustomPopupWindow(MainActivity.context);
                     String stringInfo = "Please power cycle reader and also this application";
-                    customPopupWindow.popupStart(stringInfo, false);
+                    customPopupWindow.popupStart(stringInfo);
                 }
             }
         });
@@ -334,17 +334,17 @@ public class SettingAdminFragment extends CommonFragment {
                         savingFormatSelect = spinnerSavingFormat.getSelectedItemPosition();
                         {
                             csvColumnSelect = 0;
-                            if (checkBoxCsvColumnResBank.isChecked()) csvColumnSelect |= (0x01 << RfidReaderChipData.CsvColumn.RESERVE_BANK.ordinal());
-                            if (checkBoxCsvColumnEpcBank.isChecked()) csvColumnSelect |= (0x01 << RfidReaderChipData.CsvColumn.EPC_BANK.ordinal());
-                            if (checkBoxCsvColumnTidBank.isChecked()) csvColumnSelect |= (0x01 << RfidReaderChipData.CsvColumn.TID_BANK.ordinal());
-                            if (checkBoxCsvColumnUserBank.isChecked()) csvColumnSelect |= (0x01 << RfidReaderChipData.CsvColumn.USER_BANK.ordinal());
-                            if (checkBoxCsvColumnPhase.isChecked()) csvColumnSelect |= (0x01 << RfidReaderChipData.CsvColumn.PHASE.ordinal());
-                            if (checkBoxCsvColumnChannel.isChecked()) csvColumnSelect |= (0x01 << RfidReaderChipData.CsvColumn.CHANNEL.ordinal());
-                            if (checkBoxCsvColumnTime.isChecked()) csvColumnSelect |= (0x01 << RfidReaderChipData.CsvColumn.TIME.ordinal());
-                            if (checkBoxCsvColumnTimeZone.isChecked()) csvColumnSelect |= (0x01 << RfidReaderChipData.CsvColumn.TIMEZONE.ordinal());
-                            if (checkBoxCsvColumnLocation.isChecked()) csvColumnSelect |= (0x01 << RfidReaderChipData.CsvColumn.LOCATION.ordinal());
-                            if (checkBoxCsvColumnDirection.isChecked()) csvColumnSelect |= (0x01 << RfidReaderChipData.CsvColumn.DIRECTION.ordinal());
-                            if (checkBoxCsvColumnOthers.isChecked()) csvColumnSelect |= (0x01 << RfidReaderChipData.CsvColumn.OTHERS.ordinal());
+                            if (checkBoxCsvColumnResBank.isChecked()) csvColumnSelect |= (0x01 << RfidReaderData.CsvColumn.RESERVE_BANK.ordinal());
+                            if (checkBoxCsvColumnEpcBank.isChecked()) csvColumnSelect |= (0x01 << RfidReaderData.CsvColumn.EPC_BANK.ordinal());
+                            if (checkBoxCsvColumnTidBank.isChecked()) csvColumnSelect |= (0x01 << RfidReaderData.CsvColumn.TID_BANK.ordinal());
+                            if (checkBoxCsvColumnUserBank.isChecked()) csvColumnSelect |= (0x01 << RfidReaderData.CsvColumn.USER_BANK.ordinal());
+                            if (checkBoxCsvColumnPhase.isChecked()) csvColumnSelect |= (0x01 << RfidReaderData.CsvColumn.PHASE.ordinal());
+                            if (checkBoxCsvColumnChannel.isChecked()) csvColumnSelect |= (0x01 << RfidReaderData.CsvColumn.CHANNEL.ordinal());
+                            if (checkBoxCsvColumnTime.isChecked()) csvColumnSelect |= (0x01 << RfidReaderData.CsvColumn.TIME.ordinal());
+                            if (checkBoxCsvColumnTimeZone.isChecked()) csvColumnSelect |= (0x01 << RfidReaderData.CsvColumn.TIMEZONE.ordinal());
+                            if (checkBoxCsvColumnLocation.isChecked()) csvColumnSelect |= (0x01 << RfidReaderData.CsvColumn.LOCATION.ordinal());
+                            if (checkBoxCsvColumnDirection.isChecked()) csvColumnSelect |= (0x01 << RfidReaderData.CsvColumn.DIRECTION.ordinal());
+                            if (checkBoxCsvColumnOthers.isChecked()) csvColumnSelect |= (0x01 << RfidReaderData.CsvColumn.OTHERS.ordinal());
                         }
                         if (editTextCycleDelay != null)   cycleDelay = Long.parseLong(editTextCycleDelay.getText().toString());
                         if (editTextTriggerReportingCount != null)   sTriggerCount = Short.parseShort(editTextTriggerReportingCount.getText().toString());
@@ -448,17 +448,17 @@ public class SettingAdminFragment extends CommonFragment {
             spinnerSavingFormat.setSelection(MainActivity.csLibrary4A.getSavingFormatSetting());
             {
                 int csvColumnSelect = MainActivity.csLibrary4A.getCsvColumnSelectSetting();
-                if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.RESERVE_BANK.ordinal())) != 0) checkBoxCsvColumnResBank.setChecked(true); else checkBoxCsvColumnResBank.setChecked(false);
-                if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.EPC_BANK.ordinal())) != 0) checkBoxCsvColumnEpcBank.setChecked(true); else checkBoxCsvColumnEpcBank.setChecked(false);
-                if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.TID_BANK.ordinal())) != 0) checkBoxCsvColumnTidBank.setChecked(true); else checkBoxCsvColumnTidBank.setChecked(false);
-                if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.USER_BANK.ordinal())) != 0) checkBoxCsvColumnUserBank.setChecked(true); else checkBoxCsvColumnUserBank.setChecked(false);
-                if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.PHASE.ordinal())) != 0) checkBoxCsvColumnPhase.setChecked(true); else checkBoxCsvColumnPhase.setChecked(false);
-                if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.CHANNEL.ordinal())) != 0) checkBoxCsvColumnChannel.setChecked(true); else checkBoxCsvColumnChannel.setChecked(false);
-                if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.TIME.ordinal())) != 0) checkBoxCsvColumnTime.setChecked(true); else checkBoxCsvColumnTime.setChecked(false);
-                if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.TIMEZONE.ordinal())) != 0) checkBoxCsvColumnTimeZone.setChecked(true); else checkBoxCsvColumnTimeZone.setChecked(false);
-                if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.LOCATION.ordinal())) != 0) checkBoxCsvColumnLocation.setChecked(true); else checkBoxCsvColumnLocation.setChecked(false);
-                if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.DIRECTION.ordinal())) != 0) checkBoxCsvColumnDirection.setChecked(true); else checkBoxCsvColumnDirection.setChecked(false);
-                if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.OTHERS.ordinal())) != 0) checkBoxCsvColumnOthers.setChecked(true); else checkBoxCsvColumnOthers.setChecked(false);
+                if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.RESERVE_BANK.ordinal())) != 0) checkBoxCsvColumnResBank.setChecked(true); else checkBoxCsvColumnResBank.setChecked(false);
+                if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.EPC_BANK.ordinal())) != 0) checkBoxCsvColumnEpcBank.setChecked(true); else checkBoxCsvColumnEpcBank.setChecked(false);
+                if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.TID_BANK.ordinal())) != 0) checkBoxCsvColumnTidBank.setChecked(true); else checkBoxCsvColumnTidBank.setChecked(false);
+                if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.USER_BANK.ordinal())) != 0) checkBoxCsvColumnUserBank.setChecked(true); else checkBoxCsvColumnUserBank.setChecked(false);
+                if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.PHASE.ordinal())) != 0) checkBoxCsvColumnPhase.setChecked(true); else checkBoxCsvColumnPhase.setChecked(false);
+                if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.CHANNEL.ordinal())) != 0) checkBoxCsvColumnChannel.setChecked(true); else checkBoxCsvColumnChannel.setChecked(false);
+                if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.TIME.ordinal())) != 0) checkBoxCsvColumnTime.setChecked(true); else checkBoxCsvColumnTime.setChecked(false);
+                if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.TIMEZONE.ordinal())) != 0) checkBoxCsvColumnTimeZone.setChecked(true); else checkBoxCsvColumnTimeZone.setChecked(false);
+                if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.LOCATION.ordinal())) != 0) checkBoxCsvColumnLocation.setChecked(true); else checkBoxCsvColumnLocation.setChecked(false);
+                if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.DIRECTION.ordinal())) != 0) checkBoxCsvColumnDirection.setChecked(true); else checkBoxCsvColumnDirection.setChecked(false);
+                if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.OTHERS.ordinal())) != 0) checkBoxCsvColumnOthers.setChecked(true); else checkBoxCsvColumnOthers.setChecked(false);
             }
             if (editTextCycleDelay != null)   editTextCycleDelay.setText(String.valueOf(MainActivity.csLibrary4A.getCycleDelay()));
             if (editTextTriggerReportingCount != null)   {

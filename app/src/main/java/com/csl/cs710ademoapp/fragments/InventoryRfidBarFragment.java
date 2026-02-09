@@ -25,9 +25,9 @@ import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cs710ademoapp.SaveList2ExternalTask;
 import com.csl.cs710ademoapp.adapters.ReaderListAdapter;
-import com.csl.cslibrary4a.NotificationConnector;
+import com.csl.cslibrary4a.NotificationListener;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderChipData;
+import com.csl.cslibrary4a.RfidReaderData;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -215,7 +215,7 @@ public class InventoryRfidBarFragment extends CommonFragment {
     }
 
     void setNotificationListener() {
-        MainActivity.csLibrary4A.setNotificationListener(new NotificationConnector.NotificationListener() {
+        MainActivity.csLibrary4A.setNotificationListener(new NotificationListener() {
             @Override
             public void onChange() {
                 startStopHandler(true);
@@ -267,7 +267,7 @@ public class InventoryRfidBarFragment extends CommonFragment {
                 if (inventoryBarcodeTask.tagResult != null) {
                     MainActivity.csLibrary4A.appendToLog("InventoryRfidBarInventory.runnable: with inventoryBarcodeTask finished with result");
                     //MainActivity.csLibrary4A.setPowerLevel(150);
-                    MainActivity.csLibrary4A.startOperation(RfidReaderChipData.OperationTypes.TAG_INVENTORY);
+                    MainActivity.csLibrary4A.startOperation(RfidReaderData.OperationTypes.TAG_INVENTORY);
                     inventoryRfidTask = new InventoryRfidTask(getContext(),
                             false, MainActivity.csLibrary4A.getInventoryBeep(), true,
                             null, null,

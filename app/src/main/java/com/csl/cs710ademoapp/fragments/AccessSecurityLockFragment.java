@@ -18,9 +18,10 @@ import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
-import com.csl.cslibrary4a.NotificationConnector;
+import com.csl.cslibrary4a.NotificationListener;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderChipData;
+import com.csl.cslibrary4a.RfidReaderData;
+import com.csl.cslibrary4a.SelectData;
 
 public class AccessSecurityLockFragment extends CommonFragment {
     private EditText editTextTagID, editTextPassword, editTextAntennaPower;
@@ -132,7 +133,7 @@ public class AccessSecurityLockFragment extends CommonFragment {
     }
 
     void setNotificationListener() {
-        MainActivity.csLibrary4A.setNotificationListener(new NotificationConnector.NotificationListener() {
+        MainActivity.csLibrary4A.setNotificationListener(new NotificationListener() {
             @Override
             public void onChange() {
                 MainActivity.csLibrary4A.appendToLog("TRIGGER key is pressed.");
@@ -187,11 +188,9 @@ public class AccessSecurityLockFragment extends CommonFragment {
                 invalidRequest = true;
             }
         }
-        accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(button, null, invalidRequest, true,
-                strTagID, 1, 32,
-                strPassword, powerLevel, RfidReaderChipData.HostCommands.CMD_18K6CLOCK,
-                0, 0, true, false,
-                null, null, null, null, null,
+        SelectData selectData = new SelectData(strTagID, strPassword, powerLevel);
+        accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(button, invalidRequest,
+                selectData, RfidReaderData.HostCommands.CMD_18K6CLOCK,
                 MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
         accessTask.execute();
     }

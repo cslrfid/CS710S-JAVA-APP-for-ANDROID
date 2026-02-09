@@ -23,13 +23,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.csl.cslibrary4a.ScanData;
-import com.csl.cslibrary4a.CustomAsyncTask;
+import com.csl.cs710ademoapp.adapters.ReaderListAdapter;
 import com.csl.cs710ademoapp.CustomProgressDialog;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
+
+import com.csl.cslibrary4a.CustomAsyncTask;
+import com.csl.cslibrary4a.ScanData;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cs710ademoapp.adapters.ReaderListAdapter;
 
 import java.util.ArrayList;
 
@@ -324,7 +325,7 @@ public class ConnectionFragment extends CommonFragment {
         @Override
         protected void onPreExecute() {
             if (DEBUG) MainActivity.csLibrary4A.appendToLog("start of Connection with mrfidToWriteSize = " + MainActivity.csLibrary4A.rfidToWriteSize());
-            MainActivity.csLibrary4A.connect(connectingDevice);
+            MainActivity.csLibrary4A.appendToLog("going to connect 4"); MainActivity.csLibrary4A.connect(connectingDevice);
             waitTime = 30;
             setting = -1;
             progressDialog = new CustomProgressDialog(getActivity(), prgressMsg);

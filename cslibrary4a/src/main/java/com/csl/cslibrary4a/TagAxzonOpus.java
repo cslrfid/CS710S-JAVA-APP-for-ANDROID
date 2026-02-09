@@ -1,40 +1,250 @@
 package com.csl.cslibrary4a;
 
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.Button;
 
+import com.csl.cslibrary4a1.CsReaderConnector;
+import com.csl.cslibrary4a1.RfidReader;
+import com.csl.cslibrary4a1.Utility;
+import com.csl.cslibrary4a1.TagBanks;
+
 public class TagAxzonOpus {
     public static SelectData selectData;
-    _TagBanks tagBanks;
+    TagBanks tagBanks;
     String TAG = "Hello";
 
     public final float fNO_SUCH_SETTING = 65522;
     public final int iNO_SUCH_SETTING = 65522;
-    public TagAxzonOpus(Context context, CsLibrary4A csLibrary4A, CustomMediaPlayer playerN, CustomMediaPlayer playerO, Button buttonRead, Button buttonWrite) {
-        tagBanks = new _TagBanks(context, csLibrary4A, playerN, playerO, buttonRead, buttonWrite);
+    Context context; CsReaderConnector csReaderConnector; RfidReader rfidReader; Utility utility;
+    CustomMediaPlayer playerN, playerO;
+    Button buttonRead, buttonWrite;
+    public TagAxzonOpus(Context context, CsReaderConnector csReaderConnector, CustomMediaPlayer playerN, CustomMediaPlayer playerO, Button buttonRead, Button buttonWrite) {
+        this.context = context; this.csReaderConnector = csReaderConnector;
+        rfidReader = csReaderConnector.rfidReader; utility = csReaderConnector.utility;
+        this.playerN = playerN; this.playerO = playerO;
+        this.buttonRead = buttonRead; this.buttonWrite = buttonWrite;
+        tagBanks = new TagBanks();
     }
     public CustomAsyncTask.Status getReadWriteStatus() {
-        return tagBanks.getReadWriteStatus();
+        if (updateRunning) return CustomAsyncTask.Status.RUNNING;
+        else if (accessTask == null) return null;
+        else {
+            CustomAsyncTask.Status status = accessTask.getStatus();
+            if (status == CustomAsyncTask.Status.FINISHED) accessTask = null;
+            return status;
+        }
     }
+
+    TagBanks.AccessData accessData;
+    Handler handler = new Handler();
+    CustomAccessTask accessTask;
+    void setBankDataStart(SelectData selectData, int accBank, int accOffset, int accSize, String writeData) {
+        this.selectData = selectData;
+        accessData = new TagBanks.AccessData(); accessData.accBank = accBank; accessData.accOffset = accOffset; accessData.accSize = accSize; accessData.data = writeData;
+        handler.removeCallbacks(updateRunnable);
+        handler.post(updateRunnable); updateRunning = true;
+    }
+    String[] stringsEpc, stringsTid, stringsUser;
+    boolean updateRunning = false;
+    private final Runnable updateRunnable = new Runnable() {
+        @Override
+        public void run() {
+            boolean rerunRequest = false; boolean taskRequest = false;
+            if (accessTask == null) {
+                appendToLog("TagBanks.updateRunnable: NULL accessReadWriteTask");
+                taskRequest = true;
+            } else if (accessTask.getStatus() != CustomAsyncTask.Status.FINISHED) {
+                appendToLog("TagBanks.updateRunnable: accessReadWriteTask.getStatus() = " + accessTask.getStatus().toString());
+                rerunRequest = true;
+            } else {
+                appendToLog("TagBanks.updateRunnable: FINISHED accessReadWriteTask");
+                //taskRequest = true;
+            }
+
+            if (taskRequest) {
+                boolean invalid = processTickItems();
+                appendToLog("TagBanks.updateRunnable: processTickItems is invalid = " + invalid);
+                accessTask = new CustomAccessTask((accessData.data == null ? buttonRead : buttonWrite), invalid, true,
+                        selectData, (accessData.data == null ? RfidReaderData.HostCommands.CMD_18K6CREAD: RfidReaderData.HostCommands.CMD_18K6CWRITE),
+                        0, 0, true, false,
+                        null, null, null, null, null, null,
+                        context, csReaderConnector, playerN, playerO);
+                accessTask.execute();
+                rerunRequest = true;
+                appendToLog("TagBanks.updateRunnable: accessTask is created with accessBank = " + accessData.accBank + ", accessOffset = " + accessData.accOffset + ", accessSize = " + accessData.accSize + ", accessData = " + (accessData.data == null ? "null" : accessData.data));
+            } else if (!rerunRequest) {
+                processResult();
+                //rerunRequest = true;
+                appendToLog("TagBanks.updateRunnable: processResult is TRUE");
+            }
+            if (rerunRequest) {
+                handler.postDelayed(updateRunnable, 500); updateRunning = true;
+                appendToLog("TagBanks.updateRunnable: Restart");
+            } else updateRunning = false;
+            appendToLog("TagBanks.updateRunnable: Ending with updateRunning = " + updateRunning);
+        }
+    };
+    boolean processTickItems() {
+        boolean invalidRequest1 = false;
+        int accBank = 0, accOffset = 0, accSize = 0;
+        String writeData = null;
+
+        if (selectData.selectMaskEpc == null || selectData.selectMaskEpc.isEmpty()) invalidRequest1 = true;
+        else  if (accessData != null) {
+            accBank = accessData.accBank; accOffset = accessData.accOffset; accSize = accessData.accSize; writeData = accessData.data;
+        } else {
+            invalidRequest1 = true;
+        }
+
+        if (invalidRequest1 == false) {
+            if (!rfidReader.setAccessBank(accBank)) {
+                invalidRequest1 = true;
+            }
+            utility.appendToLog("TagBanks.processTickItems: bank = " + accBank + ", invalidRequest1 is " + invalidRequest1);
+        }
+        if (invalidRequest1 == false) {
+            if (!rfidReader.setAccessOffset(accOffset)) {
+                invalidRequest1 = true;
+            }
+            utility.appendToLog("TagBanks.processTickItems: offset = " + accOffset + ", invalidRequest1 is " + invalidRequest1);
+        }
+        if (invalidRequest1 == false) {
+            if (accSize == 0) {
+                invalidRequest1 = true;
+            } else if (!rfidReader.setAccessCount(accSize)) {
+                invalidRequest1 = true;
+            }
+            utility.appendToLog("TagBanks.processTickItems: size = " + accOffset + ", invalidRequest1 is " + invalidRequest1);
+        }
+        if (invalidRequest1 == false && writeData != null) {
+            if (invalidRequest1 == false) {
+                if (!rfidReader.setAccessWriteData(writeData)) {
+                    invalidRequest1 = true;
+                }
+            }
+            utility.appendToLog("TagBanks.processTickItems: data + " + accessData + ", invalidRequest1 is " + invalidRequest1);
+        }
+        return invalidRequest1;
+    }
+    void processResult() {
+        String accessResult = null;
+        /*if (accessTask == null) {
+            appendToLog("TagBanks.processResult: accesssTask is NULL");
+            return false;
+        } else if (accessTask.getStatus() != CustomAsyncTask.Status.FINISHED) {
+            appendToLog("TagBanks.processResult: accesssTask is working with status as " + accessTask.getStatus().toString());
+            return false;
+        } else*/ {
+            accessResult = accessTask.accessResult;
+            if (accessResult == null) {
+                appendToLog("TagBanks.processResult: accessTask is finished with null accessResult with resultError = " + accessTask.resultError);
+                if (true) {
+                    //textViewLoggingInterval.setText("E");
+                    //textViewLoggingInterval.setChecked(false);
+                }
+            } else {
+                appendToLog("TagBanks.processResult: accessTask is finished with accessResult = " + accessResult + ", resultError = " + accessTask.resultError);
+                if (true) {
+                    //textViewLoggingInterval.setText("O");
+                    //textViewLoggingInterval.setChecked(false);
+                    //readWriteTypes = ReadWriteTypes.NULL;
+                    int iOffset = accessData.accOffset;
+                    if (accessData.data == null) {
+                        switch (accessData.accBank) {
+                            case 0:
+                                break;
+                            case 1:
+                                appendToLog("TagBanks.processResult: Old stringsEpc.length = " + (stringsEpc == null ? "null" : stringsEpc.length));
+                                if (stringsEpc == null || stringsEpc.length < iOffset) {
+                                    String[] stringsNew = new String[iOffset + accessData.accSize];
+                                    if (stringsEpc != null) {
+                                        for (int i = 0; i < stringsEpc.length; i++) stringsNew[i] = stringsEpc[i];
+                                    }
+                                    stringsEpc = stringsNew;
+                                }
+                                appendToLog("TagBanks.processResult: New stringsEpc.length = " + (stringsEpc == null ? "null" : stringsEpc.length));
+                                break;
+                            case 2:
+                                appendToLog("TagBanks.processResult: Old stringsTid.length = " + (stringsTid == null ? "null" : stringsTid.length));
+                                if (stringsTid == null || stringsTid.length < iOffset) {
+                                    String[] stringsNew = new String[iOffset + accessData.accSize];
+                                    if (stringsTid != null) {
+                                        for (int i = 0; i < stringsTid.length; i++) stringsNew[i] = stringsTid[i];
+                                    }
+                                    stringsTid = stringsNew;
+                                }
+                                appendToLog("TagBanks.processResult: New stringsTid.length = " + (stringsTid == null ? "null" : stringsTid.length));
+                                break;
+                            case 3:
+                                appendToLog("TagBanks.processResult: Old stringsUser.length = " + (stringsUser == null ? "null" : stringsUser.length));
+                                if (stringsUser == null || stringsUser.length < iOffset) {
+                                    String[] stringsNew = new String[iOffset + accessData.accSize];
+                                    if (stringsUser != null) {
+                                        for (int i = 0; i < stringsUser.length; i++) stringsNew[i] = stringsUser[i];
+                                    }
+                                    stringsUser = stringsNew;
+                                }
+                                appendToLog("TagBanks.processResult: New stringsUser.length = " + (stringsUser == null ? "null" : stringsUser.length));
+                                break;
+                        }
+                        for (int i = 0; i < accessData.accSize; i++) {
+                            String string = accessResult.substring(i * 4, i * 4 + 4);
+                            appendToLog("TagBanks.processResult: bank = " + accessData.accBank + ", offset = " + accessData.accOffset + ", i = " + i + ", string = " + string);
+                            switch (accessData.accBank) {
+                                case 1:
+                                    stringsEpc[accessData.accOffset + i] = string;
+                                    break;
+                                case 2:
+                                    stringsTid[accessData.accOffset + i] = string;
+                                    break;
+                                case 3:
+                                    stringsUser[accessData.accOffset + i] = string;
+                                    break;
+                                default:
+                                    break;
+                            }
+
+                        }
+                    } else {
+                        switch (accessData.accBank) {
+                            case 2:
+                                appendToLog("TagBanks.processResult: writeData = " + accessData.data);
+                                for (int i = 0; i < accessData.accSize; i++) {
+                                    appendToLog("TagBanks.processResult: i = " + i + ", data = " + accessData.data.substring(i * 4, i * 4 + 4));
+                                    stringsTid[accessData.accOffset +  i] = accessData.data.substring(i*4, i*4+4);
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            //accessTask = null;
+            //return true;
+        }
+    }
+
     int batteryLevel = iNO_SUCH_SETTING;
     public int getBatteryLevel() {
         appendToLog("TagAxzonOpus.getBatteryLevel 1");
         if (true || batteryLevel == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getBatteryLevel 2");
             int iOffset = 3;
-            if (tagBanks.stringsUser == null || tagBanks.stringsUser.length <= iOffset || tagBanks.stringsUser[iOffset] == null) {
-                tagBanks.setBankDataStart(selectData, 3, 3, 1, null);
+            if (stringsUser == null || stringsUser.length <= iOffset || stringsUser[iOffset] == null) {
+                setBankDataStart(selectData, 3, 3, 1, null);
                 return iNO_SUCH_SETTING;
             }
-            appendToLog("TagAxzonOpus.getBatteryLevel 3 with string as " + tagBanks.stringsUser[iOffset]);
-            int iValue = Integer.valueOf(tagBanks.stringsUser[iOffset], 16);
+            appendToLog("TagAxzonOpus.getBatteryLevel 3 with string as " + stringsUser[iOffset]);
+            int iValue = Integer.valueOf(stringsUser[iOffset], 16);
             appendToLog("TagAxzonOpus.getBatteryLevel 3 with iValue = " + iValue);
             iValue >>= 4;
             batteryLevel = iValue;
             appendToLog("TagAxzonOpus.getBatteryLevel 3 with batteryLevel as " + batteryLevel);
 
-            tagBanks.stringsUser[iOffset] = null;
+            stringsUser[iOffset] = null;
         }
         return batteryLevel;
     }
@@ -48,35 +258,35 @@ public class TagAxzonOpus {
         if (false && loggerStateType == null) {
             appendToLog("TagAxzonOpus.getLoggerStateType 2");
             int iOffset = 5;
-            if (tagBanks.stringsUser == null || tagBanks.stringsUser[iOffset] == null) {
-                tagBanks.setBankDataStart(selectData, 3, iOffset, 1, null);
+            if (stringsUser == null || stringsUser[iOffset] == null) {
+                setBankDataStart(selectData, 3, iOffset, 1, null);
                 return null;
             }
-            appendToLog("TagAxzonOpus.getLoggerStateType 3 with stringsUser[" + iOffset + "] = " + tagBanks.stringsUser[iOffset]);
-            int iValue = Integer.parseInt(tagBanks.stringsUser[iOffset], 16);
+            appendToLog("TagAxzonOpus.getLoggerStateType 3 with stringsUser[" + iOffset + "] = " + stringsUser[iOffset]);
+            int iValue = Integer.parseInt(stringsUser[iOffset], 16);
             appendToLog("TagAxzonOpus.getLoggerStateType 3 with iValue = " + iValue);
             iValue &= 0x7;
             loggerStateType = LoggerStateTypes.values()[iValue];
             appendToLog("TagAxzonOpus.getLoggerStateType 3 with loggerStateType = " + loggerStateType.toString());
 
-            tagBanks.stringsUser[iOffset] = null;
+            stringsUser[iOffset] = null;
         }
         if (true || loggerStateType == null) {
             appendToLog("TagAxzonOpus.getLoggerStateType 2");
             int iOffset = 1;
-            if (tagBanks.stringsEpc == null || tagBanks.stringsEpc.length <= iOffset || tagBanks.stringsEpc[iOffset] == null) {
-                tagBanks.setBankDataStart(selectData, 1, iOffset, 1,  null);
+            if (stringsEpc == null || stringsEpc.length <= iOffset || stringsEpc[iOffset] == null) {
+                setBankDataStart(selectData, 1, iOffset, 1,  null);
                 return null;
             }
-            appendToLog("TagAxzonOpus.getLoggerStateType 3 with stringsEpc[1] = " + tagBanks.stringsEpc[iOffset]);
-            int iValue = Integer.parseInt(tagBanks.stringsEpc[iOffset], 16);
+            appendToLog("TagAxzonOpus.getLoggerStateType 3 with stringsEpc[1] = " + stringsEpc[iOffset]);
+            int iValue = Integer.parseInt(stringsEpc[iOffset], 16);
             appendToLog("TagAxzonOpus.getLoggerStateType 3 with iValue = " + iValue);
             iValue = iValue >> 5;
             iValue &= 0x7;
             loggerStateType = LoggerStateTypes.values()[iValue];
             appendToLog("TagAxzonOpus.getLoggerStateType 3 with loggerStateType = " + loggerStateType.toString());
 
-            tagBanks.stringsEpc[1] = null;
+            stringsEpc[1] = null;
         }
         return loggerStateType;
     }
@@ -86,20 +296,20 @@ public class TagAxzonOpus {
         if (true || clock == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getClock 2");
             int iOffset = 6;
-            if (tagBanks.stringsUser == null || tagBanks.stringsUser.length <= (iOffset + 1) || tagBanks.stringsUser[iOffset] == null || tagBanks.stringsUser[iOffset+1] == null ) {
-                tagBanks.setBankDataStart(selectData, 3, iOffset, 2, null);
+            if (stringsUser == null || stringsUser.length <= (iOffset + 1) || stringsUser[iOffset] == null || stringsUser[iOffset+1] == null ) {
+                setBankDataStart(selectData, 3, iOffset, 2, null);
                 return iNO_SUCH_SETTING;
             }
-            appendToLog("TagAxzonOpus.getClock 3 with string as " + tagBanks.stringsUser[iOffset]);
-            int iValueL = Integer.valueOf(tagBanks.stringsUser[iOffset], 16);
+            appendToLog("TagAxzonOpus.getClock 3 with string as " + stringsUser[iOffset]);
+            int iValueL = Integer.valueOf(stringsUser[iOffset], 16);
             appendToLog("TagAxzonOpus.getClock 3 with iValueL as " + iValueL);
-            appendToLog("TagAxzonOpus.getClock 3 with string as " + tagBanks.stringsUser[iOffset + 1]);
-            int iValueH = Integer.valueOf(tagBanks.stringsUser[iOffset + 1], 16);
+            appendToLog("TagAxzonOpus.getClock 3 with string as " + stringsUser[iOffset + 1]);
+            int iValueH = Integer.valueOf(stringsUser[iOffset + 1], 16);
             appendToLog("TagAxzonOpus.getClock 3 with iValueH as " + iValueH);
             clock = ((iValueH & 0xFF) << 16) + (iValueL & 0xFFFF);
             appendToLog("TagAxzonOpus.getClock 3 with iValueL as " + iValueL);
 
-            tagBanks.stringsUser[iOffset] = null; tagBanks.stringsUser[iOffset + 1] = null;
+            stringsUser[iOffset] = null; stringsUser[iOffset + 1] = null;
         }
         return clock;
     }
@@ -109,17 +319,17 @@ public class TagAxzonOpus {
         if (true || nextLogAddress == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getNextLogAddress 2");
             int iOffset = 0x1B;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length <= iOffset || tagBanks.stringsTid[iOffset] == null) {
+            if (stringsTid == null || stringsTid.length <= iOffset || stringsTid[iOffset] == null) {
                 setTidBankData1AReadStart();
                 return iNO_SUCH_SETTING;
             }
-            appendToLog("TagAxzonOpus.getNextLogAddress 3 with string as " + tagBanks.stringsTid[iOffset]);
-            int iValue = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+            appendToLog("TagAxzonOpus.getNextLogAddress 3 with string as " + stringsTid[iOffset]);
+            int iValue = Integer.valueOf(stringsTid[iOffset], 16);
             appendToLog("TagAxzonOpus.getNextLogAddress 3 with iValue as " + iValue);
             nextLogAddress = iValue & 0x0FFF;
             appendToLog("TagAxzonOpus.getNextLogAddress 3 with nextLogAddress as " + iValue);
 
-            tagBanks.stringsTid[iOffset] = null;
+            stringsTid[iOffset] = null;
         }
         return nextLogAddress;
     }
@@ -128,8 +338,8 @@ public class TagAxzonOpus {
         int iOffset = 0x1B;
         String string = String.format("%04X", iValue & 0xFFF);
         appendToLog("TagAxzonOpus.setNextLogAddress with string = " + string);
-        tagBanks.setBankDataStart(selectData,2, iOffset, 1, string);
-        tagBanks.stringsTid[iOffset] = string;
+        setBankDataStart(selectData,2, iOffset, 1, string);
+        stringsTid[iOffset] = string;
     }
     public static class TidAlarmTypes {
         public int lowTemperatureAlarm = 0;
@@ -151,12 +361,12 @@ public class TagAxzonOpus {
         if (true || tidAlarmType == null) {
             appendToLog("TagAxzonOpus.getTidAlarmType 2");
             int iOffset = 0x10;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length <= iOffset || tagBanks.stringsTid[iOffset] == null) {
+            if (stringsTid == null || stringsTid.length <= iOffset || stringsTid[iOffset] == null) {
                 setTidBankData8ReadStart();
                 return null;
             }
-            appendToLog("TagAxzonOpus.getTidAlarmType 3 with stringsTid[" + iOffset + "] = " + tagBanks.stringsTid[iOffset]);
-            int iValue = Integer.parseInt(tagBanks.stringsTid[iOffset], 16);
+            appendToLog("TagAxzonOpus.getTidAlarmType 3 with stringsTid[" + iOffset + "] = " + stringsTid[iOffset]);
+            int iValue = Integer.parseInt(stringsTid[iOffset], 16);
             appendToLog("TagAxzonOpus.getTidAlarmType 3 with iValue = " + iValue);
             iValue &= 0xF;
             tidAlarmType = new TidAlarmTypes();
@@ -171,8 +381,8 @@ public class TagAxzonOpus {
             getAlarmUpperDelay();
             getDelayedLoggingStart();
 
-            appendToLog("TagAxzonOpus.getTidAlarmType 3 with stringsTid[" + iOffset + "] = " + tagBanks.stringsTid[iOffset]);
-            tagBanks.stringsTid[iOffset] = null;
+            appendToLog("TagAxzonOpus.getTidAlarmType 3 with stringsTid[" + iOffset + "] = " + stringsTid[iOffset]);
+            stringsTid[iOffset] = null;
         }
         return tidAlarmType;
     }
@@ -190,8 +400,8 @@ public class TagAxzonOpus {
         if (tidAlarmType.lowTemperatureAlarm > 0) iValue |= 1;
         String string = String.format("%04X", iValue & 0x1FFF);
         appendToLog("TagAxzonOpus.setTidAlarmType with string = " + string);
-        tagBanks.setBankDataStart(selectData,2, iOffset, 1, string);
-        tagBanks.stringsTid[iOffset] = string;
+        setBankDataStart(selectData,2, iOffset, 1, string);
+        stringsTid[iOffset] = string;
     }
     int fingerArmedClock = iNO_SUCH_SETTING;
     public int getFingerArmedClock() {
@@ -199,18 +409,18 @@ public class TagAxzonOpus {
         if (true || fingerArmedClock == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getFingerArmedClock 2");
             int iOffset = 0x0d;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length <= (iOffset + 1) || tagBanks.stringsTid[iOffset] == null || tagBanks.stringsTid[iOffset+1] == null) {
+            if (stringsTid == null || stringsTid.length <= (iOffset + 1) || stringsTid[iOffset] == null || stringsTid[iOffset+1] == null) {
                 setTidBankData8ReadStart();
                 return iNO_SUCH_SETTING;
             }
-            appendToLog("TagAxzonOpus.getFingerArmedClock 3 with string as " + tagBanks.stringsTid[iOffset] + ", " + tagBanks.stringsTid[iOffset+1]);
-            int iValueM = Integer.valueOf(tagBanks.stringsTid[iOffset], 16); iValueM &= 0xFF;
-            int iValueL = Integer.valueOf(tagBanks.stringsTid[iOffset+1], 16);
+            appendToLog("TagAxzonOpus.getFingerArmedClock 3 with string as " + stringsTid[iOffset] + ", " + stringsTid[iOffset+1]);
+            int iValueM = Integer.valueOf(stringsTid[iOffset], 16); iValueM &= 0xFF;
+            int iValueL = Integer.valueOf(stringsTid[iOffset+1], 16);
             appendToLog("TagAxzonOpus.getFingerArmedClock 3 with iValue as " + iValueM + ", " + iValueL);
             fingerArmedClock = ((iValueM & 0xFF) << 16) + (iValueL & 0xFFFF);
 
             appendToLog("TagAxzonOpus.getFingerArmedClock 3 with iValue as " + fingerArmedClock);
-            tagBanks.stringsTid[iOffset] = null; tagBanks.stringsTid[iOffset + 1] = null;
+            stringsTid[iOffset] = null; stringsTid[iOffset + 1] = null;
         }
         return fingerArmedClock;
     }
@@ -219,26 +429,26 @@ public class TagAxzonOpus {
         int iOffset = 0x0d;
         String string = String.format("%08X", iValue & 0xFFFFFF);
         appendToLog("TagAxzonOpus.setFingerArmedClock with string = " + string);
-        tagBanks.setBankDataStart(selectData,2, iOffset, 2, string);
-        tagBanks.stringsTid[iOffset] = string;
+        setBankDataStart(selectData,2, iOffset, 2, string);
+        stringsTid[iOffset] = string;
     }
     int firstTamperAlarmAddress = iNO_SUCH_SETTING;
     public int getFirstTamperAlarmAddress() {
         appendToLog("TagAxzonOpus.getFirstTamperAlarmAddress 1");
         if (true || firstTamperAlarmAddress == iNO_SUCH_SETTING) {
-            appendToLog("TagAxzonOpus.getFirstTamperAlarmAddress 2 with " + (tagBanks.stringsTid == null ? "stringsTid = null" : ", stringsTid.length = " + tagBanks.stringsTid.length + ", stringsTid[0x0c] = " + (tagBanks.stringsTid[12] == null ? "null" : "valid")));
+            appendToLog("TagAxzonOpus.getFirstTamperAlarmAddress 2 with " + (stringsTid == null ? "stringsTid = null" : ", stringsTid.length = " + stringsTid.length + ", stringsTid[0x0c] = " + (stringsTid[12] == null ? "null" : "valid")));
             int iOffset = 0x0C;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length <= iOffset || tagBanks.stringsTid[iOffset] == null) {
+            if (stringsTid == null || stringsTid.length <= iOffset || stringsTid[iOffset] == null) {
                 setTidBankData8ReadStart();
                 return iNO_SUCH_SETTING;
             }
-            appendToLog("TagAxzonOpus.getFirstTamperAlarmAddress 3 with string as " + tagBanks.stringsTid[iOffset]);
-            int iValue = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+            appendToLog("TagAxzonOpus.getFirstTamperAlarmAddress 3 with string as " + stringsTid[iOffset]);
+            int iValue = Integer.valueOf(stringsTid[iOffset], 16);
             appendToLog("TagAxzonOpus.getFirstTamperAlarmAddress 3 with iValue as " + iValue);
             firstTamperAlarmAddress = iValue & 0x0FFF;
             appendToLog("TagAxzonOpus.getFirstTamperAlarmAddress 3 with iValue as " + firstTamperAlarmAddress);
 
-            tagBanks.stringsTid[iOffset] = null;
+            stringsTid[iOffset] = null;
         }
         return firstTamperAlarmAddress;
     }
@@ -247,8 +457,8 @@ public class TagAxzonOpus {
         int iOffset = 0x0C;
         String string = String.format("%04X", iValue & 0x0FFF);
         appendToLog("TagAxzonOpus.setFirstTamperAlarmAddress with string = " + string);
-        tagBanks.setBankDataStart(selectData,2, iOffset, 1, string);
-        tagBanks.stringsTid[iOffset] = string;
+        setBankDataStart(selectData,2, iOffset, 1, string);
+        stringsTid[iOffset] = string;
     }
     int firstTemperatureAlarmAddress = iNO_SUCH_SETTING;
     public int getFirstTemperatureAlarmAddress() {
@@ -256,17 +466,17 @@ public class TagAxzonOpus {
         if (true || firstTemperatureAlarmAddress == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getFirstTemperatureAlarmAddress 2");
             int iOffset = 0x0b;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length <= iOffset || tagBanks.stringsTid[iOffset] == null) {
+            if (stringsTid == null || stringsTid.length <= iOffset || stringsTid[iOffset] == null) {
                 setTidBankData8ReadStart();
                 return iNO_SUCH_SETTING;
             }
-            appendToLog("TagAxzonOpus.getFirstTemperatureAlarmAddress 3 with string as " + tagBanks.stringsTid[iOffset]);
-            int iValue = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+            appendToLog("TagAxzonOpus.getFirstTemperatureAlarmAddress 3 with string as " + stringsTid[iOffset]);
+            int iValue = Integer.valueOf(stringsTid[iOffset], 16);
             appendToLog("TagAxzonOpus.getFirstTemperatureAlarmAddress 3 with iValue as " + iValue);
             firstTemperatureAlarmAddress = iValue & 0x0FFF;
             appendToLog("TagAxzonOpus.getFirstTemperatureAlarmAddress 3 with iValue as " + firstTemperatureAlarmAddress);
 
-            tagBanks.stringsTid[iOffset] = null;
+            stringsTid[iOffset] = null;
         }
         return firstTemperatureAlarmAddress;
     }
@@ -275,8 +485,8 @@ public class TagAxzonOpus {
         int iOffset = 0x0b;
         String string = String.format("%04X", iValue & 0x0FFF);
         appendToLog("TagAxzonOpus.setFirstTemperatureAlarmAddress with string = " + string);
-        tagBanks.setBankDataStart(selectData,2, iOffset, 1, string);
-        tagBanks.stringsTid[iOffset] = string;
+        setBankDataStart(selectData,2, iOffset, 1, string);
+        stringsTid[iOffset] = string;
     }
     int alarmLowerDelayed = iNO_SUCH_SETTING; int iTidA_backup = 0;
     public int getAlarmLowerDelayed() {
@@ -284,12 +494,12 @@ public class TagAxzonOpus {
         if (true || alarmLowerDelayed == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getAlarmLowerDelayed 2");
             int iOffset = 0x0A;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length <= iOffset || tagBanks.stringsTid[iOffset] == null ) {
+            if (stringsTid == null || stringsTid.length <= iOffset || stringsTid[iOffset] == null ) {
                 setTidBankData8ReadStart();
                 return iNO_SUCH_SETTING;
             }
-            appendToLog("TagAxzonOpus.getAlarmLowerDelayed 3 with string as " + tagBanks.stringsTid[iOffset]);
-            int iValue = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+            appendToLog("TagAxzonOpus.getAlarmLowerDelayed 3 with string as " + stringsTid[iOffset]);
+            int iValue = Integer.valueOf(stringsTid[iOffset], 16);
             appendToLog("TagAxzonOpus.getAlarmLowerDelayed 3 with iValue as " + iValue);
 
             iValue = iValue >> 12;
@@ -299,7 +509,7 @@ public class TagAxzonOpus {
             getAlarmLowerLimitx16(); //update other bits before clear
 
             iTidA_backup = iValue;
-            tagBanks.stringsTid[iOffset] = null;
+            stringsTid[iOffset] = null;
         }
         appendToLog("TagAxzonOpus.getAlarmLowerDelayed 4: setTidAlarmType, alarmLowerDelayed = " + alarmLowerDelayed);
         return alarmLowerDelayed;
@@ -310,8 +520,8 @@ public class TagAxzonOpus {
         int iValue1 = getAlarmLowerLimitx16() + ((iValue & 0x0F) << 12);
         String string = String.format("%04X", iValue1 & 0xFFFF);
         appendToLog("TagAxzonOpus.setAlarmLowerDelayed with string = " + string);
-        tagBanks.setBankDataStart(selectData,2, iOffset, 1, string);
-        tagBanks.stringsTid[iOffset] = string;
+        setBankDataStart(selectData,2, iOffset, 1, string);
+        stringsTid[iOffset] = string;
     }
     int alarmUpperDelayed = iNO_SUCH_SETTING; int iTid9_backup = 0;
     public int getAlarmUpperDelayed() {
@@ -319,12 +529,12 @@ public class TagAxzonOpus {
         if (true || alarmUpperDelayed == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getAlarmUpperDelayed 2");
             int iOffset = 9;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length <= iOffset || tagBanks.stringsTid[iOffset] == null ) {
+            if (stringsTid == null || stringsTid.length <= iOffset || stringsTid[iOffset] == null ) {
                 setTidBankData8ReadStart();
                 return iNO_SUCH_SETTING;
             }
-            appendToLog("TagAxzonOpus.getAlarmUpperDelayed 3 with string as " + tagBanks.stringsTid[iOffset]);
-            int iValue = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+            appendToLog("TagAxzonOpus.getAlarmUpperDelayed 3 with string as " + stringsTid[iOffset]);
+            int iValue = Integer.valueOf(stringsTid[iOffset], 16);
             appendToLog("TagAxzonOpus.getAlarmUpperDelayed 3 with iValue as " + iValue);
 
             int iValue1 = iValue >> 12;
@@ -334,7 +544,7 @@ public class TagAxzonOpus {
             getAlarmUpperLimitx16(); //update other bits before clear
 
             iTid9_backup = iValue;
-            tagBanks.stringsTid[iOffset] = null;
+            stringsTid[iOffset] = null;
         }
         appendToLog("TagAxzonOpus.getAlarmUpperDelayed 4: setTidAlarmType, alarmUpperDelayed = " + alarmUpperDelayed);
         return alarmUpperDelayed;
@@ -345,8 +555,8 @@ public class TagAxzonOpus {
         int iValue1 = getAlarmUpperLimitx16() + ((iValue & 0x0F) << 12);
         String string = String.format("%04X", iValue1 & 0xFFFF);
         appendToLog("TagAxzonOpus.setAlarmUpperDelayed with string = " + string);
-        tagBanks.setBankDataStart(selectData,2, iOffset, 1, string);
-        tagBanks.stringsTid[iOffset] = string;
+        setBankDataStart(selectData,2, iOffset, 1, string);
+        stringsTid[iOffset] = string;
     }
     public enum DisableEnableTypes {
         DISABLE, ENABLE
@@ -357,12 +567,12 @@ public class TagAxzonOpus {
         if (true || batteryLowAlarmType == null) {
             appendToLog("TagAxzonOpus.getInitialBatteryLowAlarmType 2");
             int iOffset = 0x21;
-            if (tagBanks.stringsEpc == null || tagBanks.stringsEpc.length <= iOffset || tagBanks.stringsEpc[iOffset] == null) {
-                tagBanks.setBankDataStart(selectData, 1, iOffset, 1, null);
+            if (stringsEpc == null || stringsEpc.length <= iOffset || stringsEpc[iOffset] == null) {
+                setBankDataStart(selectData, 1, iOffset, 1, null);
                 return null;
             }
-            appendToLog("TagAxzonOpus.getInitialBatteryLowAlarmType 3 with string as " + tagBanks.stringsEpc[iOffset]);
-            int iValue = Integer.parseInt(tagBanks.stringsEpc[iOffset], 16);
+            appendToLog("TagAxzonOpus.getInitialBatteryLowAlarmType 3 with string as " + stringsEpc[iOffset]);
+            int iValue = Integer.parseInt(stringsEpc[iOffset], 16);
             appendToLog("TagAxzonOpus.getInitialBatteryLowAlarmType 3 with iValue = " + iValue);
 
             int iValue1 = iValue & 0x800; // 0x800 for bit 11, 0x10 for bit 4
@@ -371,7 +581,7 @@ public class TagAxzonOpus {
             appendToLog("TagAxzonOpus.getInitialBatteryLowAlarmType 3 with batteryLowAlarmType = " + batteryLowAlarmType.toString());
 
             iXPC_backup = iValue;
-            tagBanks.stringsEpc[iOffset] = null;
+            stringsEpc[iOffset] = null;
         }
         return batteryLowAlarmType;
     }
@@ -381,8 +591,8 @@ public class TagAxzonOpus {
         int iValue1 = (enable ? (iXPC_backup | 0x800) : (iXPC_backup & ~0x800));
         String string = String.format("%04X", iValue1 & 0xFFFF);
         appendToLog("TagAxzonOpus.setInitialBatteryLowAlarmType with string = " + string);
-        tagBanks.setBankDataStart(selectData, 1, iOffset, 1, string);
-        tagBanks.stringsEpc[iOffset] = string;
+        setBankDataStart(selectData, 1, iOffset, 1, string);
+        stringsEpc[iOffset] = string;
     }
     public static class EpcAlarmTypes {
         public int batteryInstalled = 0;
@@ -404,12 +614,12 @@ public class TagAxzonOpus {
         if (true || epcAlarmType == null) {
             appendToLog("TagAxzonOpus.getEpcAlarmType 2");
             int iOffset = 1;
-            if (tagBanks.stringsEpc == null || tagBanks.stringsEpc.length <= iOffset || tagBanks.stringsEpc[iOffset] == null) {
-                tagBanks.setBankDataStart(selectData, 1, iOffset, 1, null);
+            if (stringsEpc == null || stringsEpc.length <= iOffset || stringsEpc[iOffset] == null) {
+                setBankDataStart(selectData, 1, iOffset, 1, null);
                 return null;
             }
-            appendToLog("TagAxzonOpus.getEpcAlarmType 3 with stringsEpc[" + iOffset + "] = " + tagBanks.stringsEpc[iOffset]);
-            int iValue = Integer.parseInt(tagBanks.stringsEpc[iOffset], 16);
+            appendToLog("TagAxzonOpus.getEpcAlarmType 3 with stringsEpc[" + iOffset + "] = " + stringsEpc[iOffset]);
+            int iValue = Integer.parseInt(stringsEpc[iOffset], 16);
             appendToLog("TagAxzonOpus.getEpcAlarmType 3 with iValue = " + iValue);
 
             epcAlarmType = new EpcAlarmTypes();
@@ -422,8 +632,8 @@ public class TagAxzonOpus {
 
             oPC_backup = iValue;
 
-            appendToLog("TagAxzonOpus.getTidAlarmType 3 with stringsTid[" + iOffset + "] = " + tagBanks.stringsEpc[iOffset]);
-            tagBanks.stringsEpc[iOffset] = null;
+            appendToLog("TagAxzonOpus.getTidAlarmType 3 with stringsTid[" + iOffset + "] = " + stringsEpc[iOffset]);
+            stringsEpc[iOffset] = null;
         }
         return epcAlarmType;
     }
@@ -436,8 +646,8 @@ public class TagAxzonOpus {
         if (epcAlarmType.temperatureAlarm > 0) iValue |= 4;
         String string = String.format("%04X", iValue);
         appendToLog("TagAxzonOpus.setEpcAlarmType with string = " + string);
-        tagBanks.setBankDataStart(selectData,1, iOffset, 1, string);
-        tagBanks.stringsEpc[iOffset] = string;
+        setBankDataStart(selectData,1, iOffset, 1, string);
+        stringsEpc[iOffset] = string;
     }
     public enum LoggingIntervalTypes {
         INTERVAL_1SEC, INTERVAL_5SEC, INTERVAL_10SEC, INTERVAL_15SEC, INTERVAL_20SEC, INTERVAL_25SEC, INTERVAL_30SEC,
@@ -451,16 +661,16 @@ public class TagAxzonOpus {
         if (loggingIntervalType == null) {
             appendToLog("TagAxzonOpus.getLoggingIntervalType 2");
             int iOffset = 8, iOffset1 = 0x0F;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length <= iOffset1 || tagBanks.stringsTid[iOffset] == null || tagBanks.stringsTid[iOffset1] == null) {
+            if (stringsTid == null || stringsTid.length <= iOffset1 || stringsTid[iOffset] == null || stringsTid[iOffset1] == null) {
                 setTidBankData8ReadStart();
                 return null;
             }
 
             for (int i = iOffset; i < iOffset1 + 1; i++) {
-                appendToLog("TagAxzonOpus.getLoggingIntervalType 3 with stringsTid[" + i + "] = " + tagBanks.stringsTid[i]);
+                appendToLog("TagAxzonOpus.getLoggingIntervalType 3 with stringsTid[" + i + "] = " + stringsTid[i]);
             }
-            int iMsb = Integer.parseInt(tagBanks.stringsTid[iOffset], 16) & 0x100;
-            int iLsb = (Integer.parseInt(tagBanks.stringsTid[iOffset1], 16) >> 3) & 0x0F;
+            int iMsb = Integer.parseInt(stringsTid[iOffset], 16) & 0x100;
+            int iLsb = (Integer.parseInt(stringsTid[iOffset1], 16) >> 3) & 0x0F;
             appendToLog("TagAxzonOpus.getLoggingIntervalType 3 with iMsb = " + iMsb + ", iLsb = " + iLsb);
             loggingIntervalType = null;
             if (iMsb != 0) {
@@ -479,10 +689,10 @@ public class TagAxzonOpus {
         return loggingIntervalType;
     }
     public void setLoggingIntervalType(LoggingIntervalTypes loggingIntervalType) {
-        appendToLog("TagAxzonOpus.setLoggingIntervalType with input = " + loggingIntervalType.toString() + ", stringsTid.length = " + tagBanks.stringsTid.length);
+        appendToLog("TagAxzonOpus.setLoggingIntervalType with input = " + loggingIntervalType.toString() + ", stringsTid.length = " + stringsTid.length);
         int iOffset = 8, iOffset1 = 0x0F;
         String[] strings = new String[iOffset1-iOffset+1];
-        System.arraycopy(tagBanks.stringsTid, iOffset, strings, 0, strings.length);
+        System.arraycopy(stringsTid, iOffset, strings, 0, strings.length);
 
         boolean bMsbExpected = (loggingIntervalType.ordinal() <= LoggingIntervalTypes.INTERVAL_7MIN.ordinal());
         int iValueExpected = -1;
@@ -510,7 +720,7 @@ public class TagAxzonOpus {
             stringData.append(strings[i]);
             appendToLog("TagAxzonOpus.setLoggingIntervalType with strings[" + i + "] = " + strings[i] + ", stringData = " + stringData.toString());
         }
-        tagBanks.setBankDataStart(selectData, 2, 8 , strings.length, stringData.toString());
+        setBankDataStart(selectData, 2, 8 , strings.length, stringData.toString());
         this.loggingIntervalType =  null;
     }
     public static class FingerSpotStartupEnables {
@@ -532,13 +742,13 @@ public class TagAxzonOpus {
         if (fingerSpotStartupEnables == null) {
             appendToLog("TagAxzonOpus.getFingerSpotStartupEnables 2");
             int iOffset = 8;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length <= iOffset || tagBanks.stringsTid[iOffset] == null) {
+            if (stringsTid == null || stringsTid.length <= iOffset || stringsTid[iOffset] == null) {
                 setTidBankData8ReadStart();
                 return null;
             }
 
-            appendToLog("TagAxzonOpus.getFingerSpotStartupEnables 3 with stringsTid[" + iOffset + "] = " + tagBanks.stringsTid[iOffset]);
-            int iValue = Integer.parseInt(tagBanks.stringsTid[iOffset], 16);
+            appendToLog("TagAxzonOpus.getFingerSpotStartupEnables 3 with stringsTid[" + iOffset + "] = " + stringsTid[iOffset]);
+            int iValue = Integer.parseInt(stringsTid[iOffset], 16);
             appendToLog("TagAxzonOpus.getFingerSpotStartupEnables 3 with iValue = " + iValue);
 
             fingerSpotStartupEnables = new FingerSpotStartupEnables();
@@ -560,8 +770,8 @@ public class TagAxzonOpus {
                 ", tamperDisconnectPolarity = " + fingerSpotStartupEnables.tamperDisconnectPolarity);
 
         int iOffset = 8;
-        appendToLog("TagAxzonOpus.setFingerSpotStartupEnables 3 with stringsTid[" + iOffset + "] = " + tagBanks.stringsTid[iOffset]);
-        int iValue = Integer.parseInt(tagBanks.stringsTid[iOffset], 16);
+        appendToLog("TagAxzonOpus.setFingerSpotStartupEnables 3 with stringsTid[" + iOffset + "] = " + stringsTid[iOffset]);
+        int iValue = Integer.parseInt(stringsTid[iOffset], 16);
         iValue &= ~0xC08;
         if (fingerSpotStartupEnables.fingerSpotStartEnable > 0) iValue |= 0x08;
         if (fingerSpotStartupEnables.tamperDetectEnable > 0) iValue |= 0x400;
@@ -569,8 +779,8 @@ public class TagAxzonOpus {
         String string = String.format("%04X", iValue);
         appendToLog("TagAxzonOpus.setFingerSpotStartupEnables with string = " + string);
 
-        tagBanks.setBankDataStart(selectData,2, iOffset, 1, string);
-        tagBanks.stringsTid[iOffset] = string;
+        setBankDataStart(selectData,2, iOffset, 1, string);
+        stringsTid[iOffset] = string;
         this.fingerSpotStartupEnables = fingerSpotStartupEnables;
     }
     int alarmUpperLimitx16 = iNO_SUCH_SETTING;
@@ -579,13 +789,13 @@ public class TagAxzonOpus {
         if (alarmUpperLimitx16 == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getAlarmUpperLimitx16 2");
             int iOffset = 9;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length <= iOffset || tagBanks.stringsTid[iOffset] == null) {
+            if (stringsTid == null || stringsTid.length <= iOffset || stringsTid[iOffset] == null) {
                 setTidBankData8ReadStart();
                 return iNO_SUCH_SETTING;
             }
 
-            appendToLog("TagAxzonOpus.getAlarmUpperLimitx16 3 with stringsTid[" + iOffset + "] = " + tagBanks.stringsTid[iOffset]);
-            int iValue = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+            appendToLog("TagAxzonOpus.getAlarmUpperLimitx16 3 with stringsTid[" + iOffset + "] = " + stringsTid[iOffset]);
+            int iValue = Integer.valueOf(stringsTid[iOffset], 16);
             appendToLog("TagAxzonOpus.getAlarmUpperLimitx16 3 with iValue as " + iValue);
 
             alarmUpperLimitx16 = iValue & 0xFFF;
@@ -612,7 +822,7 @@ public class TagAxzonOpus {
     }
     public void setAlarmUpperLimit(float fValue) {
         int iOffset = 9;
-        String string = tagBanks.stringsTid[iOffset];
+        String string = stringsTid[iOffset];
         appendToLog("TagAxzonOpus.setAlarmUpperLimit with input fValue = " + fValue + ", original string = " + string + ", iTid9_Backup = " + String.format("%04X", iTid9_backup));
 
         //fValue = (float)-15.5;
@@ -628,7 +838,7 @@ public class TagAxzonOpus {
         string = String.format("%04X", iValueN);
         appendToLog("TagAxzonOpus.setAlarmUpperLimit with string = " + string);
 
-        tagBanks.setBankDataStart(selectData, 2, iOffset , 1, string);
+        setBankDataStart(selectData, 2, iOffset , 1, string);
         alarmUpperLimitx16 = iValueN;
     }
     int alarmLowerLimitx16 = iNO_SUCH_SETTING;
@@ -637,13 +847,13 @@ public class TagAxzonOpus {
         if (alarmLowerLimitx16 == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getAlarmLowerLimitx16 2");
             int iOffset = 10;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length <= iOffset || tagBanks.stringsTid[iOffset] == null) {
+            if (stringsTid == null || stringsTid.length <= iOffset || stringsTid[iOffset] == null) {
                 setTidBankData8ReadStart();
                 return iNO_SUCH_SETTING;
             }
 
-            appendToLog("TagAxzonOpus.getAlarmLowerLimitx16 3 with stringsTid[" + iOffset + "] = " + tagBanks.stringsTid[iOffset]);
-            int iValue = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+            appendToLog("TagAxzonOpus.getAlarmLowerLimitx16 3 with stringsTid[" + iOffset + "] = " + stringsTid[iOffset]);
+            int iValue = Integer.valueOf(stringsTid[iOffset], 16);
             appendToLog("TagAxzonOpus.getAlarmLowerLimitx16 3 with iValue as " + iValue);
 
             alarmLowerLimitx16 = iValue & 0xFFF;
@@ -670,7 +880,7 @@ public class TagAxzonOpus {
     }
     public void setAlarmLowerLimit(float fValue) {
         int iOffset = 10;
-        String string = tagBanks.stringsTid[iOffset];
+        String string = stringsTid[iOffset];
         appendToLog("TagAxzonOpus.setAlarmLowerLimit with input fValue = " + fValue + ", original string = " + string + ", iTidA_Backup = " + String.format("%04X", iTidA_backup));
 
         //fValue = (float)-15.5;
@@ -686,7 +896,7 @@ public class TagAxzonOpus {
         string = String.format("%04X", iValueN);
         appendToLog("TagAxzonOpus.setAlarmLowerLimit with string = " + string);
 
-        tagBanks.setBankDataStart(selectData, 2, iOffset , 1, string);
+        setBankDataStart(selectData, 2, iOffset , 1, string);
         alarmLowerLimitx16 = iValueN;
     }
     int samplingRegimePeriod = iNO_SUCH_SETTING;
@@ -695,12 +905,12 @@ public class TagAxzonOpus {
         if (samplingRegimePeriod == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getSamplingRegimePeriod 2");
             int iOffset = 0xF;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length < (iOffset + 1) || tagBanks.stringsTid[iOffset] == null ) {
+            if (stringsTid == null || stringsTid.length < (iOffset + 1) || stringsTid[iOffset] == null ) {
                 setTidBankData8ReadStart();
                 return iNO_SUCH_SETTING;
             } else {
-                appendToLog("TagAxzonOpus.getSamplingRegimePeriod 3 with string as " + tagBanks.stringsTid[iOffset]);
-                int iValue = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+                appendToLog("TagAxzonOpus.getSamplingRegimePeriod 3 with string as " + stringsTid[iOffset]);
+                int iValue = Integer.valueOf(stringsTid[iOffset], 16);
                 appendToLog("TagAxzonOpus.getSamplingRegimePeriod 3 with iValue as " + iValue);
 
                 samplingRegimePeriod = iValue;
@@ -717,7 +927,7 @@ public class TagAxzonOpus {
         appendToLog("TagAxzonOpus.setSamplingRegimePeriod with string = " + string);
 
         int iOffset = 0x0F;
-        tagBanks.setBankDataStart(selectData, 2, iOffset , 1, string);
+        setBankDataStart(selectData, 2, iOffset , 1, string);
         samplingRegimePeriod = iValue;
     }
     int alarmUpperDelay = iNO_SUCH_SETTING;
@@ -725,15 +935,15 @@ public class TagAxzonOpus {
         appendToLog("TagAxzonOpus.getAlarmUpperDelay 1");
         if (alarmUpperDelay == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getAlarmUpperDelay 2 with "
-                    + (tagBanks.stringsTid == null ? "tagBanks.stringsTid = null" :
-                    ("tagBanks.stringsTid.length = " + tagBanks.stringsTid.length + ", tagBanks.stringsTid[0x10] = " + (tagBanks.stringsTid[0x10] == null ? "null" : "valid"))));
+                    + (stringsTid == null ? "stringsTid = null" :
+                    ("stringsTid.length = " + stringsTid.length + ", stringsTid[0x10] = " + (stringsTid[0x10] == null ? "null" : "valid"))));
             int iOffset = 0x10;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length < (iOffset + 1) || tagBanks.stringsTid[iOffset] == null ) {
+            if (stringsTid == null || stringsTid.length < (iOffset + 1) || stringsTid[iOffset] == null ) {
                 setTidBankData8ReadStart();
                 return iNO_SUCH_SETTING;
             } else {
-                appendToLog("TagAxzonOpus.getAlarmUpperDelay 3 with string as " + tagBanks.stringsTid[iOffset]);
-                int iValue = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+                appendToLog("TagAxzonOpus.getAlarmUpperDelay 3 with string as " + stringsTid[iOffset]);
+                int iValue = Integer.valueOf(stringsTid[iOffset], 16);
                 appendToLog("TagAxzonOpus.getAlarmUpperDelay 3 with iValue as " + iValue);
 
                 iValue = iValue >> 7;
@@ -752,7 +962,7 @@ public class TagAxzonOpus {
         else if (iValue > 7) iValue = 7;
 
         int iOffset = 0x10;
-        int iValue1 = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+        int iValue1 = Integer.valueOf(stringsTid[iOffset], 16);
         appendToLog("TagAxzonOpus.setAlarmUpperDelay 1 with iValue1 as " + String.format("%04X", iValue1));
         iValue1 &= ~0x380;
         iValue1 |= (iValue << 7);
@@ -761,7 +971,7 @@ public class TagAxzonOpus {
         String string = String.format("%04X", iValue1);
         appendToLog("TagAxzonOpus.setAlarmUpperDelay with string = " + string);
 
-        tagBanks.setBankDataStart(selectData, 2, iOffset , 1, string);
+        setBankDataStart(selectData, 2, iOffset , 1, string);
         alarmUpperDelay = iValue + 1;
     }
     int alarmLowerDelay = iNO_SUCH_SETTING;
@@ -770,12 +980,12 @@ public class TagAxzonOpus {
         if (alarmLowerDelay == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getAlarmLowerDelay 2");
             int iOffset = 0x10;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length < (iOffset + 1) || tagBanks.stringsTid[iOffset] == null ) {
+            if (stringsTid == null || stringsTid.length < (iOffset + 1) || stringsTid[iOffset] == null ) {
                 setTidBankData8ReadStart();
                 return iNO_SUCH_SETTING;
             } else {
-                appendToLog("TagAxzonOpus.getAlarmLowerDelay 3 with string as " + tagBanks.stringsTid[iOffset]);
-                int iValue = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+                appendToLog("TagAxzonOpus.getAlarmLowerDelay 3 with string as " + stringsTid[iOffset]);
+                int iValue = Integer.valueOf(stringsTid[iOffset], 16);
                 appendToLog("TagAxzonOpus.getAlarmLowerDelay 3 with iValue as " + iValue);
 
                 iValue = iValue >> 4;
@@ -794,7 +1004,7 @@ public class TagAxzonOpus {
         else if (iValue > 7) iValue = 7;
 
         int iOffset = 0x10;
-        int iValue1 = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+        int iValue1 = Integer.valueOf(stringsTid[iOffset], 16);
         appendToLog("TagAxzonOpus.setAlarmLowerDelay 1 with iValue1 as " + String.format("%04X", iValue1));
         iValue1 &= ~0x70;
         iValue1 |= (iValue << 4);
@@ -803,7 +1013,7 @@ public class TagAxzonOpus {
         String string = String.format("%04X", iValue1);
         appendToLog("TagAxzonOpus.setAlarmLowerDelay with string = " + string);
 
-        tagBanks.setBankDataStart(selectData, 2, iOffset , 1, string);
+        setBankDataStart(selectData, 2, iOffset , 1, string);
         alarmLowerDelay = iValue + 1;
     }
     int delayedLoggingStart = iNO_SUCH_SETTING;
@@ -812,12 +1022,12 @@ public class TagAxzonOpus {
         if (delayedLoggingStart == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getDelayedLoggingStart 2");
             int iOffset = 0x10;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length < (iOffset + 1) || tagBanks.stringsTid[iOffset] == null) {
+            if (stringsTid == null || stringsTid.length < (iOffset + 1) || stringsTid[iOffset] == null) {
                 setTidBankData8ReadStart();
                 return iNO_SUCH_SETTING;
             } else {
-                appendToLog("TagAxzonOpus.getDelayedLoggingStart 3 with string as " + tagBanks.stringsTid[iOffset]);
-                int iValue = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+                appendToLog("TagAxzonOpus.getDelayedLoggingStart 3 with string as " + stringsTid[iOffset]);
+                int iValue = Integer.valueOf(stringsTid[iOffset], 16);
                 appendToLog("TagAxzonOpus.getDelayedLoggingStart 3 with iValue as " + iValue);
 
                 iValue = iValue >> 10;
@@ -835,7 +1045,7 @@ public class TagAxzonOpus {
         else if (iValue > 7) iValue = 7;
 
         int iOffset = 0x10;
-        int iValue1 = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+        int iValue1 = Integer.valueOf(stringsTid[iOffset], 16);
         appendToLog("TagAxzonOpus.setDelayedLoggingStart 1 with iValue1 as " + String.format("%04X", iValue1));
         iValue1 &= ~0x1C00;
         iValue1 |= (iValue << 10);
@@ -844,7 +1054,7 @@ public class TagAxzonOpus {
         String string = String.format("%04X", iValue1);
         appendToLog("TagAxzonOpus.setDelayedLoggingStart with string = " + string);
 
-        tagBanks.setBankDataStart(selectData, 2, iOffset , 1, string);
+        setBankDataStart(selectData, 2, iOffset , 1, string);
         delayedLoggingStart = iValue;
     }
     int loggerArmedSecond = iNO_SUCH_SETTING;
@@ -853,17 +1063,17 @@ public class TagAxzonOpus {
         if (loggerArmedSecond == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getLoggerArmedSecond 2");
             int iOffset = 0x11;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length <= (iOffset + 2) || tagBanks.stringsTid[iOffset] == null || tagBanks.stringsTid[iOffset+1] == null) {
+            if (stringsTid == null || stringsTid.length <= (iOffset + 2) || stringsTid[iOffset] == null || stringsTid[iOffset+1] == null) {
                 setTidBankData8ReadStart();
                 return iNO_SUCH_SETTING;
             } else {
-                appendToLog("TagAxzonOpus.getLoggerArmedSecond 3 with string as " + tagBanks.stringsTid[iOffset] + ", " + tagBanks.stringsTid[iOffset+1]);
-                int iValueM = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
-                int iValueL = Integer.valueOf(tagBanks.stringsTid[iOffset+1], 16);
+                appendToLog("TagAxzonOpus.getLoggerArmedSecond 3 with string as " + stringsTid[iOffset] + ", " + stringsTid[iOffset+1]);
+                int iValueM = Integer.valueOf(stringsTid[iOffset], 16);
+                int iValueL = Integer.valueOf(stringsTid[iOffset+1], 16);
                 appendToLog("TagAxzonOpus.getLoggerArmedSecond 3 with iValue as " + iValueM + ", " + iValueL);
                 loggerArmedSecond = ((iValueM & 0xFF) << 16) + (iValueL & 0xFFFF);
                 appendToLog("TagAxzonOpus.getLoggerArmedSecond 3 with iValue as " + loggerArmedSecond);
-                tagBanks.stringsTid[iOffset] = null;
+                stringsTid[iOffset] = null;
             }
         }
         return loggerArmedSecond;
@@ -876,12 +1086,12 @@ public class TagAxzonOpus {
         if (minBattery4Arming == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getMinBattery4Arming 2");
             int iOffset = 0x1d;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid[iOffset] == null) {
+            if (stringsTid == null || stringsTid[iOffset] == null) {
                 setTidBankData1AReadStart();
                 return iNO_SUCH_SETTING;
             } else {
-                appendToLog("TagAxzonOpus.getMinBattery4Arming 3 with string as " + tagBanks.stringsTid[0x10]);
-                int iValue = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+                appendToLog("TagAxzonOpus.getMinBattery4Arming 3 with string as " + stringsTid[0x10]);
+                int iValue = Integer.valueOf(stringsTid[iOffset], 16);
                 appendToLog("TagAxzonOpus.getMinBattery4Arming 3 with iValue as " + iValue);
                 minBattery4Arming = iValue;
                 appendToLog("TagAxzonOpus.getMinBattery4Arming 3 with iValue as " + iValue);
@@ -895,12 +1105,12 @@ public class TagAxzonOpus {
         if (minBattery4Logging == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getMinBattery4Logging 2");
             int iOffset = 0x1c;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid[iOffset] == null) {
+            if (stringsTid == null || stringsTid[iOffset] == null) {
                 setTidBankData1AReadStart();
                 return iNO_SUCH_SETTING;
             } else {
-                appendToLog("TagAxzonOpus.getMinBattery4Logging 3 with string as " + tagBanks.stringsTid[0x10]);
-                int iValue = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+                appendToLog("TagAxzonOpus.getMinBattery4Logging 3 with string as " + stringsTid[0x10]);
+                int iValue = Integer.valueOf(stringsTid[iOffset], 16);
                 appendToLog("TagAxzonOpus.getMinBattery4Logging 3 with iValue as " + iValue);
                 minBattery4Logging = iValue;
                 appendToLog("TagAxzonOpus.getMinBattery4Logging 3 with iValue as " + iValue);
@@ -917,13 +1127,13 @@ public class TagAxzonOpus {
         if (sampleNumberToLogType == null) {
             appendToLog("TagAxzonOpus.getSampleNumberToLogType 2");
             int iOffset = 0x1A;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length <= iOffset || tagBanks.stringsTid[iOffset] == null) {
+            if (stringsTid == null || stringsTid.length <= iOffset || stringsTid[iOffset] == null) {
                 setTidBankData8ReadStart();
                 return null;
             }
-            appendToLog("TagAxzonOpus.getSampleNumberToLogType 3 with stringsTid[" + iOffset + "] = " + tagBanks.stringsTid[iOffset]);
+            appendToLog("TagAxzonOpus.getSampleNumberToLogType 3 with stringsTid[" + iOffset + "] = " + stringsTid[iOffset]);
             sampleNumberToLogType = null;
-            int iValue = Integer.parseInt(tagBanks.stringsTid[iOffset], 16) & 0x100;
+            int iValue = Integer.parseInt(stringsTid[iOffset], 16) & 0x100;
             //sampleNumberToLogType = SampleNumberToLogTypes.values()[iValue];
         }
         return sampleNumberToLogType;
@@ -934,13 +1144,13 @@ public class TagAxzonOpus {
         if (fingerSpotLedType == null) {
             appendToLog("TagAxzonOpus.getFingerSpotLedType 2");
             int iOffset = 0x1E;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length <= iOffset || tagBanks.stringsTid[iOffset] == null) {
+            if (stringsTid == null || stringsTid.length <= iOffset || stringsTid[iOffset] == null) {
                 setTidBankData1AReadStart();
                 return null;
             }
-            appendToLog("TagAxzonOpus.getFingerSpotLedType 3 with stringsTid[" + iOffset + "] = " + tagBanks.stringsTid[iOffset]);
+            appendToLog("TagAxzonOpus.getFingerSpotLedType 3 with stringsTid[" + iOffset + "] = " + stringsTid[iOffset]);
             fingerSpotLedType = null;
-            int iValue = Integer.parseInt(tagBanks.stringsTid[iOffset], 16);
+            int iValue = Integer.parseInt(stringsTid[iOffset], 16);
             appendToLog("TagAxzonOpus.getFingerSpotLedType 3 with iValue = " + iValue);
             iValue &= 0x08;
             if (iValue == 0) fingerSpotLedType = DisableEnableTypes.DISABLE;
@@ -955,12 +1165,12 @@ public class TagAxzonOpus {
         if (bapDuration == iNO_SUCH_SETTING) {
             appendToLog("TagAxzonOpus.getBAPduration 2");
             int iOffset = 0x1F;
-            if (tagBanks.stringsTid == null || tagBanks.stringsTid.length <= iOffset || tagBanks.stringsTid[iOffset] == null) {
+            if (stringsTid == null || stringsTid.length <= iOffset || stringsTid[iOffset] == null) {
                 setTidBankData1AReadStart();
                 return iNO_SUCH_SETTING;
             } else {
-                appendToLog("TagAxzonOpus.getBAPduration 3 with string as " + tagBanks.stringsTid[iOffset]);
-                int iValue = Integer.valueOf(tagBanks.stringsTid[iOffset], 16);
+                appendToLog("TagAxzonOpus.getBAPduration 3 with string as " + stringsTid[iOffset]);
+                int iValue = Integer.valueOf(stringsTid[iOffset], 16);
                 appendToLog("TagAxzonOpus.getBAPduration 3 with iValue as " + iValue);
                 iValue &= 0x1F;
                 bapDuration = iValue;
@@ -970,10 +1180,10 @@ public class TagAxzonOpus {
         return bapDuration;
     }
     void setTidBankData8ReadStart() {
-        tagBanks.setBankDataStart(selectData, 2, 8, 9+2, null);
+        setBankDataStart(selectData, 2, 8, 9+2, null);
     }
     void setTidBankData1AReadStart() {
-        tagBanks.setBankDataStart(selectData, 2, 0x1A, 6, null);
+        setBankDataStart(selectData, 2, 0x1A, 6, null);
     }
     void appendToLog(String string) {
         Log.i(TAG, string);
