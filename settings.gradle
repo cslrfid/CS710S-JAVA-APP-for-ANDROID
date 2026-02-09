@@ -1,6 +1,5 @@
 include ':app'
 include ':cslibrary4a'
-include ':cslibrary4a1'
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
