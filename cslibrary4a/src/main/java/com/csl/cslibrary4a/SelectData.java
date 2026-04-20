@@ -8,6 +8,7 @@ public class SelectData {
     public int selectOffset = 32;
     public String selectPassword;
     public int selectPower;
+    public boolean bSelectBAP, bSelectMeasureBattery;
 
     public SelectData(String selectMaskEpc, String selectPassword, int selectPower) {
         this.selectMaskEpc = selectMaskEpc;

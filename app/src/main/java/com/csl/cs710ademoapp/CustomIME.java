@@ -120,8 +120,8 @@ public class CustomIME extends InputMethodService { //implements KeyboardView.On
                     MainActivity.sharedObjects.serviceArrayList.clear();
                     epcArrayList.clear();
                 }
-                appendToLog("CustomIME Debug 1 with activityActive = " + MainActivity.activityActive + ", wedged = " + MainActivity.wedged + ", isBleConnected = " + MainActivity.csLibrary4A.isBleConnected());
-                if (MainActivity.activityActive == false /*&& MainActivity.wedged*/ && MainActivity.csLibrary4A.isBleConnected()) {
+                appendToLog("CustomIME Debug 1 with activityActive = " + MainActivity.activityActive + ", wedged = " + MainActivity.wedged + ", isBleConnected = " + MainActivity.csLibrary4A.isReaderConnected());
+                if (MainActivity.activityActive == false /*&& MainActivity.wedged*/ && MainActivity.csLibrary4A.isReaderConnected()) {
                     if (MainActivity.csLibrary4A.getTriggerButtonStatus() == false) {
                         appendToLog("CustomIME Debug 2 with runningInventoryRfidTask = " + MainActivity.sharedObjects.runningInventoryRfidTask);
                         appendToLog("CustomIME Debug 2 with runningInventoryBarcodeTask = " + MainActivity.sharedObjects.runningInventoryBarcodeTask);

@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
                 && position != DrawerPositions.SPECIAL
                 && position != DrawerPositions.ABOUT
                 && position != DrawerPositions.CONNECT
-                && position != DrawerPositions.DIRECTWEDGE && csLibrary4A.isBleConnected() == false) {
+                && position != DrawerPositions.DIRECTWEDGE && csLibrary4A.isReaderConnected() == false) {
             Toast.makeText(MainActivity.context, "Bluetooth Disconnected.  Please Connect.", Toast.LENGTH_SHORT).show();
             return;
         }

@@ -57,7 +57,7 @@ public abstract class CommonFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (DEBUG) MainActivity.csLibrary4A.appendToLog(fragmentName);
 
-        bleConnected = false; if (MainActivity.csLibrary4A.isBleConnected()) bleConnected = true;
+        bleConnected = false; if (MainActivity.csLibrary4A.isReaderConnected()) bleConnected = true;
         rfidFailure = false; if (MainActivity.csLibrary4A.isRfidFailure()) rfidFailure = true;
         ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         boolean bHomeAsUpEnabled = true;
@@ -73,7 +73,7 @@ public abstract class CommonFragment extends Fragment {
         @Override
         public void run() {
             short reportCount = 5;
-            if (MainActivity.csLibrary4A.isBleConnected()) {
+            if (MainActivity.csLibrary4A.isReaderConnected()) {
                 byte[] notificationData = MainActivity.csLibrary4A.onNotificationEvent();
                 if (false && notificationData != null) {
                     MainActivity.csLibrary4A.appendToLog("2 matched Error: " + MainActivity.csLibrary4A.byteArrayToString(notificationData));
@@ -85,7 +85,7 @@ public abstract class CommonFragment extends Fragment {
 
             mHandler.postDelayed(updateTriggerRunnable, reportCount * 1100);
             if (menuTriggerItem == null) return;
-            if (MainActivity.csLibrary4A.isBleConnected() == false) { menuTriggerItem.setTitle("");  return; }
+            if (MainActivity.csLibrary4A.isReaderConnected() == false) { menuTriggerItem.setTitle("");  return; }
 
             int triggerCount = MainActivity.csLibrary4A.getTriggerCount();
             if (triggerCount != triggerCount_old) {
@@ -105,7 +105,7 @@ public abstract class CommonFragment extends Fragment {
             mHandler.postDelayed(updateBatteryRunnable, 5000);  //normal battery level updates every 4 seconds
 
             if (menuBatteryVoltageItem == null) return;
-            if (MainActivity.csLibrary4A.isBleConnected() == false) {
+            if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                 if (bleDisConnecting) bleConnected = false; bleDisConnecting = true;
                 if (bleConnected) {
                     bleConnected = false; if (DEBUG) MainActivity.csLibrary4A.appendToLog("bleConnected is FALSE in " + fragmentName);
@@ -197,7 +197,7 @@ public abstract class CommonFragment extends Fragment {
         if (fragmentActive == false) return;
         if (fragmentName.matches("ConnectionFragment")) {
             menuInflater.inflate(R.menu.menu_connection, menu);
-            if (MainActivity.csLibrary4A.isBleScanning()) {
+            if (MainActivity.csLibrary4A.isScanningReader()) {
                 menu.findItem(R.id.action_refresh).setActionView(R.layout.actionbar_indeterminate_progress);
             } else {
                 menu.findItem(R.id.action_refresh).setActionView(null);

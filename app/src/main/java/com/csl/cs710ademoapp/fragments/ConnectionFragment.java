@@ -61,7 +61,7 @@ public class ConnectionFragment extends CommonFragment {
         actionBar.setTitle(R.string.title_activity_connection);
 
         textview = (TextView) getActivity().findViewById(R.id.connection_warning);
-        if (MainActivity.csLibrary4A.isBleConnected() == false) {
+        if (MainActivity.csLibrary4A.isReaderConnected() == false) {
             readersList.clear();
             String string = "Please turn on Bluetooth\n";
             string += "Please turn on the handheld\n";
@@ -85,11 +85,11 @@ public class ConnectionFragment extends CommonFragment {
                 if (DEBUG) MainActivity.csLibrary4A.appendToLog("ConnectionFragment.OnItemClickListener: bConnecting = " + bConnecting + ", postion = " + position);
                 boolean bSelectOld = readerDevice.getSelected();
 
-                if (MainActivity.csLibrary4A.isBleConnected() && readerDevice.isConnected() && (readerDevice.getSelected() || false)) {
+                if (MainActivity.csLibrary4A.isReaderConnected() && readerDevice.isConnected() && (readerDevice.getSelected() || false)) {
                     MainActivity.csLibrary4A.appendToLog("ConnectionFragment.onItemClick, Fragment: ");
                     MainActivity.csLibrary4A.disconnect(false); bleDisConnecting = true;
                     readersList.clear();
-                } else if (MainActivity.csLibrary4A.isBleConnected() == false && readerDevice.getSelected() == false) {
+                } else if (MainActivity.csLibrary4A.isReaderConnected() == false && readerDevice.getSelected() == false) {
                     boolean validStart = false;
                     if (deviceConnectTask == null) {
                         validStart = true;
@@ -127,7 +127,7 @@ public class ConnectionFragment extends CommonFragment {
                 readerListAdapter.notifyDataSetChanged();
             }
         });
-        if (MainActivity.csLibrary4A.isBleConnected() == false) {
+        if (MainActivity.csLibrary4A.isReaderConnected() == false) {
             for (int i = 0; i < readersList.size(); i++) {
                 ReaderDevice readerDevice1 = readersList.get(i);
                 if (readerDevice1.isConnected()) {
@@ -165,7 +165,7 @@ public class ConnectionFragment extends CommonFragment {
         @Override
         public void run() {
             boolean operating = false;
-            if (MainActivity.csLibrary4A.isBleConnected())   operating = true;
+            if (MainActivity.csLibrary4A.isReaderConnected())   operating = true;
             if (operating == false && deviceScanTask != null) {
                 if (deviceScanTask.isCancelled() == false)   operating = true;
             }
@@ -189,7 +189,7 @@ public class ConnectionFragment extends CommonFragment {
         protected String doInBackground(Void... a) {
             while (isCancelled() == false) {
                 if (wait4process == false) {
-                    ScanData scanData = MainActivity.csLibrary4A.getNewDeviceScanned();
+                    ScanData scanData = MainActivity.csLibrary4A.getNewReaderScanned();
                     if (scanData != null) mScanResultList.add(scanData);
                     if (scanning == false || mScanResultList.size() != 0 || System.currentTimeMillis() - timeMillisUpdate > 10000) {
                         wait4process = true; publishProgress("");
@@ -203,7 +203,7 @@ public class ConnectionFragment extends CommonFragment {
         protected void onProgressUpdate(String... output) {
             if (scanning == false) {
                 scanning = true;
-                if (MainActivity.csLibrary4A.scanLeDevice(true) == false) cancel(true);
+                if (MainActivity.csLibrary4A.scanReader(true) == false) cancel(true);
                 else getActivity().invalidateOptionsMenu();
             }
             boolean listUpdated = false;
@@ -280,7 +280,7 @@ public class ConnectionFragment extends CommonFragment {
                     }
                 }
                 if (DEBUG) MainActivity.csLibrary4A.appendToLog("Matched. Updated readerListOld with size = " + readersListOld.size());
-                MainActivity.csLibrary4A.scanLeDevice(false);
+                MainActivity.csLibrary4A.scanReader(false);
                 getActivity().invalidateOptionsMenu();
                 scanning = false;
             }
@@ -302,7 +302,7 @@ public class ConnectionFragment extends CommonFragment {
         }
 
         void deviceScanEnding() {
-            MainActivity.csLibrary4A.scanLeDevice(false);
+            MainActivity.csLibrary4A.scanReader(false);
         }
     }
 
@@ -324,8 +324,8 @@ public class ConnectionFragment extends CommonFragment {
 
         @Override
         protected void onPreExecute() {
-            if (DEBUG) MainActivity.csLibrary4A.appendToLog("start of Connection with mrfidToWriteSize = " + MainActivity.csLibrary4A.rfidToWriteSize());
-            MainActivity.csLibrary4A.appendToLog("going to connect 4"); MainActivity.csLibrary4A.connect(connectingDevice);
+            if (DEBUG) MainActivity.csLibrary4A.appendToLog("ConnectionFragment.DeviceConnectTask.onPreExecute: start of Connection with mrfidToWriteSize = " + MainActivity.csLibrary4A.rfidToWriteSize());
+            MainActivity.csLibrary4A.connect(connectingDevice);
             waitTime = 30;
             setting = -1;
             progressDialog = new CustomProgressDialog(getActivity(), prgressMsg);
@@ -341,7 +341,9 @@ public class ConnectionFragment extends CommonFragment {
                     e.printStackTrace();
                 }
                 publishProgress("kkk ");
-                if (MainActivity.csLibrary4A.isBleConnected()) {
+                boolean bValue = MainActivity.csLibrary4A.isReaderConnected();
+                MainActivity.csLibrary4A.appendToLog("ConnectionFragment.DeviceConnectTask.doInBackground: isConnnected = " + bValue);
+                if (bValue) {
                     setting = 0; break;
                 }
             } while (--waitTime > 0);
@@ -360,11 +362,11 @@ public class ConnectionFragment extends CommonFragment {
 
         @Override
         protected void onCancelled(Integer result) {
-            if (DEBUG) MainActivity.csLibrary4A.appendToLog("ConnectionFragment.deviceConnectTask: onCancelled(): setting = " + setting + ", waitTime = " + waitTime);
+            if (DEBUG) MainActivity.csLibrary4A.appendToLog("ConnectionFragment.deviceConnectTask.onCancelled(): setting = " + setting + ", waitTime = " + waitTime);
             if (setting >= 0) {
                 Toast.makeText(getActivity().getApplicationContext(), getResources().getString(R.string.toast_ble_setup_problem), Toast.LENGTH_SHORT).show();
             } else {
-                MainActivity.csLibrary4A.isBleConnected();
+                MainActivity.csLibrary4A.isReaderConnected();
                 Toast.makeText(getActivity().getApplicationContext(), getResources().getString(R.string.error_bluetooth_connection_failed), Toast.LENGTH_SHORT).show();
             }
             super.onCancelled();
@@ -374,7 +376,7 @@ public class ConnectionFragment extends CommonFragment {
         }
 
         protected void onPostExecute(Integer result) {
-            if (DEBUG) MainActivity.csLibrary4A.appendToLog("ConnectionFragment.deviceConnectTask: onPostExecute(): setting = " + setting + ", waitTime = " + waitTime);
+            if (DEBUG) MainActivity.csLibrary4A.appendToLog("ConnectionFragment.deviceConnectTask.onPostExecute(): setting = " + setting + ", waitTime = " + waitTime);
             ReaderDevice readerDevice = readersList.get(position);
             readerDevice.setConnected(true);
             readersList.set(position, readerDevice);
@@ -392,10 +394,10 @@ public class ConnectionFragment extends CommonFragment {
             connectTimeMillis = System.currentTimeMillis();
             super.onPostExecute(result);
 
-            if (DEBUG) MainActivity.csLibrary4A.appendToLog("ConnectionFragment: onPostExecute: getActivity().onBackPressed");
+            if (DEBUG) MainActivity.csLibrary4A.appendToLog("ConnectionFragment.DeviceConnectTask.onPostExecute: getActivity().onBackPressed");
             getActivity().onBackPressed();
             bConnecting = false;
-            if (DEBUG) MainActivity.csLibrary4A.appendToLog("end of Connection with mrfidToWriteSize = " + MainActivity.csLibrary4A.rfidToWriteSize());
+            if (DEBUG) MainActivity.csLibrary4A.appendToLog("ConnectionFragment.DeviceConnectTask.onPostExecute: end of Connection with mrfidToWriteSize = " + MainActivity.csLibrary4A.rfidToWriteSize());
         }
     }
 }

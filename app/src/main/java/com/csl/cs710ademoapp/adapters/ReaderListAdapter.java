@@ -76,7 +76,7 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
                 }
             }
         }
-        if (MainActivity.csLibrary4A.isBleScanning()) {
+        if (MainActivity.csLibrary4A.isScanningReader()) {
             String string = reader.getDeviceType();
             if (string != null) text1 += ("\n" + string);
         }

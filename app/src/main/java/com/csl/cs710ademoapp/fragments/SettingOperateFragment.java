@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -109,6 +110,36 @@ public class SettingOperateFragment extends CommonFragment {
         }
 
         spinnerRegulatoryRegion = (Spinner) view.findViewById(R.id.settingOperateRegulatoryRegion);
+        spinnerRegulatoryRegion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                MainActivity.csLibrary4A.appendToLog("SettingOperateFragment.onViewCreated.onItemSelectedListener.onItemSelected");
+                if (true) {
+                    ArrayAdapter<CharSequence> targetAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.frequencyOrder_options, R.layout.custom_spinner_layout);
+                    targetAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spinnerFrequencyOrder.setAdapter(targetAdapter);
+                    spinnerFrequencyOrder.setSelection(MainActivity.csLibrary4A.getChannelHoppingStatus() ? 0 : 1);
+                    if (MainActivity.csLibrary4A.getChannelHoppingStatus())
+                        spinnerChannel.setEnabled(false);
+                    else spinnerChannel.setEnabled(true);
+
+                    String[] strChannelFrequencyList = MainActivity.csLibrary4A.getChannelFrequencyList(spinnerRegulatoryRegion.getSelectedItemPosition());
+                    ArrayAdapter targetAdapter2 = new ArrayAdapter(getActivity(), R.layout.custom_spinner_layout, strChannelFrequencyList);
+                    targetAdapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spinnerChannel.setAdapter(targetAdapter2);
+                    int channel = MainActivity.csLibrary4A.getChannel();
+                    MainActivity.csLibrary4A.appendToLog("SettingOperateFragment.updateRunnable.run: channel = " + channel);
+                    if (channel < 0 || channel > strChannelFrequencyList.length)
+                        spinnerChannel.setSelection(0);
+                    else spinnerChannel.setSelection(channel);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                MainActivity.csLibrary4A.appendToLog("SettingOperateFragment.onViewCreated.onItemSelectedListener.onNothingSelected");
+            }
+        });
         spinnerFrequencyOrder = (Spinner) view.findViewById(R.id.settingOperateFrequencyOrder); spinnerFrequencyOrder.setEnabled(false);
         spinnerChannel = (Spinner) view.findViewById(R.id.settingOperateChannel);
         {
@@ -316,7 +347,7 @@ public class SettingOperateFragment extends CommonFragment {
         }
     }
     void settingUpdate1() {
-        if (MainActivity.csLibrary4A.isBleConnected() == false) {
+        if (MainActivity.csLibrary4A.isReaderConnected() == false) {
             Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
             return;
         } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -513,39 +544,19 @@ public class SettingOperateFragment extends CommonFragment {
                 if (updating == false) {
                     String[] strCountryList = MainActivity.csLibrary4A.getCountryList();
                     MainActivity.csLibrary4A.appendToLog("SettingOperateFragment.updateRunnable.run: strCountryList is " + (strCountryList == null ? "null" : "valid"));
-                    for (int i = 0; i < strCountryList.length; i++) MainActivity.csLibrary4A.appendToLog("updating: String " + i + " = " + strCountryList[i]);
-                    String[] strChannelFrequencyList = MainActivity.csLibrary4A.getChannelFrequencyList();
-                    //for (int i = 0; i < strChannelFrequencyList.length; i++) MainActivity.csLibrary4A.appendToLog("updating: String " + i + " = " + strChannelFrequencyList[i]);
+                    for (int i = 0; i < strCountryList.length; i++) MainActivity.csLibrary4A.appendToLog("SettingOperateFragment.updateRunnable.run: updating: String " + i + " = " + strCountryList[i]);
                     if (strCountryList == null) {
-                        updating = true; MainActivity.csLibrary4A.appendToLog("updating 10");
+                        updating = true; MainActivity.csLibrary4A.appendToLog("SettingOperateFragment.updateRunnable.run: updating 10");
                     } else {
                         ArrayAdapter targetAdapter1 = new ArrayAdapter(getActivity(), R.layout.custom_spinner_layout, strCountryList);
                         targetAdapter1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                         spinnerRegulatoryRegion.setAdapter(targetAdapter1);
                         int countryNumber = MainActivity.csLibrary4A.getCountryNumberInList();
-                        MainActivity.csLibrary4A.appendToLog("updating countryNumber = " + countryNumber);
+                        MainActivity.csLibrary4A.appendToLog("SettingOperateFragment.updateRunnable.run: updating countryNumber = " + countryNumber);
                         if (countryNumber < 0 || countryNumber > strCountryList.length) spinnerRegulatoryRegion.setSelection(0);
                         else spinnerRegulatoryRegion.setSelection(countryNumber);
                         if (strCountryList.length == 1) spinnerRegulatoryRegion.setEnabled(false);
                         else spinnerRegulatoryRegion.setEnabled(true);
-
-                        ArrayAdapter<CharSequence> targetAdapter;
-                        //if (MainActivity.csLibrary4A.getChannelHoppingDefault())
-                            targetAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.frequencyOrder_options, R.layout.custom_spinner_layout);
-                        //else targetAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.frequencyAgile_options, R.layout.custom_spinner_layout);
-                        targetAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                        spinnerFrequencyOrder.setAdapter(targetAdapter);
-                        spinnerFrequencyOrder.setSelection(MainActivity.csLibrary4A.getChannelHoppingStatus() ? 0 : 1);
-                        if (MainActivity.csLibrary4A.getChannelHoppingStatus()) spinnerChannel.setEnabled(false);
-                        else spinnerChannel.setEnabled(true);
-
-                        ArrayAdapter targetAdapter2 = new ArrayAdapter(getActivity(), R.layout.custom_spinner_layout, strChannelFrequencyList);
-                        targetAdapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                        spinnerChannel.setAdapter(targetAdapter2);
-                        int channel = MainActivity.csLibrary4A.getChannel();
-                        MainActivity.csLibrary4A.appendToLog("channel = " + channel);
-                        if (channel < 0 || channel > strChannelFrequencyList.length) spinnerChannel.setSelection(0);
-                        else spinnerChannel.setSelection(channel);
                     }
                 }
             }

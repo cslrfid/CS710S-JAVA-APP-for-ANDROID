@@ -265,7 +265,7 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
         }
         MainActivity.csLibrary4A.appendToLog("started = " + started);
         if (started == false) {
-            if (MainActivity.csLibrary4A.isBleConnected() == false) {
+            if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                 Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                 return;
             } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -325,7 +325,7 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
         @Override
         public void run() {
             RfidReaderData.Rx000pkgData uplinkPacket;
-            if (MainActivity.csLibrary4A.isBleConnected() && bRunningInventory) {
+            if (MainActivity.csLibrary4A.isReaderConnected() && bRunningInventory) {
                 while (MainActivity.csLibrary4A.rfidToWriteSize() == 0 && (iTagTarget == 0 || iTagGot < iTagTarget)) {
                     if (System.currentTimeMillis() > runTimeMillis + 1000) {
                         runTimeMillis = System.currentTimeMillis();

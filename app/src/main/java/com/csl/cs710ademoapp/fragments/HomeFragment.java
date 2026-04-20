@@ -140,12 +140,12 @@ public class HomeFragment extends CommonFragment {
         @Override
         public void run() {
             if (true) {
-                MainActivity.csLibrary4A.appendToLog("runnableConfiguring(): isBleConnected = " + MainActivity.csLibrary4A.isBleConnected() + ", isRfidFailure = " + MainActivity.csLibrary4A.isRfidFailure());
+                MainActivity.csLibrary4A.appendToLog("runnableConfiguring(): isBleConnected = " + MainActivity.csLibrary4A.isReaderConnected() + ", isRfidFailure = " + MainActivity.csLibrary4A.isRfidFailure());
                 MainActivity.csLibrary4A.appendToLog("runnableConfiguring(): mrfidToWriteSize = " + MainActivity.csLibrary4A.rfidToWriteSize());
             }
             boolean progressShown = false;
             if (progressDialog != null) { if (progressDialog.isShowing()) progressShown = true; }
-            if (MainActivity.csLibrary4A.isBleConnected() == false || MainActivity.csLibrary4A.isRfidFailure()) {
+            if (MainActivity.csLibrary4A.isReaderConnected() == false || MainActivity.csLibrary4A.isRfidFailure()) {
                 if (progressShown) {
                     stopProgressDialog();
                     /*String stringPopup = "Connection failed, please rescan.";

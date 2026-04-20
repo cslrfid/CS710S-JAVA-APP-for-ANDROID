@@ -10,7 +10,7 @@ import com.csl.cslibrary4a1.ReaderDevice0;
 import com.csl.cslibrary4a1.RfidReaderData0;
 import com.csl.cslibrary4a1.ScanData0;
 import com.csl.cslibrary4a1.Utility;
-import com.csl.cslibrary4a1.BluetoothGatt1;
+import com.csl.cslibrary4a1.BluetoothConnector;
 import com.csl.cslibrary4a1.CsReaderConnector;
 import com.csl.cslibrary4a1.RfidReader;
 
@@ -22,12 +22,12 @@ public class Cs108Library4A {
     Context context;
     CsReaderConnector csReaderConnector; Utility utility;
     boolean DEBUG_CONNECT, DEBUG_SCAN;
-    BluetoothGatt1 bluetoothGatt1;
+    BluetoothConnector bluetoothConnector;
     public Cs108Library4A(Context context, TextView mLogView) {
         this.context = context;
         utility = new Utility(context, mLogView);
         csReaderConnector = new CsReaderConnector(context, mLogView, utility, true); csReaderConnector.setScanType(0x01);
-        bluetoothGatt1 = csReaderConnector.bluetoothGatt1; DEBUG_CONNECT = utility.DEBUG_CONNECT; DEBUG_SCAN = utility.DEBUG_SCAN;
+        bluetoothConnector = csReaderConnector.bluetoothConnector; DEBUG_CONNECT = utility.DEBUG_CONNECT; DEBUG_SCAN = utility.DEBUG_SCAN;
 
         File path = context.getFilesDir();
         File[] fileArray = path.listFiles();
@@ -73,12 +73,6 @@ public class Cs108Library4A {
     public void appendToLogView(String s) {
         utility.appendToLogView(s);
     }
-    public String strFloat16toFloat32(String strData) {
-        return utility.strFloat16toFloat32(strData);
-    }
-    public String str2float16(String strData) {
-        return utility.str2float16(strData);
-    }
     public float decodeCtesiusTemperature(String strActData, String strCalData) {
         return utility.decodeCtesiusTemperature(strActData, strCalData);
     }
@@ -87,12 +81,6 @@ public class Cs108Library4A {
     }
     public float decodeAsygnTemperature(String string) {
         return utility.decodeAsygnTemperature(string);
-    }
-    public String temperatureC2F(String strValue) {
-        return utility.temperatureC2F(strValue);
-    }
-    public String temperatureF2C(String strValue) {
-        return utility.temperatureF2C(strValue);
     }
     public String getUpcSerial(String strEpc) {
         return utility.getUpcSerial(strEpc);
@@ -111,28 +99,28 @@ public class Cs108Library4A {
     }
 
     //============ android bluetooth ============
-    public boolean isBleScanning() {
-        return bluetoothGatt1.isScanning();
+    public boolean isScanningReader() {
+        return bluetoothConnector.isScanning();
     }
-    public boolean scanLeDevice(boolean enable) {
+    public boolean scanReader(boolean enable) {
         return csReaderConnector.scanLeDevice(enable);
     }
-    public ScanData getNewDeviceScanned() {
+    public ScanData getNewReaderScanned() {
         ScanData0 scanData0 = csReaderConnector.getNewDeviceScanned();
         ScanData scanData = null;
         if (scanData0 != null) scanData = new ScanData(scanData0.device, scanData0.name, scanData0.address, scanData0.rssi, scanData0.scanRecord, scanData0.decoded_scanRecord, scanData0.serviceUUID, scanData0.hasServicePower);
         return scanData;
     }
-    public String getBluetoothDeviceAddress() {
-        if (bluetoothGatt1.getReaderDeviceConnected() == null) return null;
-        return bluetoothGatt1.getReaderDeviceConnected().getAddress();
+    public String getReaderAddress() {
+        if (bluetoothConnector.getReaderDeviceConnected() == null) return null;
+        return bluetoothConnector.getReaderDeviceConnected().getAddress();
     }
-    public String getBluetoothDeviceName() {
-        if (bluetoothGatt1.getReaderDeviceConnected() == null) return null;
-        return bluetoothGatt1.getReaderDeviceConnected().getName();
+    public String getReaderName() {
+        if (bluetoothConnector.getReaderDeviceConnected() == null) return null;
+        return bluetoothConnector.getReaderDeviceConnected().getName();
     }
-    public boolean isBleConnected() {
-        return csReaderConnector.isBleConnected();
+    public boolean isReaderConnected() {
+        return csReaderConnector.isReaderConnected();
     }
     public void connect(ReaderDevice readerDevice) {
         ReaderDevice0 readerDevice0 = null;
@@ -146,7 +134,7 @@ public class Cs108Library4A {
         return csReaderConnector.connectorBluetooth.forceBTdisconnect();
     }
     public int getRssi() {
-        return bluetoothGatt1.getRssi();
+        return bluetoothConnector.getRssi();
     }
     public long getStreamInRate() {
         return csReaderConnector.getStreamInRate();
@@ -509,8 +497,8 @@ public class Cs108Library4A {
     public boolean setChannelHoppingStatus(boolean channelOrderHopping) {
         return csReaderConnector.rfidReader.setChannelHoppingStatus(channelOrderHopping);
     }
-    public String[] getChannelFrequencyList() {
-        return csReaderConnector.rfidReader.getChannelFrequencyList();
+    public String[] getChannelFrequencyList(int iRegionPosition) {
+        return csReaderConnector.rfidReader.getChannelFrequencyList(iRegionPosition);
     }
     public int getChannel() {
         return csReaderConnector.settingData.channel;
@@ -607,7 +595,7 @@ public class Cs108Library4A {
         return csReaderConnector.rfidReader.sendHostRegRequestHST_CMD(hostCommands1);
     }
     public boolean setPwrManagementMode(boolean bLowPowerStandby) {
-        if (isBleConnected() == false) return false;
+        if (isReaderConnected() == false) return false;
         return csReaderConnector.rfidReader.setPwrManagementMode(bLowPowerStandby);
     }
     public void macWrite(int address, long value) {
@@ -780,7 +768,7 @@ public class Cs108Library4A {
         return (string.trim().length() == 0 ? false : true);
     }
     public boolean setForegroundServiceEnable(boolean bForegroundService) {
-        if (bForegroundService) csReaderConnector.settingData.strForegroundReader = csReaderConnector.bluetoothGatt1.getReaderDeviceConnected().getAddress();
+        if (bForegroundService) csReaderConnector.settingData.strForegroundReader = csReaderConnector.bluetoothConnector.getReaderDeviceConnected().getAddress();
         else csReaderConnector.settingData.strForegroundReader = "";
         return true;
     }

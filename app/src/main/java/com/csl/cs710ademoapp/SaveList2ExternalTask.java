@@ -141,7 +141,7 @@ public class SaveList2ExternalTask extends AsyncTask<Void,Void,String> {
 
     protected String doInBackground(Void... params) {
         Log.i("Hello", "bImpinjServer: doInBackground starts");
-        if (MainActivity.csLibrary4A.isBleConnected() == false) {
+        if (MainActivity.csLibrary4A.isReaderConnected() == false) {
             resultDisplay += "Error in sending data to server as the reader is not connected";
             return null;
         } else if (MainActivity.csLibrary4A.getSaveCloudEnable() == false && bImpinjServer == false) {
@@ -372,7 +372,7 @@ public class SaveList2ExternalTask extends AsyncTask<Void,Void,String> {
                     object += String.format("RFID Reader Radio Serial Number,=\"%s\"\n", MainActivity.csLibrary4A.getRadioSerial());
                     if (true) {
                         object += String.format("RFID Reader Barcode Serial Number,=\"%s\"\n", MainActivity.csLibrary4A.getBarcodeSerial());
-                        object += String.format("RFID Reader Bluetooth MAC address,=\"%s\"\n", MainActivity.csLibrary4A.getBluetoothDeviceAddress());
+                        object += String.format("RFID Reader Bluetooth MAC address,=\"%s\"\n", MainActivity.csLibrary4A.getReaderAddress());
                     }
                     object += String.format("Smart Phone Name,=\"%s\"\n", Build.MODEL);
                 }

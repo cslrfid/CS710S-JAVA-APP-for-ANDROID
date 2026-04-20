@@ -362,6 +362,12 @@
         <item>Enable</item>
     </string-array>
 
+    <string-array name="tagAxzon_Opus_continous_onDemand_options">
+        <item></item>
+        <item>Continuous</item>
+        <item>On demand</item>
+    </string-array>
+
     <string-array name="tagAxzon_Opus_inactive_active_options">
         <item></item>
         <item>Inactive</item>

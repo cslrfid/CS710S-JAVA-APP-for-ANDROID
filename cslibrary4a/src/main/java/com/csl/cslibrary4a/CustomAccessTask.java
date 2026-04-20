@@ -2,7 +2,6 @@ package com.csl.cslibrary4a;
 
 import android.content.Context;
 import android.os.Handler;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,6 +29,7 @@ public class CustomAccessTask extends CustomAsyncTask {
     TextView registerYield, registerTotal;
     boolean invalidRequest, selectOne = false;
     String selectMask; int selectBank, selectOffset;
+    boolean bSelectBAP, bSelectMeasureBattery;
     String strPassword; int powerLevel;
     RfidReaderData.HostCommands hostCommand;
 
@@ -104,6 +104,8 @@ public class CustomAccessTask extends CustomAsyncTask {
         this.selectOffset = selectData.selectOffset;
         this.strPassword = selectData.selectPassword;
         this.powerLevel = selectData.selectPower;
+        this.bSelectBAP = selectData.bSelectBAP;
+        this.bSelectMeasureBattery = selectData.bSelectMeasureBattery;
         this.hostCommand = hostCommand;
         this.qValue = qValue;
         if (repeat > 255) repeat = 255;
@@ -204,9 +206,14 @@ public class CustomAccessTask extends CustomAsyncTask {
             }
             if (powerLevel < 0 || powerLevel > csReaderConnector.rfidReader.getPowerLevelMax()) invalidRequest = true;
             else if (skipSelect == false) {
-                appendToLog("AccessTask.preExecute goes to setSelectTag");
+                appendToLog("CustomAccessTask.preExecute goes to setSelectTag with selectOne = " + selectOne + ", selectMask = " + selectMask + ", selectBank = " + selectBank + ", selectOffset = " + String.format("%04X", selectOffset));
                 if (csReaderConnector.rfidReader.setSelectedTag4Access(selectOne, selectMask, selectBank, selectOffset, powerLevel, qValue, matchRep) == false) {
                     invalidRequest = true; appendToLog("setSelectedTag is failed with selectMask = " + selectMask + ", selectBank = " + selectBank + ", selectOffset = " + selectOffset + ", powerLevel = " + powerLevel);
+                } else {
+                    appendToLog("CustomAccessTask.preExecute: bSelectBAP = " + bSelectBAP);
+                    if (bSelectBAP) csReaderConnector.rfidReader.setSelectedTag4Access(false, selectMask, 3, 0xC0, powerLevel, qValue, matchRep);
+                    else if (bSelectMeasureBattery) csReaderConnector.rfidReader.setSelectedTag4Access(false, "0BE0", 3, 0xD0, powerLevel, qValue, matchRep);
+                    bSelectBAP = false; bSelectMeasureBattery = false;
                 }
             }
         }
@@ -231,7 +238,7 @@ public class CustomAccessTask extends CustomAsyncTask {
         int iTimeOut = 5000;
         accessCompleteReceived = false;
 
-        while (csReaderConnector.isBleConnected() && isCancelled() == false && ending == false) {
+        while (csReaderConnector.isReaderConnected() && isCancelled() == false && ending == false) {
             int batteryCount = csReaderConnector.csConnectorData.getVoltageCount();
             if (batteryCountInventory_old != batteryCount) {
                 batteryCountInventory_old = batteryCount;

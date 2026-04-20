@@ -217,7 +217,7 @@ public class SettingAdminFragment extends CommonFragment {
         buttonReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isBleConnected() == false) {
+                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isBarcodeFailure()) {
@@ -237,7 +237,7 @@ public class SettingAdminFragment extends CommonFragment {
         buttonReset2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isBleConnected() == false) {
+                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isBarcodeFailure()) {
@@ -256,7 +256,7 @@ public class SettingAdminFragment extends CommonFragment {
         buttonReset3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isBleConnected() == false) {
+                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isBarcodeFailure()) {
@@ -274,7 +274,7 @@ public class SettingAdminFragment extends CommonFragment {
         buttonReset4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isBleConnected() == false) {
+                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isBarcodeFailure()) {
@@ -292,7 +292,7 @@ public class SettingAdminFragment extends CommonFragment {
         buttonReset1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isBleConnected() == false) {
+                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (false && MainActivity.csLibrary4A.isRfidFailure()) {
@@ -316,7 +316,7 @@ public class SettingAdminFragment extends CommonFragment {
             @Override
             public void onClick(View v) {
                 boolean validValue = false;
-                if (MainActivity.csLibrary4A.isBleConnected() == false) {
+                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (false && MainActivity.csLibrary4A.isRfidFailure()) {

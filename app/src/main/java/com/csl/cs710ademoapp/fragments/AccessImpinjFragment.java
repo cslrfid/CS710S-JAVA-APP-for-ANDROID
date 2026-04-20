@@ -315,7 +315,7 @@ public class AccessImpinjFragment extends CommonFragment {
             buttonReadUserBank.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (MainActivity.csLibrary4A.isBleConnected() == false) {
+                    if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                         Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                         return;
                     } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -330,7 +330,7 @@ public class AccessImpinjFragment extends CommonFragment {
             buttonWriteUserBank.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (MainActivity.csLibrary4A.isBleConnected() == false) {
+                    if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                         Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                         return;
                     } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -536,7 +536,7 @@ public class AccessImpinjFragment extends CommonFragment {
     }
     boolean isRfidConnectionValid() {
         boolean bValue = false;
-        if (MainActivity.csLibrary4A.isBleConnected() == false) {
+        if (MainActivity.csLibrary4A.isReaderConnected() == false) {
             Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
         } else if (MainActivity.csLibrary4A.isRfidFailure()) {
             Toast.makeText(MainActivity.context, "Rfid is disabled", Toast.LENGTH_SHORT).show();

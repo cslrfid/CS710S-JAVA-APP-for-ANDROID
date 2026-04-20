@@ -6,13 +6,13 @@ android {
         buildConfig true
     }
 
-    compileSdk 36
+    compileSdk 37
     defaultConfig {
         applicationId "com.csl.cs710ademoapp"
         minSdk 26
-        targetSdk 36
-        versionCode 16
-        versionName "4.22.0"
+        targetSdk 37
+        versionCode 17
+        versionName "4.23.0"
         ndk {
             debugSymbolLevel = 'FULL'
         }

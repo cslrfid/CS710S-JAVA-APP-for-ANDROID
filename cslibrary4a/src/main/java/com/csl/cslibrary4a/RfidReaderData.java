@@ -46,23 +46,23 @@ public class RfidReaderData {
         public String decodedResult;
         public String decodedError;
 
-        void getFrom0(RfidReaderData0.Rx000pkgData rx000pkgData0) {
-            Log.i("Hello", "rx000pkgData0 is " + (rx000pkgData0 == null ? "null" : "valid"));
-            if (rx000pkgData0.responseType != null) responseType = HostCmdResponseTypes.values()[rx000pkgData0.responseType.ordinal()];
-            flags = rx000pkgData0.flags;
-            dataValues = rx000pkgData0.dataValues;
-            decodedTime = rx000pkgData0.decodedTime;
-            decodedRssi = rx000pkgData0.decodedRssi;
-            decodedPhase = rx000pkgData0.decodedPhase;
-            decodedChidx = rx000pkgData0.decodedChidx;
-            decodedPort = rx000pkgData0.decodedPort;
-            decodedPc = rx000pkgData0.decodedPc;
-            decodedEpc = rx000pkgData0.decodedEpc;
-            decodedCrc = rx000pkgData0.decodedCrc;
-            decodedData1 = rx000pkgData0.decodedData1;
-            decodedData2 = rx000pkgData0.decodedData2;
-            decodedResult = rx000pkgData0.decodedResult;
-            decodedError = rx000pkgData0.decodedError;
+        public void getFrom0(RfidReaderData0.Rx000pkgData rx000pkgData) {
+            Log.i("Hello", "rx000pkgData0 is " + (rx000pkgData == null ? "null" : "valid"));
+            if (rx000pkgData.responseType != null) responseType = HostCmdResponseTypes.values()[rx000pkgData.responseType.ordinal()];
+            flags = rx000pkgData.flags;
+            dataValues = rx000pkgData.dataValues;
+            decodedTime = rx000pkgData.decodedTime;
+            decodedRssi = rx000pkgData.decodedRssi;
+            decodedPhase = rx000pkgData.decodedPhase;
+            decodedChidx = rx000pkgData.decodedChidx;
+            decodedPort = rx000pkgData.decodedPort;
+            decodedPc = rx000pkgData.decodedPc;
+            decodedEpc = rx000pkgData.decodedEpc;
+            decodedCrc = rx000pkgData.decodedCrc;
+            decodedData1 = rx000pkgData.decodedData1;
+            decodedData2 = rx000pkgData.decodedData2;
+            decodedResult = rx000pkgData.decodedResult;
+            decodedError = rx000pkgData.decodedError;
         }
     }
 

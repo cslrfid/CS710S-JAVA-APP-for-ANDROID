@@ -2,13 +2,10 @@ package com.csl.cs710ademoapp.fragments;
 
 import static android.app.Activity.RESULT_OK;
 
-import android.content.ContentResolver;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.OpenableColumns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,7 +52,7 @@ public class SettingUpdateFragment extends CommonFragment {
             @Override
             public void onClick(View v) {
                 MainActivity.csLibrary4A.appendToLog("SettingUpdateFragment.onViewCreated.onClick: pressed button1");
-                if (MainActivity.csLibrary4A.isBleConnected() == false) {
+                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else {
@@ -70,7 +67,7 @@ public class SettingUpdateFragment extends CommonFragment {
             @Override
             public void onClick(View v) {
                 MainActivity.csLibrary4A.appendToLog("SettingUpdateFragment.onViewCreated.onClick: pressed button3");
-                if (MainActivity.csLibrary4A.isBleConnected() == false) {
+                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else {
@@ -85,7 +82,7 @@ public class SettingUpdateFragment extends CommonFragment {
             @Override
             public void onClick(View v) {
                 MainActivity.csLibrary4A.appendToLog("SettingUpdateFragment.onViewCreated.onClick: pressed button2");
-                if (MainActivity.csLibrary4A.isBleConnected() == false) {
+                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else {
@@ -235,7 +232,7 @@ public class SettingUpdateFragment extends CommonFragment {
         protected String doInBackground(Void... a) {
             String string = ""; boolean isDiconnectedShown = false;
             while (!isCancelled()) {
-                if (!MainActivity.csLibrary4A.isBleConnected()) {
+                if (!MainActivity.csLibrary4A.isReaderConnected()) {
                     if (!isDiconnectedShown) {
                         isDiconnectedShown = true;
                         subpart--;

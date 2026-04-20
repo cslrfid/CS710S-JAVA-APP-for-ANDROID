@@ -457,7 +457,7 @@ public class InventoryRfidiMultiFragment extends CommonFragment {
                     return;
                 }
             } else {
-                if (!MainActivity.csLibrary4A.isBleConnected()) {
+                if (!MainActivity.csLibrary4A.isReaderConnected()) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
                     Toast.makeText(MainActivity.context, "Rfid is disabled", Toast.LENGTH_SHORT).show();

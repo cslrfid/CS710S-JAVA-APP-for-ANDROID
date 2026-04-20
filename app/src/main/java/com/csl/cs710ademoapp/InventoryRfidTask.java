@@ -130,7 +130,7 @@ public class InventoryRfidTask extends CustomAsyncTask {
     protected String doInBackground(Void... a) {
         boolean ending = false, triggerReleased = false; long triggerReleaseTime = 0;
         RfidReaderData.Rx000pkgData rx000pkgData = null;
-        while (MainActivity.csLibrary4A.isBleConnected() && isCancelled() == false && ending == false && MainActivity.csLibrary4A.isRfidFailure() == false) {
+        while (MainActivity.csLibrary4A.isReaderConnected() && isCancelled() == false && ending == false && MainActivity.csLibrary4A.isRfidFailure() == false) {
             int batteryCount = MainActivity.csLibrary4A.getBatteryCount();
             if (batteryCountInventory_old != batteryCount) {
                 batteryCountInventory_old = batteryCount;
@@ -264,7 +264,7 @@ public class InventoryRfidTask extends CustomAsyncTask {
             }
         }
         String stringReturn = "End of Asynctask()";
-        if (MainActivity.csLibrary4A.isBleConnected() == false) stringReturn = "isBleConnected is false";
+        if (MainActivity.csLibrary4A.isReaderConnected() == false) stringReturn = "isBleConnected is false";
         else if (MainActivity.csLibrary4A.isRfidFailure()) stringReturn = "isRfidFailure is true";
         else if (isCancelled()) stringReturn = "isCancelled is true";
         else if (ending) stringReturn = (rx000pkgData == null ? "null ending" : (rx000pkgData.responseType.toString() + " ending"));

@@ -21,9 +21,9 @@ import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cs710ademoapp.SelectTag;
+import com.csl.cslibrary4a.ReaderDevice;
 import com.csl.cslibrary4a.RfidReaderData;
 import com.csl.cslibrary4a.SelectData;
-import com.csl.cslibrary4a.ReaderDevice;
 
 public class UtraceFragment extends CommonFragment {
     final boolean DEBUG = true;
@@ -109,7 +109,7 @@ public class UtraceFragment extends CommonFragment {
         buttonUntrace.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isBleConnected() == false) {
+                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {

@@ -125,7 +125,7 @@ public class AccessEm4325PassiveFragment extends CommonFragment {
     }
 
     boolean isOperationRunning() {
-        if (MainActivity.csLibrary4A.isBleConnected() == false) {
+        if (MainActivity.csLibrary4A.isReaderConnected() == false) {
             Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
             return true;
         } else if (MainActivity.csLibrary4A.isRfidFailure()) {

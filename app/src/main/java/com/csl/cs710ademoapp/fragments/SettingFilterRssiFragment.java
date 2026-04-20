@@ -73,7 +73,7 @@ public class SettingFilterRssiFragment extends CommonFragment {
             @Override
             public void onClick(View v) {
                 boolean validValue = false;
-                if (MainActivity.csLibrary4A.isBleConnected() == false) {
+                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {

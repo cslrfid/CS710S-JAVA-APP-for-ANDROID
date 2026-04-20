@@ -28,7 +28,6 @@ public class CsLibrary4A {
         Log.i("Hello2", "CsLibrary4A.CsLibrary: context.getPackageName is " + context.getPackageName());
     }
     public String getlibraryVersion() {
-        if (DEBUG) Log.i("Hello2", "getlibraryVersion");
         String stringVersion = BuildConfig.VERSION_NAME;
         String stringSubVersion = "";
         if (isCs108Connected()) stringSubVersion = cs108Library4A.csReaderConnector.getlibraryVersion();
@@ -37,7 +36,6 @@ public class CsLibrary4A {
         return utility.StringVersionHeader +  stringVersion + (stringSubVersion.length() == 0 ? "" : ("-" + stringSubVersion));
     }
     public String checkVersion() {
-        if (DEBUG) Log.i("Hello2", "checkVersion");
         if (isCs108Connected()) return cs108Library4A.checkVersion();
         else if (isCs710Connected()) return cs710Library4A.checkVersion();
         else Log.i("Hello2", "checkVersion" + stringNOTCONNECT);
@@ -54,12 +52,6 @@ public class CsLibrary4A {
     public void appendToLogView(String s) {
         utility.appendToLogView(s);
     }
-    public String strFloat16toFloat32(String strData) {
-        return utility.strFloat16toFloat32(strData);
-    }
-    public String str2float16(String strData) {
-        return utility.str2float16(strData);
-    }
     public float decodeCtesiusTemperature(String strActData, String strCalData) {
         return utility.decodeCtesiusTemperature(strActData, strCalData);
     }
@@ -68,12 +60,6 @@ public class CsLibrary4A {
     }
     public float decodeAsygnTemperature(String string) {
         return utility.decodeAsygnTemperature(string);
-    }
-    public String temperatureC2F(String strValue) {
-        return utility.temperatureC2F(strValue);
-    }
-    public String temperatureF2C(String strValue) {
-        return utility.temperatureF2C(strValue);
     }
     public String getUpcSerial(String strEpc) {
         return utility.getUpcSerial(strEpc);
@@ -92,30 +78,30 @@ public class CsLibrary4A {
     }
 
     //============ android bluetooth ============
-    public boolean isBleScanning() {
-        if (DEBUG) Log.i("Hello2", "isBleScanning");
+    public boolean isScanningReader() {
+        if (DEBUG) Log.i("Hello2", "isScanningReader");
         boolean bValue = false, bValue1 = false, bValue7 = false;
-        bValue1 = (cs108Library4A != null && cs108Library4A.isBleScanning());
-        bValue7 = cs710Library4A.isBleScanning();
+        bValue1 = (cs108Library4A != null && cs108Library4A.isScanningReader());
+        bValue7 = cs710Library4A.isScanningReader();
         if (bValue1 || bValue7) bValue = true;
         return bValue;
     }
-    public boolean scanLeDevice(final boolean enable) {
+    public boolean scanReader(final boolean enable) {
         boolean bValue = false, bValue1 = false, bValue7 = false, DEBUG = true;
-        if (DEBUG) appendToLog("CsLibrary.scanLeDevice[" + enable + "]");
+        if (DEBUG) appendToLog("CsLibrary.scanReader[" + enable + "]");
 
-        bValue1 = (cs108Library4A != null && cs108Library4A.scanLeDevice(enable));
-        if (!context.getPackageName().contains("cs108ademoapp")) bValue7 = cs710Library4A.scanLeDevice(enable);
+        bValue1 = (cs108Library4A != null && cs108Library4A.scanReader(enable));
+        if (!context.getPackageName().contains("cs108ademoapp")) bValue7 = cs710Library4A.scanReader(enable);
         if (bValue1 || bValue7) bValue = true;
         return bValue;
     }
-    public ScanData getNewDeviceScanned() {
-        if (DEBUG2) Log.i("Hello2", "getNewDeviceScanned");
+    public ScanData getNewReaderScanned() {
+        if (DEBUG2) Log.i("Hello2", "getNewReaderScanned");
         ScanData scanData1;
-        ScanData scanData7 = cs710Library4A.getNewDeviceScanned();
+        ScanData scanData7 = cs710Library4A.getNewReaderScanned();
         ScanData scanData = null;
         if (scanData7 == null) {
-            scanData1 = (cs108Library4A == null ? null : cs108Library4A.getNewDeviceScanned());
+            scanData1 = (cs108Library4A == null ? null : cs108Library4A.getNewReaderScanned());
             if (true) scanData = scanData1;
             else if (scanData1 != null) {
                 scanData = scanData1; scanData.serviceUUID = scanData1.serviceUUID;
@@ -127,34 +113,35 @@ public class CsLibrary4A {
         }
         return scanData;
     }
-    public String getBluetoothDeviceAddress() {
-        if (DEBUG) Log.i("Hello2", "getBluetoothDeviceAddress");
-        if (isCs108Connected()) return cs108Library4A.getBluetoothDeviceAddress();
-        else if (isCs710Connected()) return cs710Library4A.getBluetoothDeviceAddress();
-        else Log.i("Hello2", "getBluetoothDeviceAddress" + stringNOTCONNECT);
+    public String getReaderAddress() {
+        if (DEBUG) Log.i("Hello2", "getReaderAddress");
+        if (isCs108Connected()) return cs108Library4A.getReaderAddress();
+        else if (isCs710Connected()) return cs710Library4A.getReaderAddress();
+        else Log.i("Hello2", "getReaderAddress" + stringNOTCONNECT);
         return null;
     }
-    public String getBluetoothDeviceName() {
-        if (DEBUG) Log.i("Hello2", "getBluetoothDeviceName");
-        if (isCs108Connected()) return cs108Library4A.getBluetoothDeviceName();
-        else if (isCs710Connected()) return cs710Library4A.getBluetoothDeviceName();
-        else Log.i("Hello2", "getBluetoothDeviceName" + stringNOTCONNECT);
+    public String getReaderName() {
+        if (DEBUG) Log.i("Hello2", "getReaderName");
+        if (isCs108Connected()) return cs108Library4A.getReaderName();
+        else if (isCs710Connected()) return cs710Library4A.getReaderName();
+        else Log.i("Hello2", "getReaderName" + stringNOTCONNECT);
         return null;
     }
-    public boolean isBleConnected() {
-        boolean bValue = false, DEBUG = true;
-        if (DEBUG && false) Log.i("Hello2", "CsLibrary4A.isBleConnected");
+    public boolean isReaderConnected() {
+        boolean bValue = false, DEBUG = false;
+        if (DEBUG) Log.i("Hello2", "CsLibrary4A.isReaderConnected: isCs108Connected = " + isCs108Connected() + ", isCs710Connected = " + isCs710Connected());
         if (isCs108Connected()) {
-            bValue = cs108Library4A.isBleConnected();
+            bValue = cs108Library4A.isReaderConnected();
             if (bValue == false) bConnectStatus = 0;
         } else if (isCs710Connected()) {
-            bValue = cs710Library4A.isBleConnected();
+            bValue = cs710Library4A.isReaderConnected();
             if (bValue == false) bConnectStatus = 0;
         } else {
-            bValue = cs710Library4A.isBleConnected();
+            if (DEBUG) Log.i("Hello2", "CsLibrary4A.isReaderConnected: cs710Library4A.isReaderConnected = " + cs710Library4A.isReaderConnected() + ", cs108Library4A.isReaderConnected = " + cs108Library4A.isReaderConnected());
+            bValue = cs710Library4A.isReaderConnected();
             if (bValue) bConnectStatus = 7;
             else {
-                bValue = (cs108Library4A != null && cs108Library4A.isBleConnected());
+                bValue = (cs108Library4A != null && cs108Library4A.isReaderConnected());
                 if (bValue) bConnectStatus = 1;
                 else bConnectStatus = 0;
             }
@@ -162,7 +149,7 @@ public class CsLibrary4A {
         return bValue;
     }
     public void connect(ReaderDevice readerDevice) {
-        appendToLog("CsLibrary.connect: removeBond, going to cs710Library4A.connect");
+        appendToLog("CsLibrary.connect: starts");
         if (DEBUG || true) Log.i("Hello", "CsLibrary4A.connect: readerDevice is " + (readerDevice != null ? "valid" : "null") + ", iServiceUuidConnectedBefore = " + iServiceUuidConnectedBefore);
         int iServiceUuid = -1;
         if (readerDevice == null) iServiceUuid = iServiceUuidConnectedBefore;
@@ -172,7 +159,7 @@ public class CsLibrary4A {
             appendToLog("CsLibrary4A.connect: going to connect cs108");
             if (cs108Library4A == null) cs108Library4A = new Cs108Library4A(context, textViewLog);
             cs108Library4A.connect(readerDevice); iServiceUuidConnectedBefore = 0;
-        } else if (iServiceUuid == 2 || iServiceUuid == 3 || iServiceUuid == 5 || iServiceUuid == 6) {
+        } else if (iServiceUuid == 2 || iServiceUuid == 3 || iServiceUuid == 5) {
             appendToLog("CsLibrary4A.connect: going to connect cs710");
             cs710Library4A.connect(readerDevice); iServiceUuidConnectedBefore = 2;
         } else appendToLog("CsLibrary4A.connect: invalid serviceUUID = " + (readerDevice == null ? "null" : readerDevice.getServiceUUID()));
@@ -1007,9 +994,9 @@ public class CsLibrary4A {
         Log.i("Hello2", "setChannelHoppingStatus");
         return false;
     }
-    public String[] getChannelFrequencyList() {
-        if (isCs108Connected()) return cs108Library4A.getChannelFrequencyList();
-        else if (isCs710Connected()) return cs710Library4A.getChannelFrequencyList();
+    public String[] getChannelFrequencyList(int iRegionPosition) {
+        if (isCs108Connected()) return cs108Library4A.getChannelFrequencyList(iRegionPosition);
+        else if (isCs710Connected()) return cs710Library4A.getChannelFrequencyList(iRegionPosition);
         else Log.i("Hello2", "getChannelFrequencyList" + stringNOTCONNECT);
         return null;
     }

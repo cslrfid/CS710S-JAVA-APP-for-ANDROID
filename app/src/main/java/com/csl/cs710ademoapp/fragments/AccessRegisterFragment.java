@@ -500,7 +500,7 @@ public class AccessRegisterFragment extends CommonFragment {
         if (inventoryBarcodeTask != null) if (inventoryBarcodeTask.getStatus() == CustomAsyncTask.Status.RUNNING) started = true;
         if (buttonTrigger && ((started && MainActivity.csLibrary4A.getTriggerButtonStatus()) || (started == false && MainActivity.csLibrary4A.getTriggerButtonStatus() == false))) return;
         if (started == false) {
-            if (MainActivity.csLibrary4A.isBleConnected() == false) {
+            if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                 Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -536,7 +536,7 @@ public class AccessRegisterFragment extends CommonFragment {
             if (buttonTrigger) accessTask.taskCancelReason = CustomAccessTask.TaskCancelRReason.BUTTON_RELEASE;
             else accessTask.taskCancelReason = CustomAccessTask.TaskCancelRReason.STOP;
         } else {
-            if (MainActivity.csLibrary4A.isBleConnected() == false) {
+            if (MainActivity.csLibrary4A.isReaderConnected() == false) {
                 Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                 validResult = false;
             } else if (MainActivity.csLibrary4A.isRfidFailure()) {
