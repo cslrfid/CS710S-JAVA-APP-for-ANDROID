@@ -52,7 +52,7 @@ public class SettingUpdateFragment extends CommonFragment {
             @Override
             public void onClick(View v) {
                 MainActivity.csLibrary4A.appendToLog("SettingUpdateFragment.onViewCreated.onClick: pressed button1");
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else {
@@ -67,7 +67,7 @@ public class SettingUpdateFragment extends CommonFragment {
             @Override
             public void onClick(View v) {
                 MainActivity.csLibrary4A.appendToLog("SettingUpdateFragment.onViewCreated.onClick: pressed button3");
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else {
@@ -82,7 +82,7 @@ public class SettingUpdateFragment extends CommonFragment {
             @Override
             public void onClick(View v) {
                 MainActivity.csLibrary4A.appendToLog("SettingUpdateFragment.onViewCreated.onClick: pressed button2");
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else {
@@ -232,7 +232,7 @@ public class SettingUpdateFragment extends CommonFragment {
         protected String doInBackground(Void... a) {
             String string = ""; boolean isDiconnectedShown = false;
             while (!isCancelled()) {
-                if (!MainActivity.csLibrary4A.isReaderConnected()) {
+                if (!MainActivity.csLibrary4A.isBleConnected()) {
                     if (!isDiconnectedShown) {
                         isDiconnectedShown = true;
                         subpart--;
@@ -347,7 +347,7 @@ public class SettingUpdateFragment extends CommonFragment {
             String message = "!! Please Wait. Do NOT DISconnect or shut down reader for the next 10 seconds !!";
             CustomPopupWindow customPopupWindow = new CustomPopupWindow(MainActivity.context);
             customPopupWindow.setdata(false, true);
-            customPopupWindow.popupStart(message);
+            customPopupWindow.popupStart(message, false);
         }
     }
 

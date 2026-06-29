@@ -1,5 +1,11 @@
 package com.csl.cs710ademoapp.fragments;
 
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_AXZON;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_AXZON_OPUS;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_MAGNUS_S2;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_MAGNUS_S3;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_AXZON_XERXES;
+
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -15,7 +21,7 @@ import android.widget.Button;
 
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
-import com.csl.cslibrary4a.RfidReaderData;
+import com.csl.cslibrary4a.RfidReader;
 
 public class AxzonSelectorFragment extends CommonFragment {
 
@@ -39,21 +45,21 @@ public class AxzonSelectorFragment extends CommonFragment {
         button_s2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                gotoAxzonFragment(RfidReaderData.TagType.TAG_MAGNUS_S2);
+                gotoAxzonFragment(TAG_MAGNUS_S2);
             }
         });
         Button button_s3 = (Button) getActivity().findViewById(R.id.select_axzon_s3);
         button_s3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                gotoAxzonFragment(RfidReaderData.TagType.TAG_MAGNUS_S3);
+                gotoAxzonFragment(TAG_MAGNUS_S3);
             }
         });
         Button button_xx = (Button) getActivity().findViewById(R.id.select_axzon_xerxes);
         button_xx.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                gotoAxzonFragment(RfidReaderData.TagType.TAG_AXZON_XERXES);
+                gotoAxzonFragment(TAG_AXZON_XERXES);
             }
         });
         Button button_opus = (Button) getActivity().findViewById(R.id.select_axzon_opus);
@@ -61,14 +67,14 @@ public class AxzonSelectorFragment extends CommonFragment {
         button_opus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                gotoAxzonFragment(RfidReaderData.TagType.TAG_AXZON_OPUS);
+                gotoAxzonFragment(TAG_AXZON_OPUS);
             }
         });
         Button button_all = (Button) getActivity().findViewById(R.id.select_axzon_all);
         button_all.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                gotoAxzonFragment(RfidReaderData.TagType.TAG_AXZON);
+                gotoAxzonFragment(TAG_AXZON);
             }
         });
     }
@@ -81,7 +87,7 @@ public class AxzonSelectorFragment extends CommonFragment {
         super("AxzonSelectorFragment");
     }
 
-    void gotoAxzonFragment(RfidReaderData.TagType tagType) {
+    void gotoAxzonFragment(RfidReader.TagType tagType) {
         MainActivity.tagType = tagType; MainActivity.mDid = "";
         MainActivity.csLibrary4A.appendToLog("HelloABC: gotoAxzonFragment with tagType = " + tagType.toString());
 
@@ -91,7 +97,7 @@ public class AxzonSelectorFragment extends CommonFragment {
         MainActivity.config.config0 = Integer.toString(9);
         MainActivity.config.configRssiUpperLimit = Integer.toString(21);
         MainActivity.config.configRssiLowerLimit = Integer.toString(13);
-        if (tagType == RfidReaderData.TagType.TAG_MAGNUS_S2) MainActivity.config.configHumidityThreshold = Integer.toString(13);
+        if (tagType == TAG_MAGNUS_S2) MainActivity.config.configHumidityThreshold = Integer.toString(13);
         else MainActivity.config.configHumidityThreshold = Integer.toString(160);
 
             Fragment fragment = new AxzonFragment();

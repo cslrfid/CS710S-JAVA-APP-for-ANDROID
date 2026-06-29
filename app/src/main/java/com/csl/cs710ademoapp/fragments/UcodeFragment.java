@@ -1,5 +1,7 @@
 package com.csl.cs710ademoapp.fragments;
 
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_NXP_UCODEDNA;
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,7 +20,6 @@ import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cslibrary4a.CustomTabAdapter;
 import com.csl.cslibrary4a.CustomTabLayout;
-import com.csl.cslibrary4a.RfidReaderData;
 
 public class UcodeFragment extends CommonFragment {
     private ActionBar actionBar;
@@ -77,7 +78,7 @@ public class UcodeFragment extends CommonFragment {
         actionBar.setTitle(R.string.title_activity_ucodeDNA);
 
         adapter = new CustomTabAdapter(this, tabs.length);
-        adapter.setFragment(0, InventoryRfidiMultiFragment.newInstance(true, RfidReaderData.TagType.TAG_NXP_UCODEDNA, "" /*"E2C06"*/));
+        adapter.setFragment(0, InventoryRfidiMultiFragment.newInstance(true, TAG_NXP_UCODEDNA, "" /*"E2C06"*/));
         adapter.setFragment(1, new AccessUcodeFragment());
 
 

@@ -5,15 +5,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.widget.Button;
 
-import com.csl.cslibrary4a1.CsReaderConnector;
-import com.csl.cslibrary4a1.RfidReader;
-import com.csl.cslibrary4a1.Utility;
-import com.csl.cslibrary4a1.TagBanks;
-
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 
 public class TagAxzonOpus {
     public static SelectData selectData;
@@ -44,7 +36,7 @@ public class TagAxzonOpus {
 
     TagBanks.AccessData accessData;
     Handler handler = new Handler();
-    CustomAccessTask accessTask;
+    AccessTaskCustom accessTask;
     void setBankDataStart(SelectData selectData, int accBank, int accOffset, int accSize, String writeData) {
         this.selectData = selectData;
         accessData = new TagBanks.AccessData(); accessData.accBank = accBank; accessData.accOffset = accOffset; accessData.accSize = accSize; accessData.data = writeData;
@@ -72,8 +64,8 @@ public class TagAxzonOpus {
             if (taskRequest) {
                 boolean invalid = processTickItems();
                 appendToLog("TagBanks.updateRunnable: processTickItems is invalid = " + invalid);
-                accessTask = new CustomAccessTask((accessData.data == null ? buttonRead : buttonWrite), invalid, true,
-                        selectData, (accessData.data == null ? RfidReaderData.HostCommands.CMD_18K6CREAD: RfidReaderData.HostCommands.CMD_18K6CWRITE),
+                accessTask = new AccessTaskCustom((accessData.data == null ? buttonRead : buttonWrite), invalid, true,
+                        selectData, (accessData.data == null ? RfidReaderChipData.HostCommands.CMD_18K6CREAD: RfidReaderChipData.HostCommands.CMD_18K6CWRITE),
                         0, 0, true, false,
                         null, null, null, null, null, null,
                         context, csReaderConnector, playerN, playerO);

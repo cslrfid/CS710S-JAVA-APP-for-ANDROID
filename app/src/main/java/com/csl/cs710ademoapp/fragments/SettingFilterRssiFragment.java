@@ -73,7 +73,7 @@ public class SettingFilterRssiFragment extends CommonFragment {
             @Override
             public void onClick(View v) {
                 boolean validValue = false;
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -122,7 +122,7 @@ public class SettingFilterRssiFragment extends CommonFragment {
             long lValue;
             String updating = null;
 
-            if (MainActivity.csLibrary4A.rfidToWriteSize() != 0)   updating = "waiting empty buffer";
+            if (MainActivity.csLibrary4A.mrfidToWriteSize() != 0)   updating = "waiting empty buffer";
             else {
                 if (updating == null) {
                     boolean bValue = MainActivity.csLibrary4A.getRssiFilterEnable();

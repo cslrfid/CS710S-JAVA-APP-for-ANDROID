@@ -28,14 +28,13 @@ import com.csl.cs710ademoapp.InventoryBarcodeTask;
 import com.csl.cs710ademoapp.InventoryRfidTask;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
+import com.csl.cslibrary4a.NotificationConnector;
 
-import com.csl.cslibrary4a.CustomAccessTask;
+import com.csl.cslibrary4a.AccessTaskCustom;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cslibrary4a.CustomPopupWindow;
-import com.csl.cslibrary4a.NotificationListener;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderData;
-import com.csl.cslibrary4a.SelectData;
+import com.csl.cslibrary4a.RfidReaderChipData;
 
 import java.util.ArrayList;
 
@@ -52,7 +51,7 @@ public class AccessRegisterFragment extends CommonFragment {
 
     InventoryRfidTask inventoryRfidTask;
     InventoryBarcodeTask inventoryBarcodeTask;
-    CustomAccessTask accessTask;
+    AccessTaskCustom accessTask;
 
     ReaderDevice tagSelected = MainActivity.tagSelected;
     boolean newWriteData;
@@ -230,7 +229,7 @@ public class AccessRegisterFragment extends CommonFragment {
                     MainActivity.csLibrary4A.setTagRead(0);
                     MainActivity.csLibrary4A.setSelectedTag(strTagId, selectBank, pwrlevel);
                     MainActivity.csLibrary4A.appendToLog("Debug_Compact: AccessRegisterFragment.onViewCreated.buttonSelect.onClick");
-                    MainActivity.csLibrary4A.startOperation(RfidReaderData.OperationTypes.TAG_INVENTORY);
+                    MainActivity.csLibrary4A.startOperation(RfidReaderChipData.OperationTypes.TAG_INVENTORY);
                     inventoryRfidTask = new InventoryRfidTask();
                     inventoryRfidTask.execute();
                     MainActivity.sharedObjects.serviceArrayList.clear(); epcArrayList.clear();
@@ -344,7 +343,7 @@ public class AccessRegisterFragment extends CommonFragment {
         mHandler.removeCallbacks(runnableSelect);
         mHandler.removeCallbacks(runnableAuto123);
         if (inventoryBarcodeTask != null) inventoryBarcodeTask.taskCancelReason = InventoryBarcodeTask.TaskCancelRReason.DESTORY;
-        if (accessTask != null) accessTask.taskCancelReason = CustomAccessTask.TaskCancelRReason.DESTORY;
+        if (accessTask != null) accessTask.taskCancelReason = AccessTaskCustom.TaskCancelRReason.DESTORY;
         if (DEBUG) MainActivity.csLibrary4A.appendToLog("AcccessRegisterFragment().onDestory(): onDestory()");
         if (MainActivity.csLibrary4A != null) {
             MainActivity.csLibrary4A.setSameCheck(true);
@@ -358,7 +357,7 @@ public class AccessRegisterFragment extends CommonFragment {
     }
 
     void setNotificationListener() {
-        MainActivity.csLibrary4A.setNotificationListener(new NotificationListener() {
+        MainActivity.csLibrary4A.setNotificationListener(new NotificationConnector.NotificationListener() {
             @Override
             public void onChange() {
                 MainActivity.csLibrary4A.appendToLog("TRIGGER key is pressed.");
@@ -431,7 +430,7 @@ public class AccessRegisterFragment extends CommonFragment {
                         if (textViewSelectedTags.getText().toString().trim().length() == 0) bcontinue = false;
                     }
                     if (bcontinue) {
-                        customPopupWindow.popupStart("Next barcode.");
+                        customPopupWindow.popupStart("Next barcode.", false);
                         barcodeReadRequesting = true; MainActivity.csLibrary4A.appendToLog("barcodeReadRequesting = true");
                         barcodeReadDone = false; MainActivity.csLibrary4A.appendToLog("barcodeReadDone = false as popup");
                         bcontinue = false;
@@ -500,7 +499,7 @@ public class AccessRegisterFragment extends CommonFragment {
         if (inventoryBarcodeTask != null) if (inventoryBarcodeTask.getStatus() == CustomAsyncTask.Status.RUNNING) started = true;
         if (buttonTrigger && ((started && MainActivity.csLibrary4A.getTriggerButtonStatus()) || (started == false && MainActivity.csLibrary4A.getTriggerButtonStatus() == false))) return;
         if (started == false) {
-            if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+            if (MainActivity.csLibrary4A.isBleConnected() == false) {
                 Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -533,16 +532,16 @@ public class AccessRegisterFragment extends CommonFragment {
         boolean validResult = true;
         if (runningBarcode) { }
         else if (runningAccessTask) {
-            if (buttonTrigger) accessTask.taskCancelReason = CustomAccessTask.TaskCancelRReason.BUTTON_RELEASE;
-            else accessTask.taskCancelReason = CustomAccessTask.TaskCancelRReason.STOP;
+            if (buttonTrigger) accessTask.taskCancelReason = AccessTaskCustom.TaskCancelRReason.BUTTON_RELEASE;
+            else accessTask.taskCancelReason = AccessTaskCustom.TaskCancelRReason.STOP;
         } else {
-            if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+            if (MainActivity.csLibrary4A.isBleConnected() == false) {
                 Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                 validResult = false;
             } else if (MainActivity.csLibrary4A.isRfidFailure()) {
                 Toast.makeText(MainActivity.context, "Rfid is disabled", Toast.LENGTH_SHORT).show();
                 validResult = false;
-            } else if (MainActivity.csLibrary4A.rfidToWriteSize() != 0) {
+            } else if (MainActivity.csLibrary4A.mrfidToWriteSize() != 0) {
                 Toast.makeText(MainActivity.context, R.string.toast_not_ready, Toast.LENGTH_SHORT).show();
                 validResult = false;
             }
@@ -672,11 +671,11 @@ public class AccessRegisterFragment extends CommonFragment {
         MainActivity.csLibrary4A.appendToLog("invalidRequest1 = " + invalidRequest1
                 + ", selectMask = " + selectMask + ", selectBank1 = " + selectBank1 + ", selectOffset1 = " + selectOffset1
                 + ", password = " + password + ", power = " + antennaPower + ", repeatCount = " + repeatCount + ", resetCount = " + resetCount);
-        SelectData selectData = new SelectData(selectMask, selectBank1, selectOffset1, password, antennaPower);
-        accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(buttonWrite, invalidRequest1, true,
-                selectData, RfidReaderData.HostCommands.CMD_18K6CWRITE,
+        accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(buttonWrite, textViewWriteCount, invalidRequest1, true,
+                selectMask, selectBank1, selectOffset1,
+                password, antennaPower, RfidReaderChipData.HostCommands.CMD_18K6CWRITE,
                 selectQValue, repeatCount, resetCount, false,
-                textViewWriteCount, textViewRunTime, textViewTagGot, textViewVoltageLevel, textViewYield, textViewTotal,
+                textViewRunTime, textViewTagGot, textViewVoltageLevel, textViewYield, textViewTotal,
                 MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
         accessTask.execute();
         resetCount = false;

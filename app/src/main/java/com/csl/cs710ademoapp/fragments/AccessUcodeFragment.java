@@ -19,7 +19,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.csl.cslibrary4a.CustomAccessTask;
+import com.csl.cslibrary4a.AccessTaskCustom;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.MainActivity;
@@ -27,8 +27,8 @@ import com.csl.cs710ademoapp.R;
 import com.csl.cs710ademoapp.SaveList2ExternalTask;
 import com.csl.cs710ademoapp.SelectTag;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderData;
-import com.csl.cslibrary4a.SelectData;
+import com.csl.cslibrary4a.RfidReader;
+import com.csl.cslibrary4a.RfidReaderChipData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -67,7 +67,7 @@ public class AccessUcodeFragment extends CommonFragment {
     ReadWriteTypes readWriteTypes;
     boolean bImpinJTag = false;
 
-    private CustomAccessTask accessTask;
+    private AccessTaskCustom accessTask;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -79,7 +79,7 @@ public class AccessUcodeFragment extends CommonFragment {
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (MainActivity.tagType != null) if (MainActivity.tagType == RfidReaderData.TagType.TAG_AXZON) iTagType = 5;
+        if (MainActivity.tagType != null) if (MainActivity.tagType == RfidReader.TagType.TAG_AXZON) iTagType = 5;
 
         selectTag = new SelectTag((Activity)getActivity(), view, 1);
         //if (MainActivity.tagType != null && MainActivity.tagType.toString().contains("TAG_IMPINJ")) bImpinJTag = true;
@@ -146,7 +146,7 @@ public class AccessUcodeFragment extends CommonFragment {
         buttonRead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -161,7 +161,7 @@ public class AccessUcodeFragment extends CommonFragment {
         buttonWrite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -176,7 +176,7 @@ public class AccessUcodeFragment extends CommonFragment {
         buttonReadBuffer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -191,7 +191,7 @@ public class AccessUcodeFragment extends CommonFragment {
         buttonTam1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -208,7 +208,7 @@ public class AccessUcodeFragment extends CommonFragment {
         buttonTam2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -234,7 +234,7 @@ public class AccessUcodeFragment extends CommonFragment {
         buttonUntrace.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -251,7 +251,7 @@ public class AccessUcodeFragment extends CommonFragment {
         buttonShowEpc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -460,7 +460,7 @@ public class AccessUcodeFragment extends CommonFragment {
                         MainActivity.csLibrary4A.setTam1Configuration(keyId, strChallenge);
                         MainActivity.csLibrary4A.appendToLog("AccessUCodeFragment.setUserVisibleHint: keyId = " + keyId + ", strChallenge = " + strChallenge);
                     }
-                    MainActivity.tagType = RfidReaderData.TagType.TAG_NXP_UCODEDNA_AUTHMODE;
+                    MainActivity.tagType = RfidReader.TagType.TAG_NXP_UCODEDNA_AUTHMODE;
                 } else {
                     radioButton = (RadioButton) viewFragment.findViewById(R.id.accessUCInventoryTam2);
                     if (radioButton.isChecked()) {
@@ -474,10 +474,10 @@ public class AccessUcodeFragment extends CommonFragment {
                             MainActivity.csLibrary4A.setTam2Configuration(keyId, strChallenge, profile, offset, blockId, protMode);
                             MainActivity.csLibrary4A.appendToLog("AccessUCodeFragment.setUserVisibleHint: keyId = " + keyId + ", strChallenge = " + strChallenge + ", profile = " + profile + ", offset = " + offset + ", blockId = " + blockId + ", protMode = " + protMode);
                         }
-                        MainActivity.tagType = RfidReaderData.TagType.TAG_NXP_UCODEDNA_AUTHMODE;
+                        MainActivity.tagType = RfidReader.TagType.TAG_NXP_UCODEDNA_AUTHMODE;
                     } else {
                         MainActivity.csLibrary4A.appendToLog("AccessUcodeFragment.setUserVisibleHint: accessUCInventoryNormal is checked");
-                        MainActivity.tagType = RfidReaderData.TagType.TAG_NXP_UCODEDNA;
+                        MainActivity.tagType = RfidReader.TagType.TAG_NXP_UCODEDNA;
                     }
                 }
                 MainActivity.csLibrary4A.appendToLog("AccessUcodeFragment.setUserVisibleHint: MainActivity.tagType = " + (MainActivity.tagType == null ? "null" : MainActivity.tagType.toString()));
@@ -688,16 +688,18 @@ public class AccessUcodeFragment extends CommonFragment {
                     else if (operationRead) button = buttonRead;
                     else button = buttonWrite;
 
-                    RfidReaderData.HostCommands hostCommand;
-                    if (readBufferChecked) hostCommand = RfidReaderData.HostCommands.CMD_READBUFFER;
-                    else if (authenChecked) hostCommand = RfidReaderData.HostCommands.CMD_18K6CAUTHENTICATE;
-                    else if (untraceChecked || showEpcChecked) hostCommand = RfidReaderData.HostCommands.CMD_UNTRACEABLE;
-                    else if (operationRead) hostCommand = RfidReaderData.HostCommands.CMD_18K6CREAD;
-                    else hostCommand = RfidReaderData.HostCommands.CMD_18K6CWRITE;
+                    RfidReaderChipData.HostCommands hostCommand;
+                    if (readBufferChecked) hostCommand = RfidReaderChipData.HostCommands.CMD_READBUFFER;
+                    else if (authenChecked) hostCommand = RfidReaderChipData.HostCommands.CMD_18K6CAUTHENTICATE;
+                    else if (untraceChecked || showEpcChecked) hostCommand = RfidReaderChipData.HostCommands.CMD_UNTRACEABLE;
+                    else if (operationRead) hostCommand = RfidReaderChipData.HostCommands.CMD_18K6CREAD;
+                    else hostCommand = RfidReaderChipData.HostCommands.CMD_18K6CWRITE;
 
-                    SelectData selectData = new SelectData(selectTag.editTextTagID.getText().toString(), selectTag.editTextAccessPassword.getText().toString(), Integer.valueOf(selectTag.editTextAccessAntennaPower.getText().toString()));
-                    accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(button, invalid,
-                            selectData, hostCommand,
+                    accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(button, null, invalid, true,
+                            selectTag.editTextTagID.getText().toString(), 1, 32,
+                            selectTag.editTextAccessPassword.getText().toString(), Integer.valueOf(selectTag.editTextAccessAntennaPower.getText().toString()), hostCommand,
+                            0, 0, true, false,
+                            null, null, null, null, null,
                             MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
                     accessTask.execute();
                     rerunRequest = true;

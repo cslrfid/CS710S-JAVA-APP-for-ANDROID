@@ -40,7 +40,7 @@ public class HomeSpecialFragment extends CommonFragment {
             buttonFdmicro.setVisibility(View.GONE); buttonLanda.setVisibility(View.GONE);
         }
         MainActivity.tagType = null; MainActivity.mDid = null;
-        if (MainActivity.csLibrary4A.isReaderConnected()) MainActivity.csLibrary4A.restoreAfterTagSelect();
+        if (MainActivity.csLibrary4A.isBleConnected()) MainActivity.csLibrary4A.restoreAfterTagSelect();
     }
 
     public HomeSpecialFragment() {

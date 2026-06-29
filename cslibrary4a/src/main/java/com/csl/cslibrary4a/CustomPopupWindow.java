@@ -33,7 +33,7 @@ public class CustomPopupWindow {
         this.wait = wait;
         this.blink = blink;
     }
-    public void popupStart(String message) {
+    public void popupStart(String message, boolean selector) {
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
         popupView = layoutInflater.inflate(R.layout.popup, null);
         popupWindow = new PopupWindow(popupView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);

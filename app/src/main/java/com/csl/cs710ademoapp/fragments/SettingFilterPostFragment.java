@@ -53,7 +53,7 @@ public class SettingFilterPostFragment extends CommonFragment {
             @Override
             public void onClick(View v) {
                 boolean validValue = false;
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -96,7 +96,7 @@ public class SettingFilterPostFragment extends CommonFragment {
             long lValue;
             boolean updating = false;
 
-            if (MainActivity.csLibrary4A.rfidToWriteSize() != 0)   updating = true;
+            if (MainActivity.csLibrary4A.mrfidToWriteSize() != 0)   updating = true;
             else {
                 if (updating == false) {
                     checkBoxEnable.setChecked(MainActivity.csLibrary4A.getInvMatchEnable());

@@ -12,7 +12,7 @@ android {
         minSdk 26
         targetSdk 37
         versionCode 17
-        versionName "4.23.0"
+        versionName "4.23.2"
         ndk {
             debugSymbolLevel = 'FULL'
         }
@@ -30,7 +30,7 @@ dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.viewpager2:viewpager2:1.1.0'
     implementation 'com.github.hannesa2:paho.mqtt.android:4.4'
-    implementation 'com.google.android.material:material:1.13.0'
+    implementation 'com.google.android.material:material:1.14.0'
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5'
     implementation fileTree(include: ['*.aar', '*.jar'], dir: 'libs')
     implementation project(':cslibrary4a')

@@ -29,9 +29,10 @@ import com.csl.cs710ademoapp.InventoryRfidTask;
 import com.csl.cs710ademoapp.SelectTag;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
-import com.csl.cslibrary4a.NotificationListener;
+import com.csl.cslibrary4a.NotificationConnector;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderData;
+import com.csl.cslibrary4a.RfidReader;
+import com.csl.cslibrary4a.RfidReaderChipData;
 
 public class InventoryRfidSearchFragment extends CommonFragment {
     double dBuV_dBm_constant = MainActivity.csLibrary4A.dBuV_dBm_constant;
@@ -253,8 +254,8 @@ public class InventoryRfidSearchFragment extends CommonFragment {
         if (tagSelected != null) {
             if (tagSelected.getSelected() == true) {
                 if (tagSelected.getTid() != null) {
-                    RfidReaderData.TagType tagType = MainActivity.csLibrary4A.getagType(tagSelected.getTid());
-                    if (tagType == RfidReaderData.TagType.TAG_KILOWAY || tagType == RfidReaderData.TagType.TAG_LONGJING) {
+                    RfidReader.TagType tagType = MainActivity.csLibrary4A.getagType(tagSelected.getTid());
+                    if (tagType == RfidReader.TagType.TAG_KILOWAY || tagType == RfidReader.TagType.TAG_LONGJING) {
                     //if (tagSelected.getTid().indexOf(MainActivity.csLibrary4A.getsTid(RfidReader.TagType.TAG_KILOWAY) /*"E281D"*/) == 0
                     //        || tagSelected.getTid().indexOf(MainActivity.csLibrary4A.getsTid(RfidReader.TagType.TAG_LONGJING) /*"E201E"*/) == 0) {
                         memoryBankSpinner.setSelection(1);
@@ -310,7 +311,7 @@ public class InventoryRfidSearchFragment extends CommonFragment {
 
     void setNotificationListener() {
         MainActivity.csLibrary4A.appendToLog("setNotificationListener A in search inventory");
-        MainActivity.csLibrary4A.setNotificationListener(new NotificationListener() {
+        MainActivity.csLibrary4A.setNotificationListener(new NotificationConnector.NotificationListener() {
             @Override
             public void onChange() {
                 MainActivity.csLibrary4A.appendToLog("setNotificationListener TRIGGER key is pressed in search inventory.");
@@ -342,11 +343,11 @@ public class InventoryRfidSearchFragment extends CommonFragment {
                     return;
                 }
             } else {
-                if (!MainActivity.csLibrary4A.isReaderConnected()) {
+                if (!MainActivity.csLibrary4A.isBleConnected()) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
                     Toast.makeText(MainActivity.context, "Rfid is disabled", Toast.LENGTH_SHORT).show();
-                } else if (MainActivity.csLibrary4A.rfidToWriteSize() != 0) {
+                } else if (MainActivity.csLibrary4A.mrfidToWriteSize() != 0) {
                     MainActivity.csLibrary4A.appendToLog("InventoryRfidSearchFragment.runnableStartStopHandler.run: BtDataOut: sending data. please wait");
                     mHandler.postDelayed(runnableStartStopHandler, 100);
                     return;
@@ -367,8 +368,8 @@ public class InventoryRfidSearchFragment extends CommonFragment {
         if (tagSelected != null) {
             if (tagSelected.getTid() != null) {
                 MainActivity.csLibrary4A.appendToLog("InventoryRfidSearchFragment.startInventoryTask: tagSelected.getTid = " + tagSelected.getTid());
-                RfidReaderData.TagType tagType = MainActivity.csLibrary4A.getagType(tagSelected.getTid());
-                if (tagType == RfidReaderData.TagType.TAG_LONGJING) {
+                RfidReader.TagType tagType = MainActivity.csLibrary4A.getagType(tagSelected.getTid());
+                if (tagType == RfidReader.TagType.TAG_LONGJING) {
                 //if (tagSelected.getTid().indexOf(MainActivity.csLibrary4A.getsTid(RfidReader.TagType.TAG_LONGJING) /*"E201E"*/) == 0) {
                     MainActivity.csLibrary4A.appendToLog("InventoryRfidSearchFragment.startInventoryTask: found TAG_LONGJING");
                     MainActivity.csLibrary4A.setTagRead(1);
@@ -387,7 +388,7 @@ public class InventoryRfidSearchFragment extends CommonFragment {
             invalidRequest = true;
             MainActivity.csLibrary4A.appendToLog("invalidRequest = " + invalidRequest + ", with setSelectedTag as false, string = " + selectTag.editTextTagID.getText().toString() + ", bank = " + memorybank+1 + ", power = " + powerLevel);
         } else {
-            MainActivity.csLibrary4A.startOperation(RfidReaderData.OperationTypes.TAG_SEARCHING);
+            MainActivity.csLibrary4A.startOperation(RfidReaderChipData.OperationTypes.TAG_SEARCHING);
         }
         MainActivity.csLibrary4A.appendToLog("invalidRequest = " + invalidRequest);
         if (false) {

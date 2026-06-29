@@ -1,5 +1,7 @@
 package com.csl.cs710ademoapp.fragments;
 
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_LONGJING;
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,7 +20,6 @@ import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cslibrary4a.CustomTabAdapter;
 import com.csl.cslibrary4a.CustomTabLayout;
-import com.csl.cslibrary4a.RfidReaderData;
 
 public class LongjingFragment extends CommonFragment {
     private ActionBar actionBar;
@@ -78,7 +79,7 @@ public class LongjingFragment extends CommonFragment {
         actionBar.setTitle(R.string.title_activity_longjing);
 
         adapter = new CustomTabAdapter(this, tabs.length);
-        adapter.setFragment(0, InventoryRfidiMultiFragment.newInstance(true, RfidReaderData.TagType.TAG_LONGJING, "" /*""E201E"*/));
+        adapter.setFragment(0, InventoryRfidiMultiFragment.newInstance(true, TAG_LONGJING, "" /*""E201E"*/));
         adapter.setFragment(1, new InventoryRfidSearchFragment(true));
         adapter.setFragment(2, new AccessKilowayFragment(true));
 

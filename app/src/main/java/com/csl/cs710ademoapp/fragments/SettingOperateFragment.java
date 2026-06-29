@@ -347,7 +347,7 @@ public class SettingOperateFragment extends CommonFragment {
         }
     }
     void settingUpdate1() {
-        if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+        if (MainActivity.csLibrary4A.isBleConnected() == false) {
             Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
             return;
         } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -461,7 +461,7 @@ public class SettingOperateFragment extends CommonFragment {
             boolean updating = false;
 
             updateRunning = true;
-            if (MainActivity.csLibrary4A.rfidToWriteSize() != 0)   {
+            if (MainActivity.csLibrary4A.mrfidToWriteSize() != 0)   {
                 updating = true; MainActivity.csLibrary4A.appendToLog("updating 1");
             }
             else {
@@ -697,7 +697,7 @@ public class SettingOperateFragment extends CommonFragment {
             if (powerLevel < powerLevelMin) invalidRequest = true;
             else if (powerLevel > MainActivity.csLibrary4A.getPowerLevelMax()) {
                 CustomPopupWindow customPopupWindow = new CustomPopupWindow(MainActivity.context);
-                customPopupWindow.popupStart("Power can only be set to 320 or below");
+                customPopupWindow.popupStart("Power can only be set to 320 or below", false);
                 invalidRequest = true;
             }
             else if (MainActivity.csLibrary4A.setPowerLevel(powerLevel) == false) invalidRequest = true;

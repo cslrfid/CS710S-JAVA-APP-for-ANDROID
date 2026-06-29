@@ -140,20 +140,20 @@ public class HomeFragment extends CommonFragment {
         @Override
         public void run() {
             if (true) {
-                MainActivity.csLibrary4A.appendToLog("runnableConfiguring(): isBleConnected = " + MainActivity.csLibrary4A.isReaderConnected() + ", isRfidFailure = " + MainActivity.csLibrary4A.isRfidFailure());
-                MainActivity.csLibrary4A.appendToLog("runnableConfiguring(): mrfidToWriteSize = " + MainActivity.csLibrary4A.rfidToWriteSize());
+                MainActivity.csLibrary4A.appendToLog("runnableConfiguring(): isBleConnected = " + MainActivity.csLibrary4A.isBleConnected() + ", isRfidFailure = " + MainActivity.csLibrary4A.isRfidFailure());
+                MainActivity.csLibrary4A.appendToLog("runnableConfiguring(): mrfidToWriteSize = " + MainActivity.csLibrary4A.mrfidToWriteSize());
             }
             boolean progressShown = false;
             if (progressDialog != null) { if (progressDialog.isShowing()) progressShown = true; }
-            if (MainActivity.csLibrary4A.isReaderConnected() == false || MainActivity.csLibrary4A.isRfidFailure()) {
+            if (MainActivity.csLibrary4A.isBleConnected() == false || MainActivity.csLibrary4A.isRfidFailure()) {
                 if (progressShown) {
                     stopProgressDialog();
                     /*String stringPopup = "Connection failed, please rescan.";
                     CustomPopupWindow customPopupWindow = new CustomPopupWindow((Context) getActivity());
                     customPopupWindow.popupStart(stringPopup, false); */
                 }
-            } else if (MainActivity.csLibrary4A.rfidToWriteSize() != 0) {
-                if (DEBUG) MainActivity.csLibrary4A.appendToLog("mrfidToWriteSize = " + MainActivity.csLibrary4A.rfidToWriteSize());
+            } else if (MainActivity.csLibrary4A.mrfidToWriteSize() != 0) {
+                if (DEBUG) MainActivity.csLibrary4A.appendToLog("mrfidToWriteSize = " + MainActivity.csLibrary4A.mrfidToWriteSize());
                 mHandler.postDelayed(runnableConfiguring, 250);
                 if (progressShown == false) {
                     progressDialog = new CustomProgressDialog(getActivity(), "Initializing reader. Please wait.");
@@ -167,7 +167,7 @@ public class HomeFragment extends CommonFragment {
                         //if (stringPopup.indexOf("Unknown") != 0) stringPopup = "Firmware too old\nPlease upgrade firmware to at least:" + stringPopup;
                         if (stringPopup.indexOf("Unknown") != 0) stringPopup = "Warning: " + stringPopup;
                         CustomPopupWindow customPopupWindow = new CustomPopupWindow((Context)getActivity());
-                        customPopupWindow.popupStart(stringPopup);
+                        customPopupWindow.popupStart(stringPopup, false);
                     }
                     MainActivity.sharedObjects.versionWarningShown = true;
                 }

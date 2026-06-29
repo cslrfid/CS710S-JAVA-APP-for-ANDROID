@@ -18,7 +18,7 @@ import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cslibrary4a.CustomTabAdapter;
 import com.csl.cslibrary4a.CustomTabLayout;
-import com.csl.cslibrary4a.RfidReaderData;
+import com.csl.cslibrary4a.RfidReader;
 
 public class ImpinjFragment extends CommonFragment {
     private ActionBar actionBar;
@@ -77,7 +77,7 @@ public class ImpinjFragment extends CommonFragment {
 
         adapter = new CustomTabAdapter(this, tabs.length);
         adapter.setFragment(0, new AccessImpinjFragment(false));
-        adapter.setFragment(1, InventoryRfidiMultiFragment.newInstance(true, RfidReaderData.TagType.TAG_IMPINJ, ""));
+        adapter.setFragment(1, InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_IMPINJ, ""));
         adapter.setFragment(2, new AccessUcodeFragment());
 
         viewPager = (ViewPager2) getActivity().findViewById(R.id.OperationsPager2);

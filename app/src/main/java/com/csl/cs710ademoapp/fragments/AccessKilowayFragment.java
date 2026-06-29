@@ -12,13 +12,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.csl.cslibrary4a.CustomAccessTask;
+import com.csl.cslibrary4a.AccessTaskCustom;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderData;
-import com.csl.cslibrary4a.SelectData;
+import com.csl.cslibrary4a.RfidReaderChipData;
 
 public class AccessKilowayFragment extends CommonFragment {
     final boolean DEBUG = true;
@@ -35,7 +34,7 @@ public class AccessKilowayFragment extends CommonFragment {
     }
     ReadWriteTypes readWriteTypes;
 
-    private CustomAccessTask accessTask;
+    private AccessTaskCustom accessTask;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
@@ -58,7 +57,7 @@ public class AccessKilowayFragment extends CommonFragment {
         buttonRead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -152,9 +151,9 @@ public class AccessKilowayFragment extends CommonFragment {
                         if (checkBoxRepeat != null && checkBoxRepeat.isChecked()) { bankProcessing = 0; checkProcessing = 0; }
                         else rerunRequest = false;
                     } else {
-                        SelectData selectData = new SelectData(editTextRWTagID.getText().toString(), "00000000", Integer.valueOf(editTextaccessRWAntennaPower.getText().toString()));
                         accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(buttonRead, invalid, true,
-                                selectData, RfidReaderData.HostCommands.CMD_18K6CREAD,
+                                editTextRWTagID.getText().toString(), 1, 32,
+                                "00000000", Integer.valueOf(editTextaccessRWAntennaPower.getText().toString()), RfidReaderChipData.HostCommands.CMD_18K6CREAD,
                                 false, null, MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
                         accessTask.execute();
                         rerunRequest = true;

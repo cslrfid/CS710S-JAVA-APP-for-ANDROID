@@ -27,7 +27,7 @@ import com.csl.cs710ademoapp.SelectTag;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderData;
+import com.csl.cslibrary4a.RfidReaderChipData;
 
 import static com.csl.cs710ademoapp.MainActivity.context;
 import static com.csl.cs710ademoapp.MainActivity.tagSelected;
@@ -136,7 +136,7 @@ public class AccessReadWriteFragment extends CommonFragment {
         buttonRead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -151,7 +151,7 @@ public class AccessReadWriteFragment extends CommonFragment {
         buttonWrite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -242,7 +242,7 @@ public class AccessReadWriteFragment extends CommonFragment {
 
         if (needPopup) {
             CustomPopupWindow customPopupWindow = new CustomPopupWindow(context);
-            customPopupWindow.popupStart("Changing EPC Length will automatically modify to " + (iWordCount * 16) + " bits.");
+            customPopupWindow.popupStart("Changing EPC Length will automatically modify to " + (iWordCount * 16) + " bits.", false);
         }
     }
 
@@ -292,7 +292,7 @@ public class AccessReadWriteFragment extends CommonFragment {
                             selectTag.editTextTagID.getText().toString(), spinnerSelectBank.getSelectedItemPosition() + 1, selectOffset,
                             editTextAccessRWAccPassword.getText().toString(),
                             Integer.valueOf(editTextaccessRWAntennaPower.getText().toString()),
-                            (operationRead ? RfidReaderData.HostCommands.CMD_18K6CREAD: RfidReaderData.HostCommands.CMD_18K6CWRITE), updateRunnable, context, MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
+                            (operationRead ? RfidReaderChipData.HostCommands.CMD_18K6CREAD: RfidReaderChipData.HostCommands.CMD_18K6CWRITE), updateRunnable, context, MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
                     accessTask.execute();
                     rerunRequest = true;
                 }

@@ -13,15 +13,14 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.csl.cslibrary4a.CustomAccessTask;
+import com.csl.cslibrary4a.AccessTaskCustom;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
-import com.csl.cslibrary4a.NotificationListener;
+import com.csl.cslibrary4a.NotificationConnector;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderData;
-import com.csl.cslibrary4a.SelectData;
+import com.csl.cslibrary4a.RfidReaderChipData;
 
 public class AccessSecurityLockFragment extends CommonFragment {
     private EditText editTextTagID, editTextPassword, editTextAntennaPower;
@@ -29,7 +28,7 @@ public class AccessSecurityLockFragment extends CommonFragment {
     private Spinner spinner4KillPwd, spinner4AccessPwd, spinner4EpcMemory, spinner4TidMemory, spinner4UserMemory;
     private Button button;
 
-    private CustomAccessTask accessTask;
+    private AccessTaskCustom accessTask;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -73,7 +72,7 @@ public class AccessSecurityLockFragment extends CommonFragment {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -133,7 +132,7 @@ public class AccessSecurityLockFragment extends CommonFragment {
     }
 
     void setNotificationListener() {
-        MainActivity.csLibrary4A.setNotificationListener(new NotificationListener() {
+        MainActivity.csLibrary4A.setNotificationListener(new NotificationConnector.NotificationListener() {
             @Override
             public void onChange() {
                 MainActivity.csLibrary4A.appendToLog("TRIGGER key is pressed.");
@@ -188,9 +187,11 @@ public class AccessSecurityLockFragment extends CommonFragment {
                 invalidRequest = true;
             }
         }
-        SelectData selectData = new SelectData(strTagID, strPassword, powerLevel);
-        accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(button, invalidRequest,
-                selectData, RfidReaderData.HostCommands.CMD_18K6CLOCK,
+        accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(button, null, invalidRequest, true,
+                strTagID, 1, 32,
+                strPassword, powerLevel, RfidReaderChipData.HostCommands.CMD_18K6CLOCK,
+                0, 0, true, false,
+                null, null, null, null, null,
                 MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
         accessTask.execute();
     }

@@ -60,7 +60,7 @@ public class InventoryBarcodeTask extends CustomAsyncTask {
 
     @Override
     protected String doInBackground(Void... a) {
-        while (MainActivity.csLibrary4A.isReaderConnected() && isCancelled() == false) {
+        while (MainActivity.csLibrary4A.isBleConnected() && isCancelled() == false) {
             int batteryCount = MainActivity.csLibrary4A.getBatteryCount();
             if (batteryCountInventory_old != batteryCount) {
                 batteryCountInventory_old = batteryCount;
@@ -112,7 +112,7 @@ public class InventoryBarcodeTask extends CustomAsyncTask {
                     cancel(true);
                 }
             }
-            if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+            if (MainActivity.csLibrary4A.isBleConnected() == false) {
                 Log.i("Hello", "InventoryBarcodeTask.doInBackground: taskCancelReason as DESTROY");
                 taskCancelReason = TaskCancelRReason.DESTORY;
             }

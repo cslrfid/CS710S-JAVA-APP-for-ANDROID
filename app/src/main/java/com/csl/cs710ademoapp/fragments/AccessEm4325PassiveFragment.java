@@ -11,14 +11,13 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.csl.cslibrary4a.CustomAccessTask;
+import com.csl.cslibrary4a.AccessTaskCustom;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
-import com.csl.cslibrary4a.SelectData;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderData;
+import com.csl.cslibrary4a.RfidReaderChipData;
 
 public class AccessEm4325PassiveFragment extends CommonFragment {
     final boolean DEBUG = true;
@@ -34,7 +33,7 @@ public class AccessEm4325PassiveFragment extends CommonFragment {
     boolean operationRead = false;
     ReadWriteTypes readWriteTypes;
 
-    private CustomAccessTask accessTask;
+    private AccessTaskCustom accessTask;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -125,7 +124,7 @@ public class AccessEm4325PassiveFragment extends CommonFragment {
     }
 
     boolean isOperationRunning() {
-        if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+        if (MainActivity.csLibrary4A.isBleConnected() == false) {
             Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
             return true;
         } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -169,15 +168,19 @@ public class AccessEm4325PassiveFragment extends CommonFragment {
                 MainActivity.csLibrary4A.appendToLog("updateRunnable: processTickItems Result = " + invalid + ", bankprocessing = " + bankProcessing);
                 if (bankProcessing++ != 0 && invalid) rerunRequest = false;
                 else  {
-                    RfidReaderData.HostCommands hostCommand;
-                    if (readWriteTypes == ReadWriteTypes.TEMPERATURE && operationRead) hostCommand = RfidReaderData.HostCommands.CMD_GETSENSORDATA;
-                    else if (operationRead) hostCommand = RfidReaderData.HostCommands.CMD_18K6CREAD;
-                    else hostCommand = RfidReaderData.HostCommands.CMD_18K6CWRITE;
+                    RfidReaderChipData.HostCommands hostCommand;
+                    if (readWriteTypes == ReadWriteTypes.TEMPERATURE && operationRead) hostCommand = RfidReaderChipData.HostCommands.CMD_GETSENSORDATA;
+                    else if (operationRead) hostCommand = RfidReaderChipData.HostCommands.CMD_18K6CREAD;
+                    else hostCommand = RfidReaderChipData.HostCommands.CMD_18K6CWRITE;
                     MainActivity.csLibrary4A.appendToLog("hostCommand = " + hostCommand.toString());
-                    SelectData selectData = new SelectData(editTextRWTagID.getText().toString(), editTextAccessRWAccPassword.getText().toString(), Integer.valueOf(editTextaccessRWAntennaPower.getText().toString()));
-                    accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(buttonRead, invalid,
-                            selectData, hostCommand,
-                            MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
+                    accessTask = new AccessTaskCustom(buttonRead, null, invalid, true,
+                            editTextRWTagID.getText().toString(), 1, 32,
+                            editTextAccessRWAccPassword.getText().toString(),
+                            Integer.valueOf(editTextaccessRWAntennaPower.getText().toString()),
+                            hostCommand,
+                            0, 0, true, false,
+                            null, null, null, null, null,
+                            MainActivity.context, MainActivity.csLibrary4A, MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
                     accessTask.execute();
                     rerunRequest = true;
                     MainActivity.csLibrary4A.appendToLog("accessTask is created");

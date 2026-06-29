@@ -7,6 +7,7 @@ import android.os.Bundle;
 
 import com.csl.cslibrary4a.CustomTabAdapter;
 import com.csl.cslibrary4a.CustomTabLayout;
+import com.csl.cslibrary4a.RfidReader;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
@@ -20,7 +21,6 @@ import android.view.ViewGroup;
 
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
-import com.csl.cslibrary4a.RfidReaderData;
 
 public class AxzonFragment extends CommonFragment {
     private ActionBar actionBar;
@@ -78,15 +78,15 @@ public class AxzonFragment extends CommonFragment {
         if (true) actionBar.setTitle(R.string.title_activity_axzon);
         else {
             String stringTitle = getResources().getString(R.string.title_activity_axzon);
-            if (MainActivity.tagType == RfidReaderData.TagType.TAG_MAGNUS_S2) stringTitle = "S2";
-            else if (MainActivity.tagType == RfidReaderData.TagType.TAG_MAGNUS_S3) stringTitle = "S3";
-            if (MainActivity.tagType == RfidReaderData.TagType.TAG_AXZON_XERXES) stringTitle = "Xerxes";
+            if (MainActivity.tagType == RfidReader.TagType.TAG_MAGNUS_S2) stringTitle = "S2";
+            else if (MainActivity.tagType == RfidReader.TagType.TAG_MAGNUS_S3) stringTitle = "S3";
+            if (MainActivity.tagType == RfidReader.TagType.TAG_AXZON_XERXES) stringTitle = "Xerxes";
             actionBar.setTitle(stringTitle);
          }
 
         adapter = new CustomTabAdapter(this, tabs.length);
         adapter.setFragment(0, AccessMicronFragment.newInstance(true));
-        adapter.setFragment(1, InventoryRfidiMultiFragment.newInstance(true, RfidReaderData.TagType.TAG_AXZON, ""));
+        adapter.setFragment(1, InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_AXZON, ""));
         adapter.setFragment(2, new AccessOpusLoggerFragment());
         adapter.setFragment(3, new AccessUcodeFragment());
 

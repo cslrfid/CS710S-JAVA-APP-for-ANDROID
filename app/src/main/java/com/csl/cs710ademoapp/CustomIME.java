@@ -10,7 +10,7 @@ import android.view.View;
 import android.view.inputmethod.InputConnection;
 
 import com.csl.cslibrary4a.CustomAsyncTask;
-import com.csl.cslibrary4a.RfidReaderData;
+import com.csl.cslibrary4a.RfidReaderChipData;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -120,17 +120,17 @@ public class CustomIME extends InputMethodService { //implements KeyboardView.On
                     MainActivity.sharedObjects.serviceArrayList.clear();
                     epcArrayList.clear();
                 }
-                appendToLog("CustomIME Debug 1 with activityActive = " + MainActivity.activityActive + ", wedged = " + MainActivity.wedged + ", isBleConnected = " + MainActivity.csLibrary4A.isReaderConnected());
-                if (MainActivity.activityActive == false /*&& MainActivity.wedged*/ && MainActivity.csLibrary4A.isReaderConnected()) {
+                appendToLog("CustomIME Debug 1 with activityActive = " + MainActivity.activityActive + ", wedged = " + MainActivity.wedged + ", isBleConnected = " + MainActivity.csLibrary4A.isBleConnected());
+                if (MainActivity.activityActive == false /*&& MainActivity.wedged*/ && MainActivity.csLibrary4A.isBleConnected()) {
                     if (MainActivity.csLibrary4A.getTriggerButtonStatus() == false) {
                         appendToLog("CustomIME Debug 2 with runningInventoryRfidTask = " + MainActivity.sharedObjects.runningInventoryRfidTask);
                         appendToLog("CustomIME Debug 2 with runningInventoryBarcodeTask = " + MainActivity.sharedObjects.runningInventoryBarcodeTask);
                         startStopHandler();
                         inventoring = false;
                     } else if (inventoring == false) {
-                        appendToLog("CustomIME Debug 3 with runningInventoryRfidTask = " + MainActivity.sharedObjects.runningInventoryRfidTask + ", and mrfidToWriteSize = " + MainActivity.csLibrary4A.rfidToWriteSize());
+                        appendToLog("CustomIME Debug 3 with runningInventoryRfidTask = " + MainActivity.sharedObjects.runningInventoryRfidTask + ", and mrfidToWriteSize = " + MainActivity.csLibrary4A.mrfidToWriteSize());
                         appendToLog("CustomIME Debug 3 with runningInventoryBarcodeTask = " + MainActivity.sharedObjects.runningInventoryBarcodeTask);
-                        if (MainActivity.sharedObjects.runningInventoryRfidTask == false && MainActivity.sharedObjects.runningInventoryBarcodeTask == false && MainActivity.csLibrary4A.rfidToWriteSize() == 0) {
+                        if (MainActivity.sharedObjects.runningInventoryRfidTask == false && MainActivity.sharedObjects.runningInventoryBarcodeTask == false && MainActivity.csLibrary4A.mrfidToWriteSize() == 0) {
                             startStopHandler();
                             inventoring = true;
                         }
@@ -218,7 +218,7 @@ public class CustomIME extends InputMethodService { //implements KeyboardView.On
             } else {
                 MainActivity.csLibrary4A.setPowerLevel(MainActivity.csLibrary4A.getWedgePower());
                 appendToLog("Debug_Compact: CustomIME.startStopHandler");
-                MainActivity.csLibrary4A.startOperation(RfidReaderData.OperationTypes.TAG_INVENTORY_COMPACT);
+                MainActivity.csLibrary4A.startOperation(RfidReaderChipData.OperationTypes.TAG_INVENTORY_COMPACT);
                 inventoryRfidTask = new InventoryRfidTask();
                 inventoryRfidTask.execute();
             }

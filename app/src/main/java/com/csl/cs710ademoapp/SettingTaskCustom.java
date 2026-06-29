@@ -38,9 +38,9 @@ public class SettingTaskCustom extends CustomAsyncTask {
     @Override
     protected String doInBackground(Void... a) {
         long timeMillis = System.currentTimeMillis();
-        int writeSize = MainActivity.csLibrary4A.rfidToWriteSize();
+        int writeSize = MainActivity.csLibrary4A.mrfidToWriteSize();
         while (true) {
-            int writeSizeN = MainActivity.csLibrary4A.rfidToWriteSize();
+            int writeSizeN = MainActivity.csLibrary4A.mrfidToWriteSize();
             if (writeSizeN == 0)   break;
             if (writeSizeN < writeSize) {
                 writeSize = writeSizeN;

@@ -16,14 +16,13 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.csl.cslibrary4a.CustomAccessTask;
+import com.csl.cslibrary4a.AccessTaskCustom;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cs710ademoapp.SelectTag;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderData;
-import com.csl.cslibrary4a.SelectData;
+import com.csl.cslibrary4a.RfidReaderChipData;
 
 public class UtraceFragment extends CommonFragment {
     final boolean DEBUG = true;
@@ -35,7 +34,7 @@ public class UtraceFragment extends CommonFragment {
 
     EditText editTextEpcSize;
     private Button buttonUntrace; String strUntraceButtonBackup;
-    private CustomAccessTask accessTask;
+    private AccessTaskCustom accessTask;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -109,7 +108,7 @@ public class UtraceFragment extends CommonFragment {
         buttonUntrace.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -234,9 +233,11 @@ public class UtraceFragment extends CommonFragment {
 
                 Button button = buttonUntrace; int selectBank = selectTag.spinnerSelectBank.getSelectedItemPosition() + 1; MainActivity.csLibrary4A.appendToLog("selectBank = " + selectBank);
                 //if (strUntraceButtonBackup == null) strUntraceButtonBackup = buttonUntrace.getText().toString(); buttonUntrace.setText("Show"); button = buttonUntrace;
-                SelectData selectData = new SelectData(selectTag.editTextTagID.getText().toString(), selectBank, (selectBank == 1 ? 32 : 0), selectTag.editTextAccessPassword.getText().toString(), Integer.valueOf(selectTag.editTextAccessAntennaPower.getText().toString()));
-                accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(button, invalid,
-                        selectData, RfidReaderData.HostCommands.CMD_UNTRACEABLE,
+                accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(button, null, invalid, true,
+                        selectTag.editTextTagID.getText().toString(), selectBank, (selectBank == 1 ? 32 : 0),
+                        selectTag.editTextAccessPassword.getText().toString(), Integer.valueOf(selectTag.editTextAccessAntennaPower.getText().toString()), RfidReaderChipData.HostCommands.CMD_UNTRACEABLE,
+                        0, 0, true, false,
+                        null, null, null, null, null,
                         MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
                 accessTask.execute();
                 rerunRequest = true;

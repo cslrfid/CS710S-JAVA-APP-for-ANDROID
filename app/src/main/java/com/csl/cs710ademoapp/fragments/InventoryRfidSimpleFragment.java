@@ -27,9 +27,9 @@ import com.csl.cs710ademoapp.R;
 import com.csl.cs710ademoapp.SaveList2ExternalTask;
 import com.csl.cs710ademoapp.SharedObjects;
 import com.csl.cs710ademoapp.adapters.ReaderListAdapter;
-import com.csl.cslibrary4a.NotificationListener;
+import com.csl.cslibrary4a.NotificationConnector;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderData;
+import com.csl.cslibrary4a.RfidReaderChipData;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -245,7 +245,7 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
     }
 
     void setNotificationListener() {
-        MainActivity.csLibrary4A.setNotificationListener(new NotificationListener() {
+        MainActivity.csLibrary4A.setNotificationListener(new NotificationConnector.NotificationListener() {
             @Override
             public void onChange() {
                 MainActivity.csLibrary4A.appendToLog("TRIGGER key is pressed.");
@@ -265,13 +265,13 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
         }
         MainActivity.csLibrary4A.appendToLog("started = " + started);
         if (started == false) {
-            if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+            if (MainActivity.csLibrary4A.isBleConnected() == false) {
                 Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                 return;
             } else if (MainActivity.csLibrary4A.isRfidFailure()) {
                 Toast.makeText(MainActivity.context, "Rfid is disabled", Toast.LENGTH_SHORT).show();
                 return;
-            } else if (MainActivity.csLibrary4A.rfidToWriteSize() != 0) {
+            } else if (MainActivity.csLibrary4A.mrfidToWriteSize() != 0) {
                 //Toast.makeText(MainActivity.mContext, R.string.toast_not_ready, Toast.LENGTH_SHORT).show();
                 mHandler.post(runnableCheckReady);
                 return;
@@ -320,13 +320,13 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
     long timeMillis, startTimeMillis, runTimeMillis, rateTimeMillis;
     int iTagTarget, iTagGot;
     Handler myHandler = new Handler(Looper.getMainLooper());
-    ArrayList<RfidReaderData.Rx000pkgData> uplinkPacketList = new ArrayList<>();
+    ArrayList<RfidReaderChipData.Rx000pkgData> uplinkPacketList = new ArrayList<>();
     Runnable runnableSimpleInentory = new Runnable() {
         @Override
         public void run() {
-            RfidReaderData.Rx000pkgData uplinkPacket;
-            if (MainActivity.csLibrary4A.isReaderConnected() && bRunningInventory) {
-                while (MainActivity.csLibrary4A.rfidToWriteSize() == 0 && (iTagTarget == 0 || iTagGot < iTagTarget)) {
+            RfidReaderChipData.Rx000pkgData uplinkPacket;
+            if (MainActivity.csLibrary4A.isBleConnected() && bRunningInventory) {
+                while (MainActivity.csLibrary4A.mrfidToWriteSize() == 0 && (iTagTarget == 0 || iTagGot < iTagTarget)) {
                     if (System.currentTimeMillis() > runTimeMillis + 1000) {
                         runTimeMillis = System.currentTimeMillis();
                         long timePeriod = (System.currentTimeMillis() - startTimeMillis) / 1000;
@@ -380,9 +380,9 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
         int total = 0;
 
         while (uplinkPacketList.size() != 0) {
-            RfidReaderData.Rx000pkgData uplinkPacket = uplinkPacketList.get(0);
+            RfidReaderChipData.Rx000pkgData uplinkPacket = uplinkPacketList.get(0);
             uplinkPacketList.remove(0);
-            RfidReaderData.Rx000pkgData tagData = uplinkPacket;
+            RfidReaderChipData.Rx000pkgData tagData = uplinkPacket;
 
             boolean match = false;
             total++;
@@ -447,13 +447,13 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
     void startInventoryTask() {
         MainActivity.csLibrary4A.appendToLog("startInventoryTask");
         MainActivity.csLibrary4A.restoreAfterTagSelect();
-        MainActivity.csLibrary4A.startOperation(RfidReaderData.OperationTypes.TAG_INVENTORY_COMPACT);
+        MainActivity.csLibrary4A.startOperation(RfidReaderChipData.OperationTypes.TAG_INVENTORY_COMPACT);
     }
 
     private final Runnable runnableCheckReady = new Runnable() {
         @Override
         public void run() {
-            if (MainActivity.csLibrary4A.rfidToWriteSize() != 0) {
+            if (MainActivity.csLibrary4A.mrfidToWriteSize() != 0) {
                 button.setEnabled(false);
                 button.setText("Please wait");
                 MainActivity.csLibrary4A.setNotificationListener(null);

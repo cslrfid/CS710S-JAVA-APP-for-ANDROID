@@ -1,5 +1,7 @@
 package com.csl.cs710ademoapp.fragments;
 
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_EM_COLDCHAIN;
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,7 +20,6 @@ import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cslibrary4a.CustomTabAdapter;
 import com.csl.cslibrary4a.CustomTabLayout;
-import com.csl.cslibrary4a.RfidReaderData;
 
 public class ColdChainFragment extends CommonFragment {
     private ActionBar actionBar;
@@ -78,7 +79,7 @@ public class ColdChainFragment extends CommonFragment {
         actionBar.setTitle(R.string.title_activity_coldChain);
 
         adapter = new CustomTabAdapter(this, tabs.length);
-        adapter.setFragment(0, InventoryRfidiMultiFragment.newInstance(true, RfidReaderData.TagType.TAG_EM_COLDCHAIN, "" /*"E280B0"*/));
+        adapter.setFragment(0, InventoryRfidiMultiFragment.newInstance(true, TAG_EM_COLDCHAIN, "" /*"E280B0"*/));
         adapter.setFragment(1, new AccessColdChainFragment());
         adapter.setFragment(2, new AccessEm4325PassiveFragment());
 

@@ -19,7 +19,7 @@ import androidx.core.app.ActivityCompat;
 
 import com.csl.cslibrary4a.CustomPopupWindow;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderData;
+import com.csl.cslibrary4a.RfidReaderChipData;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -134,14 +134,14 @@ public class SaveList2ExternalTask extends AsyncTask<Void,Void,String> {
             resultDisplay += "\n";
             savedFile = true;
             customPopupWindow.setdata(true, false);
-            customPopupWindow.popupStart(resultDisplay + "Connecting server. Please wait.");
+            customPopupWindow.popupStart(resultDisplay + "Connecting server. Please wait.", false);
             csLibrary4A.appendToLog("SaveList2ExternalTask: popupStart is done");
         }
     }
 
     protected String doInBackground(Void... params) {
         Log.i("Hello", "bImpinjServer: doInBackground starts");
-        if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+        if (MainActivity.csLibrary4A.isBleConnected() == false) {
             resultDisplay += "Error in sending data to server as the reader is not connected";
             return null;
         } else if (MainActivity.csLibrary4A.getSaveCloudEnable() == false && bImpinjServer == false) {
@@ -193,7 +193,7 @@ public class SaveList2ExternalTask extends AsyncTask<Void,Void,String> {
         customPopupWindow.popupWindow.dismiss();
         csLibrary4A.appendToLog("bImpinjServer = " + bImpinjServer + ", responseCode = " + responseCode + ", resultDisplay = " + resultDisplay);
         if (resultDisplay != null && resultDisplay.length() != 0) {
-            if (!bImpinjServer || responseCode != 200) customPopupWindow.popupStart(resultDisplay);
+            if (!bImpinjServer || responseCode != 200) customPopupWindow.popupStart(resultDisplay, false);
         }
     }
 
@@ -301,16 +301,16 @@ public class SaveList2ExternalTask extends AsyncTask<Void,Void,String> {
                     String objectTag;
                     objectTag = "PC,";
                     objectTag += "EPC,";
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.RESERVE_BANK.ordinal())) != 0) objectTag += "Reserve Bank,";
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.EPC_BANK.ordinal())) != 0) objectTag += "EPC Bank,";
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.TID_BANK.ordinal())) != 0) objectTag += "TID Bank,";
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.USER_BANK.ordinal())) != 0) objectTag += "User Bank,";
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.PHASE.ordinal())) != 0) objectTag += "Phase,";
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.CHANNEL.ordinal())) != 0) objectTag += "Channel,";
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.TIME.ordinal())) != 0) objectTag += "Time Of Read,";
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.TIMEZONE.ordinal())) != 0) objectTag += "Time Zone,";
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.LOCATION.ordinal())) != 0) objectTag += "location Of Read Latitude, Location of Read Longitude, ";
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.DIRECTION.ordinal())) != 0) objectTag += "eCompass";
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.RESERVE_BANK.ordinal())) != 0) objectTag += "Reserve Bank,";
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.EPC_BANK.ordinal())) != 0) objectTag += "EPC Bank,";
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.TID_BANK.ordinal())) != 0) objectTag += "TID Bank,";
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.USER_BANK.ordinal())) != 0) objectTag += "User Bank,";
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.PHASE.ordinal())) != 0) objectTag += "Phase,";
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.CHANNEL.ordinal())) != 0) objectTag += "Channel,";
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.TIME.ordinal())) != 0) objectTag += "Time Of Read,";
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.TIMEZONE.ordinal())) != 0) objectTag += "Time Zone,";
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.LOCATION.ordinal())) != 0) objectTag += "location Of Read Latitude, Location of Read Longitude, ";
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.DIRECTION.ordinal())) != 0) objectTag += "eCompass";
                     objectTag += "\n";
                     object += objectTag;
                 }
@@ -350,21 +350,21 @@ public class SaveList2ExternalTask extends AsyncTask<Void,Void,String> {
                     objectTag = String.format("=\"%s\",", pcData);
                     objectTag += String.format("=\"%s\",", epcData);
 
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.RESERVE_BANK.ordinal())) != 0) objectTag += String.format("=\"%s\",", resBankData);
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.EPC_BANK.ordinal())) != 0) objectTag += String.format("=\"%s\",", epcBankData);
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.TID_BANK.ordinal())) != 0) objectTag += String.format("=\"%s\",", tidBankData);
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.USER_BANK.ordinal())) != 0) objectTag += String.format("=\"%s\",", userBankData);
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.PHASE.ordinal())) != 0) objectTag += String.format("%d,", phase);
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.CHANNEL.ordinal())) != 0) objectTag += String.format("%d,", channel);
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.TIME.ordinal())) != 0) objectTag += String.format("=\"%s\",", timeOfRead);
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.TIMEZONE.ordinal())) != 0) objectTag += String.format("%s,", timeZone);
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.LOCATION.ordinal())) != 0) objectTag += String.format("%s,", location);
-                    if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.DIRECTION.ordinal())) != 0)objectTag += String.format("%s", compass);
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.RESERVE_BANK.ordinal())) != 0) objectTag += String.format("=\"%s\",", resBankData);
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.EPC_BANK.ordinal())) != 0) objectTag += String.format("=\"%s\",", epcBankData);
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.TID_BANK.ordinal())) != 0) objectTag += String.format("=\"%s\",", tidBankData);
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.USER_BANK.ordinal())) != 0) objectTag += String.format("=\"%s\",", userBankData);
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.PHASE.ordinal())) != 0) objectTag += String.format("%d,", phase);
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.CHANNEL.ordinal())) != 0) objectTag += String.format("%d,", channel);
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.TIME.ordinal())) != 0) objectTag += String.format("=\"%s\",", timeOfRead);
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.TIMEZONE.ordinal())) != 0) objectTag += String.format("%s,", timeZone);
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.LOCATION.ordinal())) != 0) objectTag += String.format("%s,", location);
+                    if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.DIRECTION.ordinal())) != 0)objectTag += String.format("%s", compass);
                     objectTag += "\n";
                     object += objectTag;
                 }
 
-                if ((csvColumnSelect & (0x01 << RfidReaderData.CsvColumn.OTHERS.ordinal())) != 0) {
+                if ((csvColumnSelect & (0x01 << RfidReaderChipData.CsvColumn.OTHERS.ordinal())) != 0) {
                     object += "\nUser Description,this is example tag data\n";
 
                     object += String.format("RFID Reader Name,=\"%s\"\n", MainActivity.csLibrary4A.getBluetoothICFirmwareName());
@@ -372,7 +372,7 @@ public class SaveList2ExternalTask extends AsyncTask<Void,Void,String> {
                     object += String.format("RFID Reader Radio Serial Number,=\"%s\"\n", MainActivity.csLibrary4A.getRadioSerial());
                     if (true) {
                         object += String.format("RFID Reader Barcode Serial Number,=\"%s\"\n", MainActivity.csLibrary4A.getBarcodeSerial());
-                        object += String.format("RFID Reader Bluetooth MAC address,=\"%s\"\n", MainActivity.csLibrary4A.getReaderAddress());
+                        object += String.format("RFID Reader Bluetooth MAC address,=\"%s\"\n", MainActivity.csLibrary4A.getBluetoothDeviceAddress());
                     }
                     object += String.format("Smart Phone Name,=\"%s\"\n", Build.MODEL);
                 }

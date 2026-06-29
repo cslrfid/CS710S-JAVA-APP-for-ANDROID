@@ -23,6 +23,12 @@ public class ReaderDevice implements Comparable<ReaderDevice>  {
     private String location;
     private String compass;
 
+    public ReaderDevice(String name, String address, boolean isConnected, int serviceUUID) {
+        this.name = name;
+        this.address = address;
+        this.isConnected = isConnected;
+        this.serviceUUID = serviceUUID;
+    }
     public ReaderDevice(String name, String address, boolean selected, String details,
                         String strPc, String strXpc, String strCrc16, String strMdid,
                         String strExtra1, int extra1Bank, int extra1Offset,
@@ -67,6 +73,16 @@ public class ReaderDevice implements Comparable<ReaderDevice>  {
         this.sensorData = sensorData;
     }
 
+    public ReaderDevice(String name, String address, boolean selected, String details, int count, double rssi, int serviceUUID) {
+        this.name = name;
+        this.address = address;
+        this.selected = selected;
+        this.details = details;
+        this.count = count;
+        this.rssi = rssi;
+        this.serviceUUID = serviceUUID;
+        this.hasServicePower = true;
+    }
     public ReaderDevice(String name, String address, boolean selected, String details, int count, double rssi, int serviceUUID, boolean hasServicePower) {
         this.name = name;
         this.address = address;
@@ -225,7 +241,7 @@ public class ReaderDevice implements Comparable<ReaderDevice>  {
         this.rssi = rssi;
     }
 
-    public int getServiceUUID() { return serviceUUID; }
+    public int getServiceUUID2p1() { return serviceUUID; }
     public void setServiceUUID(int serviceUUID) { this.serviceUUID = serviceUUID; }
 
     public boolean getHasServicePower() { return hasServicePower; }
@@ -357,18 +373,18 @@ public class ReaderDevice implements Comparable<ReaderDevice>  {
 
     public String getDeviceType() {
         String string = null;
-        if (getServiceUUID() == 0) {
+        if (getServiceUUID2p1() == 0) {
             if (getHasServicePower()) string = "CS108 Handheld Reader";
             else string = "CS463 Fixed Reader"; // either CS463 or CS203X
         }
-        else if (getServiceUUID() == 1) string = "CS108 Handheld USB Reader";
-        else if (getServiceUUID() == 2) {
+        else if (getServiceUUID2p1() == 1) string = "CS108 Handheld USB Reader";
+        else if (getServiceUUID2p1() == 2) {
             if (getHasServicePower()) string = "CS710S Handheld Reader";
             else string = "CS203XL Fixed Reader";
-        } else if (getServiceUUID() == 3) string = "CS710S Handheld USB Reader";
-        else if (getServiceUUID() == 4) string = "CS463 Fixed HTTP Reader";
-        else if (getServiceUUID() == 5) string = "CS203XL Fixed HTTP Reader";
-        else if (getServiceUUID() == 6) string = "Connected paired devices";
+        } else if (getServiceUUID2p1() == 3) string = "CS710S Handheld USB Reader";
+        else if (getServiceUUID2p1() == 4) string = "CS463 Fixed HTTP Reader";
+        else if (getServiceUUID2p1() == 5) string = "CS203XL Fixed HTTP Reader";
+        else if (getServiceUUID2p1() == 6) string = "Connected paired devices";
         return string;
     }
 }

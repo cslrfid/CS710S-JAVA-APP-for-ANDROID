@@ -45,7 +45,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.csl.cslibrary4a.ScanData;
+import com.csl.cslibrary4a.BluetoothGatt;
 import com.csl.cslibrary4a.CustomPopupWindow;
 import com.csl.cs710ademoapp.MyForegroundService;
 import com.csl.cs710ademoapp.adapters.ReaderListAdapter;
@@ -145,10 +145,10 @@ public class DirectWedgeFragment extends CommonFragment {
                 readerListAdapter.notifyDataSetChanged();
 
                 if (DEBUG) MainActivity.csLibrary4A.appendToLog("OnItemClickListener: readerDevice.getSelected = " + readerDevice.getSelected());
-                if (MainActivity.csLibrary4A.isReaderConnected() && readerDevice.getSelected() == false && readerDevice.isConnected()) {
+                if (MainActivity.csLibrary4A.isBleConnected() && readerDevice.getSelected() == false && readerDevice.isConnected()) {
                     if (DEBUG) MainActivity.csLibrary4A.appendToLog("OnItemClickListener: going to disconnect");
                     disconnectWedge();
-                } else if (MainActivity.csLibrary4A.isReaderConnected() == false && readerDevice.getSelected()) {
+                } else if (MainActivity.csLibrary4A.isBleConnected() == false && readerDevice.getSelected()) {
                     if (DEBUG) MainActivity.csLibrary4A.appendToLog("OnItemClickListener: going to CONNECT");
                     if (true) connectWedge(readerDevice);
                 }
@@ -159,8 +159,8 @@ public class DirectWedgeFragment extends CommonFragment {
         buttonSetup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() || true) new SettingWedgeFragment().show(getChildFragmentManager(), "TAG");
-                else if (MainActivity.csLibrary4A.rfidToWriteSize() != 0) Toast.makeText(getActivity().getApplicationContext(), getResources().getString(R.string.toast_not_ready), Toast.LENGTH_SHORT).show();
+                if (MainActivity.csLibrary4A.isBleConnected() || true) new SettingWedgeFragment().show(getChildFragmentManager(), "TAG");
+                else if (MainActivity.csLibrary4A.mrfidToWriteSize() != 0) Toast.makeText(getActivity().getApplicationContext(), getResources().getString(R.string.toast_not_ready), Toast.LENGTH_SHORT).show();
                 else Toast.makeText(getActivity().getApplicationContext(), getResources().getString(R.string.toast_ble_not_connected), Toast.LENGTH_SHORT).show();
             }
         });
@@ -170,7 +170,7 @@ public class DirectWedgeFragment extends CommonFragment {
             @Override
             public void onClick(View v) {
                 if (bWedgeConnecting) return;
-                if (MainActivity.csLibrary4A.isReaderConnected()) {
+                if (MainActivity.csLibrary4A.isBleConnected()) {
                     disconnectWedge();
                     readerListAdapter.notifyDataSetChanged();
                 } else {
@@ -193,8 +193,8 @@ public class DirectWedgeFragment extends CommonFragment {
         buttonStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected()) {
-                    if (MainActivity.csLibrary4A.rfidToWriteSize() == 0) {
+                if (MainActivity.csLibrary4A.isBleConnected()) {
+                    if (MainActivity.csLibrary4A.mrfidToWriteSize() == 0) {
                         MainActivity.wedged = true;
                         Intent i = new Intent(Intent.ACTION_MAIN);
                         i.addCategory(Intent.CATEGORY_HOME);
@@ -219,7 +219,7 @@ public class DirectWedgeFragment extends CommonFragment {
                 "7.	Switch back to the CSL Data Wedge application.  Now you can press the \"Disconnect\" button to disconnect from the reader.\n\n" +
                 "8.	Configuration button: Press the button to modify parameters such as power, prefix, suffix and delimiter.\n\n";
                 MainActivity.csLibrary4A.appendToLog(stringInfo);
-                customPopupWindow.popupStart(stringInfo);
+                customPopupWindow.popupStart(stringInfo, false);
             }
         });
 
@@ -262,11 +262,11 @@ public class DirectWedgeFragment extends CommonFragment {
         MainActivity.csLibrary4A.setWedgeDeviceName(null); MainActivity.csLibrary4A.setWedgeDeviceAddress(null);
     }
     void connectWedge(ReaderDevice readerDevice) {
-        MainActivity.csLibrary4A.scanReader(false);
+        MainActivity.csLibrary4A.scanLeDevice(false);
         MainActivity.csLibrary4A.appendToLog("going to connect 5"); MainActivity.csLibrary4A.connect(readerDevice); bWedgeConnecting = true; bWedgeConnected = false; bUserRequestedDisconnect = false;
         buttonConnect.setText("Connecting");
         MainActivity.csLibrary4A.setWedgeDeviceName(readerDevice.getName()); MainActivity.csLibrary4A.setWedgeDeviceAddress(readerDevice.getAddress());
-        MainActivity.csLibrary4A.setWedgeDeviceUUID2p1(readerDevice.getServiceUUID());
+        MainActivity.csLibrary4A.setWedgeDeviceUUID2p1(readerDevice.getServiceUUID2p1());
     }
 
     Runnable runnableStartService = new Runnable() {
@@ -301,13 +301,13 @@ public class DirectWedgeFragment extends CommonFragment {
                     bForegroundServiceRunning = true;
                 }
             }
-            if (MainActivity.csLibrary4A.isReaderConnected()) {
-                if (MainActivity.csLibrary4A.rfidToWriteSize() == 0) {
+            if (MainActivity.csLibrary4A.isBleConnected()) {
+                if (MainActivity.csLibrary4A.mrfidToWriteSize() == 0) {
                     bWedgeConnecting = false;
                     if (bWedgeConnected == false) {
                         bWedgeConnected = true;
                         MainActivity.csLibrary4A.setPowerLevel(MainActivity.csLibrary4A.getWedgePower());
-                        MainActivity.csLibrary4A.appendToLog("runnableStart: isBleConnected is true with mrfidToWriteSize = " + MainActivity.csLibrary4A.rfidToWriteSize());
+                        MainActivity.csLibrary4A.appendToLog("runnableStart: isBleConnected is true with mrfidToWriteSize = " + MainActivity.csLibrary4A.mrfidToWriteSize());
                         for (int i = 0; i < readersList.size(); i++) {
                             ReaderDevice readerDevice = readersList.get(i);
                             if (readerDevice.getSelected() && readerDevice.isConnected() == false) {
@@ -326,20 +326,20 @@ public class DirectWedgeFragment extends CommonFragment {
                 } //else Toast.makeText(getActivity().getApplicationContext(), getResources().getString(R.string.toast_not_ready), Toast.LENGTH_SHORT).show();
             } else if (bWedgeConnecting) {
                 MainActivity.csLibrary4A.appendToLog("runnableStart: bConnecting is true");
-            } else if (MainActivity.csLibrary4A.isScanningReader()) {
+            } else if (MainActivity.csLibrary4A.isBleScanning()) {
                 MainActivity.csLibrary4A.appendToLog("runnableStart: isBleScanning is true");
                 boolean listUpdated = false;
                 if (++scanWait > 10) {
-                    boolean bValue1 = MainActivity.csLibrary4A.scanReader(false);
+                    boolean bValue1 = MainActivity.csLibrary4A.scanLeDevice(false);
                     MainActivity.csLibrary4A.appendToLog("runnableStart: STOP scanning with result = " + bValue1);
                     scanWait = 0;
                     readersList.clear();
                     listUpdated = true;
                 } else {
                     while (true) {
-                        ScanData scanData = MainActivity.csLibrary4A.getNewReaderScanned();
-                        if (scanData != null) {
-                            ScanData scanResultA = scanData;
+                        BluetoothGatt.CsScanData csScanData = MainActivity.csLibrary4A.getNewDeviceScanned();
+                        if (csScanData != null) {
+                            BluetoothGatt.CsScanData scanResultA = csScanData;
                             if (scanResultA.device == null) continue;
                             if (getActivity() == null) continue;
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -368,7 +368,7 @@ public class DirectWedgeFragment extends CommonFragment {
                                 }
                                 if (match == false) {
                                     ReaderDevice readerDevice = new ReaderDevice(scanResultA.device.getName(), scanResultA.device.getAddress(), false, "",
-                                            1, scanResultA.rssi, scanResultA.serviceUUID, scanResultA.hasServicePower);
+                                            1, scanResultA.rssi, scanResultA.serviceUUID2p2, scanResultA.hasServicePower);
                                     String strInfo = "";
                                     if (scanResultA.device.getBondState() == 12) {
                                         strInfo += "BOND_BONDED\n";
@@ -423,8 +423,8 @@ public class DirectWedgeFragment extends CommonFragment {
                 }
                 bWedgeConnecting = false; connectWait = 0; scanWait = 0;
                 boolean bValue1 = false;
-                if (bScanPermitted) bValue1 = MainActivity.csLibrary4A.scanReader(true);
-                MainActivity.csLibrary4A.appendToLog("runnableStart: starting scanLeDevice is " + bValue1 + " with isScanning = " + MainActivity.csLibrary4A.isScanningReader());
+                if (bScanPermitted) bValue1 = MainActivity.csLibrary4A.scanLeDevice(true);
+                MainActivity.csLibrary4A.appendToLog("runnableStart: starting scanLeDevice is " + bValue1 + " with isScanning = " + MainActivity.csLibrary4A.isBleScanning());
             }
             handler.postDelayed(runnableStart, 1000);
         }

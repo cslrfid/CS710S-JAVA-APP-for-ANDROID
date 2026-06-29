@@ -49,7 +49,7 @@ import com.csl.cs710ademoapp.fragments.Ucode8Fragment;
 import com.csl.cs710ademoapp.fragments.UcodeFragment;
 import com.csl.cslibrary4a.CsLibrary4A;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderData;
+import com.csl.cslibrary4a.RfidReader;
 
 public class MainActivity extends AppCompatActivity {
     final boolean DEBUG = false; final String TAG = "Hello";
@@ -73,12 +73,12 @@ public class MainActivity extends AppCompatActivity {
     public static SharedObjects sharedObjects;
     public static SensorConnector mSensorConnector;
     public static ReaderDevice tagSelected;
-    public static RfidReaderData.TagType tagTypeExpected;
+    public static RfidReader.TagType tagTypeExpected;
 
     Handler mHandler = new Handler();
 
     public static String mDid; public static int selectHold; public static int selectFor;
-    public static RfidReaderData.TagType tagType;
+    public static RfidReader.TagType tagType;
     public static class Config {
         public String configPassword, configPower, config0, configRssiUpperLimit, configRssiLowerLimit, configHumidityThreshold;
     };
@@ -163,8 +163,8 @@ public class MainActivity extends AppCompatActivity {
     private final Runnable configureRunnable = new Runnable() {
         @Override
         public void run() {
-            if (DEBUG) MainActivity.csLibrary4A.appendToLog("AAA: mrfidToWriteSize = " + csLibrary4A.rfidToWriteSize());
-            if (csLibrary4A.rfidToWriteSize() != 0) {
+            if (DEBUG) MainActivity.csLibrary4A.appendToLog("AAA: mrfidToWriteSize = " + csLibrary4A.mrfidToWriteSize());
+            if (csLibrary4A.mrfidToWriteSize() != 0) {
                 configureDisplaying = true;
                 mHandler.postDelayed(configureRunnable, 500);
             } else {
@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
                 && position != DrawerPositions.SPECIAL
                 && position != DrawerPositions.ABOUT
                 && position != DrawerPositions.CONNECT
-                && position != DrawerPositions.DIRECTWEDGE && csLibrary4A.isReaderConnected() == false) {
+                && position != DrawerPositions.DIRECTWEDGE && csLibrary4A.isBleConnected() == false) {
             Toast.makeText(MainActivity.context, "Bluetooth Disconnected.  Please Connect.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -232,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new ImpinjFragment();
                 break;
             case ALIEN:
-                fragment = InventoryRfidiMultiFragment.newInstance(true, RfidReaderData.TagType.TAG_ALIEN, "" /*"E2003"*/);
+                fragment = InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_ALIEN, "" /*"E2003"*/);
                 break;
             case UCODE8:
                 fragment = new Ucode8Fragment();
@@ -241,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new UcodeFragment();
                 break;
             case BAPCARD:
-                fragment = InventoryRfidiMultiFragment.newInstance(true, RfidReaderData.TagType.TAG_EM_BAP, "" /*"E200B0"*/);
+                fragment = InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_EM_BAP, "" /*"E200B0"*/);
                 break;
             case COLDCHAIN:
                 fragment = new ColdChainFragment();
@@ -262,10 +262,10 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new FdmicroFragment();
                 break;
             case CTESIUS:
-                fragment = InventoryRfidiMultiFragment.newInstance(true, RfidReaderData.TagType.TAG_CTESIUS, ""); //""E203510");
+                fragment = InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_CTESIUS, ""); //""E203510");
                 break;
             case ASYGNTAG:
-                fragment = InventoryRfidiMultiFragment.newInstance(true, RfidReaderData.TagType.TAG_ASYGN, ""); //""E283A");
+                fragment = InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_ASYGN, ""); //""E283A");
                 break;
 
             case REGISTER:

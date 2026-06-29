@@ -22,7 +22,7 @@ import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cslibrary4a.ReaderDevice;
-import com.csl.cslibrary4a.RfidReaderData;
+import com.csl.cslibrary4a.RfidReader;
 import com.csl.cslibrary4a.SelectData;
 import com.csl.cslibrary4a.TagAxzonOpus;
 
@@ -338,7 +338,7 @@ public class AccessOpusLoggerFragment extends CommonFragment {
         buttonRead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -353,7 +353,7 @@ public class AccessOpusLoggerFragment extends CommonFragment {
         buttonWrite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -368,7 +368,7 @@ public class AccessOpusLoggerFragment extends CommonFragment {
         buttonResetLogData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -400,7 +400,7 @@ public class AccessOpusLoggerFragment extends CommonFragment {
         buttonStartLogging.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+                if (MainActivity.csLibrary4A.isBleConnected() == false) {
                     Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -467,13 +467,13 @@ public class AccessOpusLoggerFragment extends CommonFragment {
                 if (editTextRWTagID != null) editTextRWTagID.setText(tagSelected.getAddress());
 
                 if (tagSelected.getMdid() == null) {
-                } else if (MainActivity.tagTypeExpected == RfidReaderData.TagType.TAG_MAGNUS_S2) {
+                } else if (MainActivity.tagTypeExpected == RfidReader.TagType.TAG_MAGNUS_S2) {
                     modelCode = 2;
-                } else if (MainActivity.tagTypeExpected == RfidReaderData.TagType.TAG_MAGNUS_S3) {
+                } else if (MainActivity.tagTypeExpected == RfidReader.TagType.TAG_MAGNUS_S3) {
                     modelCode = 3;
-                } else if (MainActivity.tagTypeExpected == RfidReaderData.TagType.TAG_AXZON_XERXES) {
+                } else if (MainActivity.tagTypeExpected == RfidReader.TagType.TAG_AXZON_XERXES) {
                     modelCode = 5;
-                } else if (MainActivity.tagTypeExpected == RfidReaderData.TagType.TAG_AXZON_OPUS) {
+                } else if (MainActivity.tagTypeExpected == RfidReader.TagType.TAG_AXZON_OPUS) {
                     modelCode = 50;
                 }
 

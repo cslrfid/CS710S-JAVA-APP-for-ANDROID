@@ -88,7 +88,7 @@ public class AboutFragment extends CommonFragment {
             timeStampView.setText(MainActivity.mSensorConnector.getTimeStamp());
             locationView.setText(MainActivity.mSensorConnector.mLocationDevice.getLocation());
             eCompassView.setText(MainActivity.mSensorConnector.mSensorDevice.getEcompass());
-            if (MainActivity.csLibrary4A.isReaderConnected()) {
+            if (MainActivity.csLibrary4A.isBleConnected()) {
                 if (System.currentTimeMillis() - timeMillis > 5000) {
                     timeMillis = System.currentTimeMillis();
                     radioVersion.setText(MainActivity.csLibrary4A.getMacVer());
@@ -112,7 +112,7 @@ public class AboutFragment extends CommonFragment {
                     barcodeDate.setText(MainActivity.csLibrary4A.getBarcodeDate());
                     barcodeVersion.setText(MainActivity.csLibrary4A.getBarcodeVersion());
                 }
-                bluetoothAddress.setText(MainActivity.csLibrary4A.getReaderAddress());
+                bluetoothAddress.setText(MainActivity.csLibrary4A.getBluetoothDeviceAddress());
                 bluetoothRssi.setText(String.valueOf(MainActivity.csLibrary4A.getRssi()));
             } else {
                 radioVersion.setText("");

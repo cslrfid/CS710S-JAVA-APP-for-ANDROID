@@ -1,6 +1,12 @@
 package com.csl.cs710ademoapp.fragments;
 
 import static com.csl.cs710ademoapp.MainActivity.tagSelected;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_EM;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_EM_AURASENSE;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_EM_AURASENSE_ATBOOT;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_EM_AURASENSE_ATSELECT;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_EM_BAP;
+import static com.csl.cslibrary4a.RfidReader.TagType.TAG_EM_COLDCHAIN;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -22,13 +28,12 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.csl.cslibrary4a.CustomAccessTask;
+import com.csl.cslibrary4a.AccessTaskCustom;
 import com.csl.cslibrary4a.CustomAsyncTask;
 import com.csl.cs710ademoapp.MainActivity;
 import com.csl.cs710ademoapp.R;
 import com.csl.cs710ademoapp.SelectTag;
-import com.csl.cslibrary4a.RfidReaderData;
-import com.csl.cslibrary4a.SelectData;
+import com.csl.cslibrary4a.RfidReaderChipData;
 
 public class AccessAuraSenseFragment extends CommonFragment {
     final boolean DEBUG = true;
@@ -65,7 +70,7 @@ public class AccessAuraSenseFragment extends CommonFragment {
     boolean operationRead = false;
     boolean bRequestCheck;
 
-    private CustomAccessTask accessTask;
+    private AccessTaskCustom accessTask;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -92,25 +97,25 @@ public class AccessAuraSenseFragment extends CommonFragment {
                 if (MainActivity.csLibrary4A.get98XX() == 2) tableRow.setVisibility(View.GONE);
                 LinearLayout layout4 = (LinearLayout) viewFragment.findViewById(R.id.accessCustomReadWrite);
                 if (position == eMicroTag.emAuraSense.ordinal()) {
-                    MainActivity.tagType = RfidReaderData.TagType.TAG_EM_AURASENSE; MainActivity.mDid = "" /*"E280B12"*/;
+                    MainActivity.tagType = TAG_EM_AURASENSE; MainActivity.mDid = "" /*"E280B12"*/;
                     layout0.setVisibility(View.VISIBLE);
                     layout1.setVisibility(View.VISIBLE);
                     layout2.setVisibility(View.GONE);
                     layout4.setVisibility(View.VISIBLE);
                 } else if (position == eMicroTag.emColdChain.ordinal()) {
-                    MainActivity.tagType = RfidReaderData.TagType.TAG_EM_COLDCHAIN; MainActivity.mDid = "" /*"E280B0"*/;
+                    MainActivity.tagType = TAG_EM_COLDCHAIN; MainActivity.mDid = "" /*"E280B0"*/;
                     layout0.setVisibility(View.VISIBLE);
                     layout1.setVisibility(View.GONE);
                     layout2.setVisibility(View.VISIBLE);
                     layout4.setVisibility(View.VISIBLE);
                 } else if (position == eMicroTag.emBap.ordinal()) {
-                    MainActivity.tagType = RfidReaderData.TagType.TAG_EM_BAP; MainActivity.mDid = "" /*"E200B0"*/;
+                    MainActivity.tagType = TAG_EM_BAP; MainActivity.mDid = "" /*"E200B0"*/;
                     layout0.setVisibility(View.GONE);
                     layout1.setVisibility(View.GONE);
                     layout2.setVisibility(View.GONE);
                     layout4.setVisibility(View.GONE);
                 } else {
-                    MainActivity.tagType = RfidReaderData.TagType.TAG_EM; MainActivity.mDid = "" /*"E280B"*/;
+                    MainActivity.tagType = TAG_EM; MainActivity.mDid = "" /*"E280B"*/;
                     layout0.setVisibility(View.GONE);
                     layout1.setVisibility(View.GONE);
                     layout2.setVisibility(View.GONE);
@@ -328,10 +333,10 @@ public class AccessAuraSenseFragment extends CommonFragment {
             if (spinnerTagSelect != null && spinnerTagSelect.getSelectedItemPosition() == eMicroTag.emAuraSense.ordinal()) {
                 if (radioButtonAuraSensAtBoot != null && radioButtonAuraSensAtSelect != null) {
                     if (radioButtonAuraSensAtBoot.isChecked()) {
-                        MainActivity.tagType = RfidReaderData.TagType.TAG_EM_AURASENSE_ATBOOT; MainActivity.mDid = "" /*"E280B12A"*/;
+                        MainActivity.tagType = TAG_EM_AURASENSE_ATBOOT; MainActivity.mDid = "" /*"E280B12A"*/;
                     }
                     if (radioButtonAuraSensAtSelect.isChecked()) {
-                        MainActivity.tagType = RfidReaderData.TagType.TAG_EM_AURASENSE_ATSELECT; MainActivity.mDid = "" /*"E280B12B"*/;
+                        MainActivity.tagType = TAG_EM_AURASENSE_ATSELECT; MainActivity.mDid = "" /*"E280B12B"*/;
                     }
                 }
             }
@@ -344,7 +349,7 @@ public class AccessAuraSenseFragment extends CommonFragment {
     }
 
     boolean isOperationRunning() {
-        if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+        if (MainActivity.csLibrary4A.isBleConnected() == false) {
             Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
             return true;
         } else if (MainActivity.csLibrary4A.isRfidFailure()) {
@@ -392,23 +397,27 @@ public class AccessAuraSenseFragment extends CommonFragment {
                     String selectMask = selectTag.editTextTagID.getText().toString();
                     int selectBank = selectTag.spinnerSelectBank.getSelectedItemPosition()+1;
                     int selectOffset = Integer.valueOf(selectTag.editTextSelectOffset.getText().toString());
-                    RfidReaderData.HostCommands hostCommand;
+                    RfidReaderChipData.HostCommands hostCommand;
                     Button buttonAccess;
                     if (readWriteTypes == ReadWriteTypes.COLDCHAIN_TEMPERATURE && operationRead) {
-                        hostCommand = RfidReaderData.HostCommands.CMD_GETSENSORDATA;
+                        hostCommand = RfidReaderChipData.HostCommands.CMD_GETSENSORDATA;
                         buttonAccess = buttonRead;
                     } else if (operationRead) {
-                        hostCommand = RfidReaderData.HostCommands.CMD_18K6CREAD;
+                        hostCommand = RfidReaderChipData.HostCommands.CMD_18K6CREAD;
                         buttonAccess = buttonRead;
                     } else {
-                        hostCommand = RfidReaderData.HostCommands.CMD_18K6CWRITE;
+                        hostCommand = RfidReaderChipData.HostCommands.CMD_18K6CWRITE;
                         buttonAccess = buttonWrite;
                     }
                     MainActivity.csLibrary4A.appendToLog("hostCommand 1 = " + hostCommand.toString());
-                    SelectData selectData = new SelectData(selectMask, selectBank, selectOffset, selectTag.editTextAccessPassword.getText().toString(), Integer.valueOf(selectTag.editTextAccessAntennaPower.getText().toString()));
-                    accessTask = MainActivity.csLibrary4A.getAccessTaskCustom(buttonAccess, invalid,
-                            selectData, hostCommand,
-                            MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
+                    accessTask = new AccessTaskCustom(buttonAccess, null, invalid, true,
+                            selectMask, selectBank, selectOffset,
+                            selectTag.editTextAccessPassword.getText().toString(),
+                            Integer.valueOf(selectTag.editTextAccessAntennaPower.getText().toString()),
+                            hostCommand,
+                            0, 0, true, false,
+                            null, null, null, null, null,
+                            MainActivity.context, MainActivity.csLibrary4A, MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
                     accessTask.execute();
                     rerunRequest = true;
                     MainActivity.csLibrary4A.appendToLog("accessTask is created with selectBank = " + selectBank);

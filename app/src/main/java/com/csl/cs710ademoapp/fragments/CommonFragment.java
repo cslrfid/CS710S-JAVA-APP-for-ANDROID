@@ -57,7 +57,7 @@ public abstract class CommonFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (DEBUG) MainActivity.csLibrary4A.appendToLog(fragmentName);
 
-        bleConnected = false; if (MainActivity.csLibrary4A.isReaderConnected()) bleConnected = true;
+        bleConnected = false; if (MainActivity.csLibrary4A.isBleConnected()) bleConnected = true;
         rfidFailure = false; if (MainActivity.csLibrary4A.isRfidFailure()) rfidFailure = true;
         ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         boolean bHomeAsUpEnabled = true;
@@ -73,19 +73,19 @@ public abstract class CommonFragment extends Fragment {
         @Override
         public void run() {
             short reportCount = 5;
-            if (MainActivity.csLibrary4A.isReaderConnected()) {
+            if (MainActivity.csLibrary4A.isBleConnected()) {
                 byte[] notificationData = MainActivity.csLibrary4A.onNotificationEvent();
                 if (false && notificationData != null) {
                     MainActivity.csLibrary4A.appendToLog("2 matched Error: " + MainActivity.csLibrary4A.byteArrayToString(notificationData));
                     CustomPopupWindow customPopupWindow = new CustomPopupWindow(MainActivity.context);
-                    customPopupWindow.popupStart("Common Notification Error Code A101: " + MainActivity.csLibrary4A.byteArrayToString(notificationData));
+                    customPopupWindow.popupStart("Common Notification Error Code A101: " + MainActivity.csLibrary4A.byteArrayToString(notificationData), false);
                 }
                 reportCount = MainActivity.csLibrary4A.getTriggerReportingCount();
             }
 
             mHandler.postDelayed(updateTriggerRunnable, reportCount * 1100);
             if (menuTriggerItem == null) return;
-            if (MainActivity.csLibrary4A.isReaderConnected() == false) { menuTriggerItem.setTitle("");  return; }
+            if (MainActivity.csLibrary4A.isBleConnected() == false) { menuTriggerItem.setTitle("");  return; }
 
             int triggerCount = MainActivity.csLibrary4A.getTriggerCount();
             if (triggerCount != triggerCount_old) {
@@ -105,7 +105,7 @@ public abstract class CommonFragment extends Fragment {
             mHandler.postDelayed(updateBatteryRunnable, 5000);  //normal battery level updates every 4 seconds
 
             if (menuBatteryVoltageItem == null) return;
-            if (MainActivity.csLibrary4A.isReaderConnected() == false) {
+            if (MainActivity.csLibrary4A.isBleConnected() == false) {
                 if (bleDisConnecting) bleConnected = false; bleDisConnecting = true;
                 if (bleConnected) {
                     bleConnected = false; if (DEBUG) MainActivity.csLibrary4A.appendToLog("bleConnected is FALSE in " + fragmentName);
@@ -173,7 +173,7 @@ public abstract class CommonFragment extends Fragment {
                 if (batteryWarningPopupWindow != null)
                     batteryWarningPopupWindow.popupWindow.dismiss();
                 batteryWarningPopupWindow = new CustomPopupWindow(MainActivity.context);
-                batteryWarningPopupWindow.popupStart(strBatteryLow + "% Battery Life Left, Please Recharge CSL Reader or Replace with Freshly Charged CSL Reader battery");
+                batteryWarningPopupWindow.popupStart(strBatteryLow + "% Battery Life Left, Please Recharge CSL Reader or Replace with Freshly Charged CSL Reader battery", false);
             } else if (false && MainActivity.sharedObjects.batteryWarningShown > 10) MainActivity.sharedObjects.batteryWarningShown = 0;
 
             if (batteryCount_old == batteryCount && strText.length() != 0) {
@@ -197,7 +197,7 @@ public abstract class CommonFragment extends Fragment {
         if (fragmentActive == false) return;
         if (fragmentName.matches("ConnectionFragment")) {
             menuInflater.inflate(R.menu.menu_connection, menu);
-            if (MainActivity.csLibrary4A.isScanningReader()) {
+            if (MainActivity.csLibrary4A.isBleScanning()) {
                 menu.findItem(R.id.action_refresh).setActionView(R.layout.actionbar_indeterminate_progress);
             } else {
                 menu.findItem(R.id.action_refresh).setActionView(null);
