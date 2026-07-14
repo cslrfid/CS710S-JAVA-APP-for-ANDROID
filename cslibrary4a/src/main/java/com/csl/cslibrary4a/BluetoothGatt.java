@@ -58,10 +58,16 @@ public class BluetoothGatt extends BluetoothGattCallback {
         public String getName() { return name; }
         boolean isConnected() { return isConnected; }
     }
-    private BluetoothGattDevice readerDeviceConnected;
-    public BluetoothGattDevice getReaderDeviceConnected() {
+    private BluetoothGattDevice bluetoothGattDeviceConnected;
+    public BluetoothGattDevice getBluetoothGattDeviceConnected() {
+    	return bluetoothGattDeviceConnected;
+    }
+
+    private ReaderDevice readerDeviceConnected;
+    public ReaderDevice getReaderDeviceConnected() {
         return readerDeviceConnected;
     }
+
     public BluetoothManager bluetoothManager;
     public BluetoothAdapter bluetoothAdapter;
     public android.bluetooth.BluetoothGatt bluetoothGatt;
@@ -706,6 +712,48 @@ public class BluetoothGatt extends BluetoothGattCallback {
                         if (DEBUG) appendToLog("Stream Set to BALANCED");
                     }
                 }
+                bluetoothGattDeviceConnected = readerDevice;
+                characteristicListRead = true; //skip in case there is problem in completing reading characteristic features, causing endless reading 0706 and 0C02
+                appendToLog("post runnableProcessStreamInData after connect");
+                mHandler.removeCallbacks(runnableProcessStreamInData); mHandler.post(runnableProcessStreamInData);
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean connect(ReaderDevice readerDevice) {
+        boolean DEBUG = false;
+        if (DEBUG) appendToLog("abcc: start connecting " + readerDevice.getName());
+        if (readerDevice == null) {
+            if (DEBUG) appendToLog("with NULL readerDevice");
+        } else {
+            String address = readerDevice.getAddress();
+            if (bluetoothAdapter == null) {
+                if (DEBUG) appendToLog("connect[" + address + "] with NULL mBluetoothAdapter");
+            } else if (!bluetoothAdapter.isEnabled()) {
+                if (DEBUG) appendToLog("connect[" + address + "] with DISABLED mBluetoothAdapter");
+            } else {
+                utility.debugFileSetup(); utility.debugFileEnable(true);
+                utility.setReferenceTimeMs();
+                if (utility.DEBUG_CONNECT) appendToLog("connect[" + address + "]: connectGatt starts");
+                bluetoothConnectionState = -1;
+                //if (checkSelfPermissionBLUETOOTH() == false) return false;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    if (ActivityCompat.checkSelfPermission(context, BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) return false;
+                } else if (ActivityCompat.checkSelfPermission(context.getApplicationContext(), Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) return false;
+
+                bluetoothGatt = bluetoothAdapter.getRemoteDevice(address).connectGatt(context, false, this);
+                if (bluetoothGatt != null) mBluetoothGattActive = true;
+                if (false) {
+                    if (true) {
+                        bluetoothGatt.requestConnectionPriority(android.bluetooth.BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+                        if (DEBUG) appendToLog("Stream Set to HIGH");
+                    }
+                    else {
+                        bluetoothGatt.requestConnectionPriority(android.bluetooth.BluetoothGatt.CONNECTION_PRIORITY_BALANCED);
+                        if (DEBUG) appendToLog("Stream Set to BALANCED");
+                    }
+                }
                 readerDeviceConnected = readerDevice;
                 characteristicListRead = true; //skip in case there is problem in completing reading characteristic features, causing endless reading 0706 and 0C02
                 appendToLog("post runnableProcessStreamInData after connect");
@@ -953,14 +1001,14 @@ public class BluetoothGatt extends BluetoothGattCallback {
         if (false) Log.i("Hello3", "checkSelfPermissionBLUETOOTH bValue = " + bValue);
         return bValue;
     }
-	public static class CsScanData {
-	    public BluetoothDevice device; public String name, address;
-	    public int rssi;
-	    public byte[] scanRecord;
-	    public ArrayList<byte[]> decoded_scanRecord;
-	    public int serviceUUID2p2;
-	    public boolean hasServicePower;
-	
+    public static class CsScanData {
+        public BluetoothDevice device; public String name, address;
+        public int rssi;
+        public byte[] scanRecord;
+        public ArrayList<byte[]> decoded_scanRecord;
+        public int serviceUUID2p2;
+        public boolean hasServicePower;
+
 	    public CsScanData(BluetoothDevice device, String name, String address, int rssi, byte[] scanRecord, ArrayList<byte[]> decoded_scanRecord, int serviceUUID2p2, boolean hasServicePower) {
 	        this.device = device;
 	        this.name = name;
@@ -971,17 +1019,17 @@ public class BluetoothGatt extends BluetoothGattCallback {
 	        this.serviceUUID2p2 = serviceUUID2p2;
 	        this.hasServicePower = hasServicePower;
 	    }
-		public CsScanData(BluetoothDevice device, int rssi, byte[] scanRecord) {
-			this.device = device;
-			this.rssi = rssi;
-			this.scanRecord = scanRecord;
-			decoded_scanRecord = new ArrayList<byte[]>();
-		}
-		CsScanData(String name, String address, int rssi, byte[] scanRecord) {
-			this.device = device; this.name = name; this.address = address;
-			this.rssi = rssi;
-			this.scanRecord = scanRecord;
-		}
+        public CsScanData(BluetoothDevice device, int rssi, byte[] scanRecord) {
+            this.device = device;
+            this.rssi = rssi;
+            this.scanRecord = scanRecord;
+            decoded_scanRecord = new ArrayList<byte[]>();
+        }
+        CsScanData(String name, String address, int rssi, byte[] scanRecord) {
+            this.device = device; this.name = name; this.address = address;
+            this.rssi = rssi;
+            this.scanRecord = scanRecord;
+        }
         public BluetoothDevice getDevice() { return device; }
         public String getName() {
             return name;
@@ -1108,6 +1156,14 @@ public class BluetoothGatt extends BluetoothGattCallback {
                     appendToLog("BluetoothGatt.removeBond: remove bond for the connected device");
                     removeBond(bluetoothDevice);
                 }
+            } else if (bluetoothGattDeviceConnected != null && (iDeviceClass == 0x1F00 || iDeviceClass == 0x540)) { //remove after connection
+                appendToLog("BluetoothGatt.removeBond: readerDeviceConnected.address(0.9) is " + bluetoothGattDeviceConnected.getAddress().substring(0,9) + ", bluetoothDevice.address(0.9) is " + bluetoothDevice.getAddress().substring(0, 9));
+                if (bluetoothGattDeviceConnected.getAddress().substring(0,9).matches(bluetoothDevice.getAddress().substring(0, 9))) {
+                    if (partnerReaderName == null || partnerReaderName.trim().length() == 0 || !strBluetoothDeviceName.contains(partnerReaderName)) {
+                        appendToLog("BluetoothGatt.removeBond: remove bond for bluetoothDevice.name = " + strBluetoothDeviceName);
+                        removeBond(bluetoothDevice);
+                    }
+                }
             } else if (readerDeviceConnected != null && (iDeviceClass == 0x1F00 || iDeviceClass == 0x540)) { //remove after connection
                 appendToLog("BluetoothGatt.removeBond: readerDeviceConnected.address(0.9) is " + readerDeviceConnected.getAddress().substring(0,9) + ", bluetoothDevice.address(0.9) is " + bluetoothDevice.getAddress().substring(0, 9));
                 if (readerDeviceConnected.getAddress().substring(0,9).matches(bluetoothDevice.getAddress().substring(0, 9))) {
@@ -1118,6 +1174,42 @@ public class BluetoothGatt extends BluetoothGattCallback {
                 }
             }
             i++;
+        }
+    }
+
+    public void removeBond(ReaderDevice readerDevice) {
+        if (readerDevice == null) readerDevice = readerDeviceConnected;
+        if (readerDevice != null) {
+            BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            if (ActivityCompat.checkSelfPermission(context, BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                appendToLog("BluetoothGatt.removeBond, Fragment: BLUETOOTH_CONNECT is not permitted");
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            Set<BluetoothDevice> bluetoothDevices = bluetoothAdapter.getBondedDevices();
+            appendToLog("BluetoothGatt.removeBond, Fragment: bluetoothDevices size = " + bluetoothDevices.size());
+            int i = 0;
+            for (BluetoothDevice bluetoothDevice : bluetoothDevices) {
+                appendToLog("BluetoothGatt.removeBond, Fragment: " + i + ", Address = " + bluetoothDevice.getAddress());
+                appendToLog("BluetoothGatt.removeBond, Fragment: readerDevice is " + (readerDevice == null ? "null" : "valid")
+                        + ", bluetoothDevice is " + (bluetoothDevice == null ? "null" : "valid"));
+                if (readerDevice.getAddress().matches(bluetoothDevice.getAddress())) {
+                    appendToLog("BluetoothGatt.removeBond, Fragment: matched address");
+                    if (false) {
+                        //bluetoothDevices.re
+                    } else {
+                        removeBond(bluetoothDevice);
+                    }
+                    appendToLog("BluetoothGatt.removeBond, Fragment: break");
+                    break;
+                }
+            }
         }
     }
 

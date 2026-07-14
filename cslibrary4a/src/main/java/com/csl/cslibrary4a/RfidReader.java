@@ -86,117 +86,117 @@ public class RfidReader {
         TAG_CTESIUS, //E203510 -- not tested
         TAG_ASYGN, //E283A -- not tested
     }
-public static class ExtraBankData {
-	public int extra1Bank;
-	public int extra2Bank;
-	public int extra1Count;
-	public int extra2Count;
-	public int extra1Offset;
-	public int extra2Offset;
-	public ExtraBankData() {
-		extra1Bank = -1; extra2Bank = -1;
-		extra1Count = 0; extra2Count = 0;
-		extra1Offset = 0; extra2Offset = 0;
-	}
-	public void setExtraBankData(int extra1Bank, int extra1Count, int extra1Offset, int extra2Bank, int extra2Count, int extra2Offset) {
-		this.extra1Bank = extra1Bank; this.extra2Bank = extra2Bank;
-		this.extra1Count = extra1Count; this.extra2Count = extra2Count;
-		this.extra1Offset = extra1Offset; this.extra2Offset = extra2Offset;
-		Log.i("Hello", "setExtraBankData: DebugABC, Extra6, extra1Bank = " + extra1Bank + ", extra2Bank = " + extra2Bank);
-	}
-	public void setExtraBankData(TagType tagType, String mDid) {
-		extra2Bank = 2;
-		extra2Offset = 0;
-		extra2Count = 2;
-		Log.i("Hello", "setExtraBankData: DebugABC, tagType = " + (tagType == null ? "null" : tagType.toString()) + ", mDid = " + mDid);
-		if (mDid == null) mDid = "";
-		if (true && (tagType == TagType.TAG_IMPINJ_M775 || tagType == TagType.TAG_IMPINJ_M780 || tagType == TagType.TAG_IMPINJ_M830 || tagType == TagType.TAG_IMPINJ_M770 || tagType == TagType.TAG_IMPINJ_M730)) {
-			extra1Bank = 0;
-			extra1Offset = 4;
-			extra1Count = 1;
-			if (tagType == TagType.TAG_IMPINJ_M775) extra2Count = 6;
-		} else if (tagType == TagType.TAG_EM_BAP /*mDid.matches("E200B0")*/) {
-			extra1Bank = 2;
-			extra1Offset = 0;
-			extra1Count = 2;
-			extra2Bank = 3;
-			extra2Offset = 0x2d;
-			extra2Count = 1;
-		} else if (tagType == TagType.TAG_EM_COLDCHAIN /*mDid.indexOf("E280B0") == 0*/) {
-			extra1Bank = 3;
-			extra1Offset = 188;
-			extra1Count = 2;
-			//extra2Bank = 3;
-			//extra2Offset = 0x10d;
-			//extra2Count = 1;
-		} else if (tagType == TagType.TAG_EM_AURASENSE || tagType == TagType.TAG_EM_AURASENSE_ATBOOT || tagType == TagType.TAG_EM_AURASENSE_ATSELECT /*mDid.indexOf("E280B12") == 0*/) {
-			extra1Bank = 2;
-			extra1Offset = 0;
-			extra1Count = 2;
-			extra2Bank = 3;
-			extra2Offset = 0x120;
-			extra2Count = 1;
-		} else if (tagType == TagType.TAG_KILOWAY) { //mDid.indexOf("E281D") == 0) { //need atmel firmware 0.2.20
-			extra1Bank = 0;
-			extra1Offset = 4;
-			extra1Count = 1;
-			extra2Count = 6;
-		} else if (tagType == TagType.TAG_LONGJING) { //mDid.indexOf("E201E") == 0) {
-			extra1Bank = 3;
-			extra1Offset = 112;
-			extra1Count = 1;
-			extra2Count = 6;
-		} else if (tagType == TagType.TAG_MAGNUS_S2) { //mDid.matches("E282402")) {
-			extra1Bank = 0;
-			extra1Offset = 11;
-			extra1Count = 1;
-			extra2Bank = 0;
-			extra2Offset = 13;
-			extra2Count = 1;
-		} else if (tagType == TagType.TAG_MAGNUS_S3) { //mDid.matches("E282403")) {
-			extra1Bank = 0;
-			extra1Offset = 12;
-			extra1Count = 3;
-			extra2Bank = 3;
-			extra2Offset = 8;
-			extra2Count = 4;
-		} else if (tagType == TagType.TAG_AXZON_XERXES) { //mDid.matches("E282405")) {
-			extra1Bank = 0;
-			extra1Offset = 10;
-			extra1Count = 5;
-			extra2Bank = 3;
-			extra2Offset = 0x12;
-			extra2Count = 4;
-		} else if (tagType == TagType.TAG_CTESIUS) { //mDid.matches("E203510")) {
-			extra1Bank = 2;
-			extra1Offset = 0;
-			extra1Count = 2;
-			extra2Bank = 3;
-			extra2Offset = 8;
-			extra2Count = 2;
-		} else if (tagType == TagType.TAG_ASYGN) { //mDid.matches("E283A")) {
-			extra1Bank = 2;
-			extra1Offset = 0;
-			extra1Count = 2;
-			extra2Bank = 3;
-			extra2Offset = 0;
-			extra2Count = 8;
-		}
-		Log.i("Hello", "setExtraBankData: DebugABC, extra1Bank = " + extra1Bank + ", extra2Bank = " + extra2Bank);
-	}
-	public void adjustExtraBank1() {
-		if (extra1Bank == -1 || extra1Count == 0) {
-			extra1Bank = extra2Bank;
-			extra2Bank = 0;
-			extra1Count = extra2Count;
-			extra2Count = 0;
-			extra1Offset = extra2Offset;
-			extra2Offset = 0;
-		}
-		if (extra1Bank == 1) extra1Offset += 2;
-		if (extra2Bank == 1) extra2Offset += 2;
-	}
-}
+    public static class ExtraBankData {
+        public int extra1Bank;
+        public int extra2Bank;
+        public int extra1Count;
+        public int extra2Count;
+        public int extra1Offset;
+        public int extra2Offset;
+        public ExtraBankData() {
+            extra1Bank = -1; extra2Bank = -1;
+            extra1Count = 0; extra2Count = 0;
+            extra1Offset = 0; extra2Offset = 0;
+        }
+        public void setExtraBankData(int extra1Bank, int extra1Count, int extra1Offset, int extra2Bank, int extra2Count, int extra2Offset) {
+            this.extra1Bank = extra1Bank; this.extra2Bank = extra2Bank;
+            this.extra1Count = extra1Count; this.extra2Count = extra2Count;
+            this.extra1Offset = extra1Offset; this.extra2Offset = extra2Offset;
+            Log.i("Hello", "setExtraBankData: DebugABC, Extra6, extra1Bank = " + extra1Bank + ", extra2Bank = " + extra2Bank);
+        }
+        public void setExtraBankData(TagType tagType, String mDid) {
+            extra2Bank = 2;
+            extra2Offset = 0;
+            extra2Count = 2;
+            Log.i("Hello", "setExtraBankData: DebugABC, tagType = " + (tagType == null ? "null" : tagType.toString()) + ", mDid = " + mDid);
+            if (mDid == null) mDid = "";
+            if (true && (tagType == TagType.TAG_IMPINJ_M775 || tagType == TagType.TAG_IMPINJ_M780 || tagType == TagType.TAG_IMPINJ_M830 || tagType == TagType.TAG_IMPINJ_M770 || tagType == TagType.TAG_IMPINJ_M730)) {
+                extra1Bank = 0;
+                extra1Offset = 4;
+                extra1Count = 1;
+                if (tagType == TagType.TAG_IMPINJ_M775) extra2Count = 6;
+            } else if (tagType == TagType.TAG_EM_BAP /*mDid.matches("E200B0")*/) {
+                extra1Bank = 2;
+                extra1Offset = 0;
+                extra1Count = 2;
+                extra2Bank = 3;
+                extra2Offset = 0x2d;
+                extra2Count = 1;
+            } else if (tagType == TagType.TAG_EM_COLDCHAIN /*mDid.indexOf("E280B0") == 0*/) {
+                extra1Bank = 3;
+                extra1Offset = 188;
+                extra1Count = 2;
+                //extra2Bank = 3;
+                //extra2Offset = 0x10d;
+                //extra2Count = 1;
+            } else if (tagType == TagType.TAG_EM_AURASENSE || tagType == TagType.TAG_EM_AURASENSE_ATBOOT || tagType == TagType.TAG_EM_AURASENSE_ATSELECT /*mDid.indexOf("E280B12") == 0*/) {
+                extra1Bank = 2;
+                extra1Offset = 0;
+                extra1Count = 2;
+                extra2Bank = 3;
+                extra2Offset = 0x120;
+                extra2Count = 1;
+            } else if (tagType == TagType.TAG_KILOWAY) { //mDid.indexOf("E281D") == 0) { //need atmel firmware 0.2.20
+                extra1Bank = 0;
+                extra1Offset = 4;
+                extra1Count = 1;
+                extra2Count = 6;
+            } else if (tagType == TagType.TAG_LONGJING) { //mDid.indexOf("E201E") == 0) {
+                extra1Bank = 3;
+                extra1Offset = 112;
+                extra1Count = 1;
+                extra2Count = 6;
+            } else if (tagType == TagType.TAG_MAGNUS_S2) { //mDid.matches("E282402")) {
+                extra1Bank = 0;
+                extra1Offset = 11;
+                extra1Count = 1;
+                extra2Bank = 0;
+                extra2Offset = 13;
+                extra2Count = 1;
+            } else if (tagType == TagType.TAG_MAGNUS_S3) { //mDid.matches("E282403")) {
+                extra1Bank = 0;
+                extra1Offset = 12;
+                extra1Count = 3;
+                extra2Bank = 3;
+                extra2Offset = 8;
+                extra2Count = 4;
+            } else if (tagType == TagType.TAG_AXZON_XERXES) { //mDid.matches("E282405")) {
+                extra1Bank = 0;
+                extra1Offset = 10;
+                extra1Count = 5;
+                extra2Bank = 3;
+                extra2Offset = 0x12;
+                extra2Count = 4;
+            } else if (tagType == TagType.TAG_CTESIUS) { //mDid.matches("E203510")) {
+                extra1Bank = 2;
+                extra1Offset = 0;
+                extra1Count = 2;
+                extra2Bank = 3;
+                extra2Offset = 8;
+                extra2Count = 2;
+            } else if (tagType == TagType.TAG_ASYGN) { //mDid.matches("E283A")) {
+                extra1Bank = 2;
+                extra1Offset = 0;
+                extra1Count = 2;
+                extra2Bank = 3;
+                extra2Offset = 0;
+                extra2Count = 8;
+            }
+            Log.i("Hello", "setExtraBankData: DebugABC, extra1Bank = " + extra1Bank + ", extra2Bank = " + extra2Bank);
+        }
+        public void adjustExtraBank1() {
+            if (extra1Bank == -1 || extra1Count == 0) {
+                extra1Bank = extra2Bank;
+                extra2Bank = 0;
+                extra1Count = extra2Count;
+                extra2Count = 0;
+                extra1Offset = extra2Offset;
+                extra2Offset = 0;
+            }
+            if (extra1Bank == 1) extra1Offset += 2;
+            if (extra2Bank == 1) extra2Offset += 2;
+        }
+    }
     public int setSelectData4Inventory(TagType tagType, String mDid, boolean bNeedSelectedTagByTID, String stringProtectPassword, int selectFor, int selectHold) {
         int iValue = -1;
         appendToLog("setSelectData4Inventory: DebugABC, tagType = " + tagType.toString() + ", mDid = " + mDid + ", bNeedSelectedTagByTID = " + bNeedSelectedTagByTID);
@@ -3739,9 +3739,6 @@ public static class ExtraBankData {
                     if (operationTypes == RfidReaderChipData.OperationTypes.TAG_SEARCHING && bis108 == false) rfidReaderChipE710.rx000Setting.setDupElimRollWindow((byte)0);
                 }
                 if (bis108) {
-                    //notificationConnector.getAutoRFIDAbort();
-                    //notificationConnector.setAutoRFIDAbort(true);
-                    //notificationConnector.getAutoRFIDAbort();
                     rfidReaderChipR2000.setPwrManagementMode(false);
                     appendToLog("going to sendHostRegRequestHST_CMD(Cs108Library4A.HostCommands.CMD_18K6CINV)");
 
@@ -3960,6 +3957,44 @@ public static class ExtraBankData {
             appendToLog("setChannelHoppingStatus: channelOrderType = " + channelOrderType);
         }
         return true;
+    }
+    public String[] getChannelFrequencyList() {
+        if (bis108) {
+            boolean DEBUG = true;
+            appendToLog("regionCode is " + regionCode.toString());
+            double[] table = GetAvailableFrequencyTable(regionCode);
+            appendToLog("table length = " + table.length);
+            for (int i = 0; i < table.length; i++) appendToLog("table[" + i + "] = " + table[i]);
+            String[] strChannnelFrequencyList = new String[table.length];
+            for (int i = 0; i < table.length; i++) {
+                strChannnelFrequencyList[i] = String.format("%.2f MHz", table[i]);
+                appendToLog("strChannnelFrequencyList[" + i + "] = " + strChannnelFrequencyList[i]);
+            }
+            return strChannnelFrequencyList;
+        } else {
+            boolean DEBUG = true;
+            int iCountryEnum = rfidReaderChipE710.rx000Setting.getCountryEnum();
+            appendToLog("countryEnum = " + iCountryEnum);
+            appendToLog("i = " + iCountryEnum + ", " + countryChannelData.strCountryEnumInfo[(iCountryEnum - 1) * countryChannelData.iCountryEnumInfoColumn + 0]
+                    + ", " + countryChannelData.strCountryEnumInfo[(iCountryEnum - 1) * countryChannelData.iCountryEnumInfoColumn + 1]
+                    + ", " + countryChannelData.strCountryEnumInfo[(iCountryEnum - 1) * countryChannelData.iCountryEnumInfoColumn + 2]
+                    + ", " + countryChannelData.strCountryEnumInfo[(iCountryEnum - 1) * countryChannelData.iCountryEnumInfoColumn + 3]
+                    + ", " + countryChannelData.strCountryEnumInfo[(iCountryEnum - 1) * countryChannelData.iCountryEnumInfoColumn + 4]
+                    + ", " + countryChannelData.strCountryEnumInfo[(iCountryEnum - 1) * countryChannelData.iCountryEnumInfoColumn + 5]
+                    + ", " + countryChannelData.strCountryEnumInfo[(iCountryEnum - 1) * countryChannelData.iCountryEnumInfoColumn + 6]
+            );
+            int iFrequencyCount = Integer.valueOf(countryChannelData.strCountryEnumInfo[(iCountryEnum - 1) * countryChannelData.iCountryEnumInfoColumn + 3]);
+            int iFrequencyInterval = Integer.valueOf(countryChannelData.strCountryEnumInfo[(iCountryEnum - 1) * countryChannelData.iCountryEnumInfoColumn + 5]);
+            float iFrequencyStart = Float.valueOf(countryChannelData.strCountryEnumInfo[(iCountryEnum - 1) * countryChannelData.iCountryEnumInfoColumn + 6]);
+            appendToLog("iFrequencyCount = " + iFrequencyCount + ", interval = " + iFrequencyInterval + ", start = " + iFrequencyStart);
+
+            String[] strChannnelFrequencyList = new String[iFrequencyCount];
+            for (int i = 0; i < iFrequencyCount ; i++) {
+                strChannnelFrequencyList[i] = String.format("%.2f MHz", (iFrequencyStart * 1000 + iFrequencyInterval * i) / 1000);
+                appendToLog("strChannnelFrequencyList[" + i + "] = " + strChannnelFrequencyList[i]);
+            }
+            return strChannnelFrequencyList;
+        }
     }
     public String[] getChannelFrequencyList(int iRegionPosition) {
         if (bis108) {

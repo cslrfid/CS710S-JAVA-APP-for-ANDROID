@@ -1177,8 +1177,8 @@ public class CsReaderConnector {
         String stringMacAddress = null;
         if (true) appendToLog("CsReaderConnector.getMacAddress: starts with bluetoothGatt is " + (bluetoothGatt == null ? "null" : ("valid with connectionState = " + bluetoothGatt.bluetoothConnectionState)));
         if (bluetoothGatt != null && bluetoothGatt.bluetoothConnectionState != 0) {
-            appendToLog("CsReaderConnector.getMacAddress: starts with bluetoothGatt.getmBluetoothDevice is " + (bluetoothGatt.getReaderDeviceConnected() == null ? "null" : "valid"));
-            if (bluetoothGatt.getReaderDeviceConnected() != null) stringMacAddress = bluetoothGatt.getReaderDeviceConnected().getAddress();
+            appendToLog("CsReaderConnector.getMacAddress: starts with bluetoothGatt.getmBluetoothDevice is " + (bluetoothGatt.getBluetoothGattDeviceConnected() == null ? "null" : "valid"));
+            if (bluetoothGatt.getBluetoothGattDeviceConnected() != null) stringMacAddress = bluetoothGatt.getBluetoothGattDeviceConnected().getAddress();
         }
         if (stringMacAddress == null) {
             stringMacAddress = readerDevice0Connect.getAddress();
@@ -1752,7 +1752,7 @@ public class CsReaderConnector {
                 mHandler.postDelayed(checkVersionRunnable, 500);
 
                 if (settingData.strForegroundReader.trim().length() != 0) {
-                    settingData.strForegroundReader = bluetoothGatt.getReaderDeviceConnected().getAddress();
+                    settingData.strForegroundReader = bluetoothGatt.getBluetoothGattDeviceConnected().getAddress();
                 }
                 settingData.saveForegroundSetting2File();
             } else if (rfidReader == null) {
@@ -1796,7 +1796,7 @@ public class CsReaderConnector {
     }
     public void setReaderDefault() {
         rfidReader.setReaderDefault();
-        String string = bluetoothGatt.getReaderDeviceConnected().getAddress();
+        String string = bluetoothGatt.getBluetoothGattDeviceConnected().getAddress();
         string = string.replaceAll("[^a-zA-Z0-9]","");
         string = string.substring(string.length()-6, string.length());
         if (bis108) bluetoothConnector.setBluetoothIcName("CS108Reader" + string);

@@ -178,6 +178,58 @@ public class AccessTaskCustom extends CustomAsyncTask {
         }
         preExecute();
     }
+    public AccessTaskCustom(Button button, boolean invalidRequest, boolean selectOne,
+                            String selectMask, int selectBank, int selectOffset,
+                            String strPassword, int powerLevel, RfidReaderChipData.HostCommands hostCommand,
+                            boolean bEnableErrorPopWindow, Runnable updateRunnable,
+                            Context context, Cs710Library4A csLibrary4A, CustomMediaPlayer playerN, CustomMediaPlayer playerO) {
+        this.button = button;
+        this.invalidRequest = invalidRequest;
+        this.selectOne = selectOne;
+        this.selectMask = selectMask;
+        this.selectBank = selectBank;
+        this.selectOffset = selectOffset;
+        this.strPassword = strPassword;
+        this.powerLevel = powerLevel;
+        this.hostCommand = hostCommand;
+        this.bEnableErrorPopWindow = bEnableErrorPopWindow;
+        this.updateRunnable = updateRunnable;
+        this.context = context;
+        this.csReaderConnector = csLibrary4A.csReaderConnector;
+        this.playerN = playerN;
+        this.playerO = playerO;
+        if (true) {
+            total = 0;
+            tagList.clear();
+        }
+        preExecute();
+    }
+    public AccessTaskCustom(Button button, boolean invalidRequest, boolean selectOne,
+                            String selectMask, int selectBank, int selectOffset,
+                            String strPassword, int powerLevel, RfidReaderChipData.HostCommands hostCommand,
+                            boolean bEnableErrorPopWindow, Runnable updateRunnable,
+                            Context context, Cs108Library4A csLibrary4A, CustomMediaPlayer playerN, CustomMediaPlayer playerO) {
+        this.button = button;
+        this.invalidRequest = invalidRequest;
+        this.selectOne = selectOne;
+        this.selectMask = selectMask;
+        this.selectBank = selectBank;
+        this.selectOffset = selectOffset;
+        this.strPassword = strPassword;
+        this.powerLevel = powerLevel;
+        this.hostCommand = hostCommand;
+        this.bEnableErrorPopWindow = bEnableErrorPopWindow;
+        this.updateRunnable = updateRunnable;
+        this.context = context;
+        this.csReaderConnector = csLibrary4A.csReaderConnector;
+        this.playerN = playerN;
+        this.playerO = playerO;
+        if (true) {
+            total = 0;
+            tagList.clear();
+        }
+        preExecute();
+    }
     public AccessTaskCustom(Button button, TextView textViewWriteCount, boolean invalidRequest, boolean selectOne,
                             String selectMask, int selectBank, int selectOffset,
                             String strPassword, int powerLevel, RfidReaderChipData.HostCommands hostCommand,
@@ -207,6 +259,82 @@ public class AccessTaskCustom extends CustomAsyncTask {
         this.context = context;
         if (csLibrary4A.isCs108Connected()) this.csReaderConnector = csLibrary4A.cs108Library4A.csReaderConnector;
         else this.csReaderConnector = csLibrary4A.cs710Library4A.csReaderConnector;
+        this.playerN = playerN;
+        this.playerO = playerO;
+        this.bSkipClearFilter = bSkipClearFilter;
+        if (bSkipClearFilter) this.selectOne = false;
+        if (resetCount) {
+            total = 0;
+            tagList.clear();
+        }
+        preExecute();
+    }
+    public AccessTaskCustom(Button button, TextView textViewWriteCount, boolean invalidRequest, boolean selectOne,
+                            String selectMask, int selectBank, int selectOffset,
+                            String strPassword, int powerLevel, RfidReaderChipData.HostCommands hostCommand,
+                            int qValue, int repeat, boolean resetCount, boolean bSkipClearFilter,
+                            TextView registerRunTime, TextView registerTagGot, TextView registerVoltageLevel, TextView registerYieldView, TextView registerTotalView,
+                            Context context, Cs710Library4A csLibrary4A, CustomMediaPlayer playerN, CustomMediaPlayer playerO
+    ) {
+        this.button = button;
+        this.registerTotal = textViewWriteCount;
+        this.registerRunTime = registerRunTime;
+        this.registerTagGot = registerTagGot;
+        this.registerVoltageLevel = registerVoltageLevel;
+        this.registerYield = registerYieldView;
+        this.registerTotal = registerTotalView;
+
+        this.invalidRequest = invalidRequest;
+        this.selectOne = selectOne;
+        this.selectMask = selectMask;
+        this.selectBank = selectBank;
+        this.selectOffset = selectOffset;
+        this.strPassword = strPassword;
+        this.powerLevel = powerLevel;
+        this.hostCommand = hostCommand;
+        this.qValue = qValue;
+        if (repeat > 255) repeat = 255;
+        this.repeat = repeat;
+        this.context = context;
+        this.csReaderConnector = csLibrary4A.csReaderConnector;
+        this.playerN = playerN;
+        this.playerO = playerO;
+        this.bSkipClearFilter = bSkipClearFilter;
+        if (bSkipClearFilter) this.selectOne = false;
+        if (resetCount) {
+            total = 0;
+            tagList.clear();
+        }
+        preExecute();
+    }
+    public AccessTaskCustom(Button button, TextView textViewWriteCount, boolean invalidRequest, boolean selectOne,
+                            String selectMask, int selectBank, int selectOffset,
+                            String strPassword, int powerLevel, RfidReaderChipData.HostCommands hostCommand,
+                            int qValue, int repeat, boolean resetCount, boolean bSkipClearFilter,
+                            TextView registerRunTime, TextView registerTagGot, TextView registerVoltageLevel, TextView registerYieldView, TextView registerTotalView,
+                            Context context, Cs108Library4A csLibrary4A, CustomMediaPlayer playerN, CustomMediaPlayer playerO
+    ) {
+        this.button = button;
+        this.registerTotal = textViewWriteCount;
+        this.registerRunTime = registerRunTime;
+        this.registerTagGot = registerTagGot;
+        this.registerVoltageLevel = registerVoltageLevel;
+        this.registerYield = registerYieldView;
+        this.registerTotal = registerTotalView;
+
+        this.invalidRequest = invalidRequest;
+        this.selectOne = selectOne;
+        this.selectMask = selectMask;
+        this.selectBank = selectBank;
+        this.selectOffset = selectOffset;
+        this.strPassword = strPassword;
+        this.powerLevel = powerLevel;
+        this.hostCommand = hostCommand;
+        this.qValue = qValue;
+        if (repeat > 255) repeat = 255;
+        this.repeat = repeat;
+        this.context = context;
+        this.csReaderConnector = csLibrary4A.csReaderConnector;
         this.playerN = playerN;
         this.playerO = playerO;
         this.bSkipClearFilter = bSkipClearFilter;
@@ -287,7 +415,6 @@ public class AccessTaskCustom extends CustomAsyncTask {
             taskCancelReason = TaskCancelRReason.INVALD_REQUEST;
             appendToLog("invalidRequest A= " + invalidRequest);
         } else {
-            //csLibrary4A.setTagRead(0);
             RfidReaderChipData.HostCommands hostCommands1 = RfidReaderChipData.HostCommands.values()[hostCommand.ordinal()];
             csReaderConnector.rfidReader.sendHostRegRequestHST_CMD(hostCommands1);
         }
@@ -360,7 +487,6 @@ public class AccessTaskCustom extends CustomAsyncTask {
                 timeMillis = System.currentTimeMillis();
             }
             else if (notificationData != null) {
-                //appendToLog("resultError=" + csLibrary4A.byteArrayToString(notificationData));
                 publishProgress("Received notification uplink event 0xA101 with error code=" + csReaderConnector.utility.byteArrayToString(notificationData));
                 taskCancelReason = TaskCancelRReason.ERROR;
             }

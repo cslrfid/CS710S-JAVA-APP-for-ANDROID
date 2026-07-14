@@ -9,6 +9,7 @@ public class ReaderDevice implements Comparable<ReaderDevice>  {
     private String details;
     int extra1Bank, extra2Bank, extra1Offset, extra2Offset;
     String strPc, strXpc, strCrc16, strMdid, strExtra1, strExtra2;
+    RfidReader.TagType tagTypeExpected;
     private int count;
     private double rssi;
     private int serviceUUID; private boolean hasServicePower;
@@ -43,6 +44,50 @@ public class ReaderDevice implements Comparable<ReaderDevice>  {
         this.strXpc = strXpc;
         this.strCrc16 = strCrc16;
         this.strMdid = strMdid;
+        Log.i("Hello", "ReaderDevice.ReadderDevice: strExtra1 = " + strExtra1 + ", extra1Bank = " + extra1Bank + ", extra1Offset = " + extra1Offset);
+        this.strExtra1 = strExtra1;
+        this.extra1Bank = extra1Bank;
+        this.extra1Offset = extra1Offset;
+        Log.i("Hello", "ReaderDevice.ReadderDevice: strExtra2 = " + strExtra2 + ", extra2Bank = " + extra2Bank + ", extra2Offset = " + extra2Offset);
+        this.strExtra2 = strExtra2;
+        this.extra2Bank = extra2Bank;
+        this.extra2Offset = extra2Offset;
+
+        timeOfRead = strTimeOfRead;
+        timeZone = strTimeZone;
+        location = strLocation;
+        compass = strCompass;
+
+        this.count = count;
+        this.rssi = rssi;
+
+        this.phase = phase;
+        this.channel = channel;
+        this.port = port;
+        this.status = status;
+        this.backport1 = backPort1;
+        this.backport2 = backPort2;
+        this.codeSensor = codeSensor;
+        this.codeRssi = codeRssi;
+        this.codeTempC = codeTempC;
+        this.brand = brand;
+        this.sensorData = sensorData;
+
+    }
+    public ReaderDevice(String name, String address, boolean selected, String details,
+                        String strPc, String strXpc, String strCrc16, String strMdid, RfidReader.TagType tagTypeExpected,
+                        String strExtra1, int extra1Bank, int extra1Offset,
+                        String strExtra2, int extra2Bank, int extra2Offset,
+                        String strTimeOfRead, String strTimeZone, String strLocation, String strCompass,
+                        int count, double rssi, int phase, int channel, int port, int status, int backPort1, int backPort2, int codeSensor, int codeRssi, float codeTempC, String brand, int sensorData) {
+        this.name = name;
+        this.address = address;
+        this.selected = selected;
+        this.details = details;
+        this.strPc = strPc;
+        this.strXpc = strXpc;
+        this.strCrc16 = strCrc16;
+        this.strMdid = strMdid; this.tagTypeExpected = tagTypeExpected;
         Log.i("Hello", "ReaderDevice.ReadderDevice: strExtra1 = " + strExtra1 + ", extra1Bank = " + extra1Bank + ", extra1Offset = " + extra1Offset);
         this.strExtra1 = strExtra1;
         this.extra1Bank = extra1Bank;
@@ -227,6 +272,10 @@ public class ReaderDevice implements Comparable<ReaderDevice>  {
     public String getMdid() {
         return strMdid;
     }
+    public RfidReader.TagType getTagTypeExpected() {
+        return tagTypeExpected;
+    }
+
     public int getCount() {
         return count;
     }
@@ -242,7 +291,7 @@ public class ReaderDevice implements Comparable<ReaderDevice>  {
     }
 
     public int getServiceUUID2p1() { return serviceUUID; }
-    public void setServiceUUID(int serviceUUID) { this.serviceUUID = serviceUUID; }
+    public void setServiceUUID2p1(int serviceUUID) { this.serviceUUID = serviceUUID; }
 
     public boolean getHasServicePower() { return hasServicePower; }
     public void setHasServicePower(boolean hasServicePower) { this.hasServicePower = hasServicePower; }

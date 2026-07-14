@@ -14,8 +14,9 @@ public class RfidReaderChipR2000 {
     boolean sameCheck = true;
     //RfidReaderChip mRfidReaderChip;
     boolean DEBUGTHREAD = false;
+    int intervalRx000UplinkHandler;
     boolean aborting = false;
-    Context context; Utility utility; RfidConnector rfidConnector; int intervalRx000UplinkHandler;
+    Context context; Utility utility; RfidConnector rfidConnector; 
     public int powerLevelMax = 320;
     public RfidReaderChipR2000(Context context, Utility utility, RfidConnector rfidConnector, int intervalRx000UplinkHandler) {
         this.context = context;

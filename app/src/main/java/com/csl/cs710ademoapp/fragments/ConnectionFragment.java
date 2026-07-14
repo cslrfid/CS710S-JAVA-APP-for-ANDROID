@@ -226,7 +226,7 @@ public class ConnectionFragment extends CommonFragment {
                             count++;
                             readerDevice1.setCount(count);
                             readerDevice1.setRssi(scanResultA.rssi);
-                            readerDevice1.setServiceUUID(scanResultA.serviceUUID2p2);
+                            readerDevice1.setServiceUUID2p1(scanResultA.serviceUUID2p2);
                             readersList.set(i, readerDevice1); listUpdated = true;
                             match = true;
                             break;

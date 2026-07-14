@@ -464,10 +464,13 @@ public class Utility {
         return strEpcClassList;
     }
     public String getEpc4upcSerial(int iEpcClass, String filter, String companyPrefix, String itemReference, String serialNumber) {
+    	return getEpc4upcSerial(Utility.EpcClass.values()[iEpcClass], filter, companyPrefix, itemReference, serialNumber);
+    }
+    public String getEpc4upcSerial(EpcClass epcClass, String filter, String companyPrefix, String itemReference, String serialNumber) {
         String strValue = null;
         ParseSGTIN parseSGTIN = null;
         String strURI = "urn:epc:tag:";
-        EpcClass epcClass = Utility.EpcClass.values()[iEpcClass];
+        //EpcClass epcClass = Utility.EpcClass.values()[iEpcClass];
         appendToLog("epcClass is " + epcClass.toString());
         switch (epcClass) {
             default:

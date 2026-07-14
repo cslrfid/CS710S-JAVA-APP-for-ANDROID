@@ -14,6 +14,7 @@ public class CsLibrary4A {
     Cs710Library4A cs710Library4A;
     Cs108Library4A cs108Library4A;
     Context context; TextView textViewLog;
+
     public AccessTaskCustom getAccessTaskCustom(Button button, boolean invalidRequest, boolean selectOne,
                                    String selectMask, int selectBank, int selectOffset,
                                    String strPassword, int powerLevel, RfidReaderChipData.HostCommands hostCommand,
@@ -71,6 +72,12 @@ public class CsLibrary4A {
     public void appendToLogView(String s) {
         utility.appendToLogView(s);
     }
+    public String strFloat16toFloat32(String strData) {
+        return utility.strFloat16toFloat32(strData);
+    }
+    public String str2float16(String strData) {
+        return utility.str2float16(strData);
+    }
     public float decodeCtesiusTemperature(String strActData, String strCalData) {
         return utility.decodeCtesiusTemperature(strActData, strCalData);
     }
@@ -80,11 +87,20 @@ public class CsLibrary4A {
     public float decodeAsygnTemperature(String string) {
         return utility.decodeAsygnTemperature(string);
     }
+    public String temperatureC2F(String strValue) {
+        return utility.temperatureC2F(strValue);
+    }
+    public String temperatureF2C(String strValue) {
+        return utility.temperatureF2C(strValue);
+    }
     public String getUpcSerial(String strEpc) {
         return utility.getUpcSerial(strEpc);
     }
     public String getUpcSerialDetail(String strUpcSerial) {
         return utility.getUpcSerialDetail(strUpcSerial);
+    }
+    public String getEpc4upcSerial(Utility.EpcClass epcClass, String filter, String companyPrefix, String itemReference, String serialNumber) {
+        return utility.getEpc4upcSerial(epcClass, filter, companyPrefix, itemReference, serialNumber);
     }
     public String getEpc4upcSerial(int iEpcClass, String filter, String companyPrefix, String itemReference, String serialNumber) {
         return utility.getEpc4upcSerial(iEpcClass, filter, companyPrefix, itemReference, serialNumber);
@@ -139,6 +155,20 @@ public class CsLibrary4A {
         else Log.i("Hello2", "getReaderAddress" + stringNOTCONNECT);
         return null;
     }
+    public String getReaderAddress() {
+        if (DEBUG) Log.i("Hello2", "getReaderAddress");
+        if (isCs108Connected()) return cs108Library4A.getReaderAddress();
+        else if (isCs710Connected()) return cs710Library4A.getReaderAddress();
+        else Log.i("Hello2", "getReaderAddress" + stringNOTCONNECT);
+        return null;
+    }
+    public String getBluetoothDeviceName() {
+        if (DEBUG) Log.i("Hello2", "getBluetoothDeviceName");
+        if (isCs108Connected()) return cs108Library4A.getBluetoothDeviceName();
+        else if (isCs710Connected()) return cs710Library4A.getBluetoothDeviceName();
+        else Log.i("Hello2", "getBluetoothDeviceName" + stringNOTCONNECT);
+        return null;
+    }
     public String getReaderName() {
         if (DEBUG) Log.i("Hello2", "getReaderName");
         if (isCs108Connected()) return cs108Library4A.getReaderName();
@@ -150,10 +180,10 @@ public class CsLibrary4A {
         boolean bValue = false, DEBUG = false;
         if (DEBUG) Log.i("Hello2", "CsLibrary4A.isReaderConnected: isCs108Connected = " + isCs108Connected() + ", isCs710Connected = " + isCs710Connected());
         if (isCs108Connected()) {
-            bValue = cs108Library4A.isReaderConnected();
+            bValue = cs108Library4A.isBleConnected();
             if (bValue == false) bConnectStatus = 0;
         } else if (isCs710Connected()) {
-            bValue = cs710Library4A.isReaderConnected();
+            bValue = cs710Library4A.isBleConnected();
             if (bValue == false) bConnectStatus = 0;
         } else {
             if (DEBUG) Log.i("Hello2", "CsLibrary4A.isReaderConnected: cs710Library4A.isReaderConnected = " + cs710Library4A.isReaderConnected() + ", cs108Library4A.isReaderConnected = " + cs108Library4A.isReaderConnected());
@@ -166,6 +196,9 @@ public class CsLibrary4A {
             }
         }
         return bValue;
+    }
+    public boolean isReaderConnected() {
+        return isBleConnected();
     }
     public void connect(ReaderDevice readerDevice) {
         appendToLog("CsLibrary.connect: starts");
@@ -216,8 +249,10 @@ public class CsLibrary4A {
         return -1;
     }
 
-
     //============ Rfid ============
+    //============ Rfid ============
+    //============ Rfid ============
+
     public String getAuthMatchData() {
         if (DEBUG) Log.i("Hello2", "getAuthMatchData");
         if (isCs108Connected()) return cs108Library4A.getAuthMatchData();
@@ -370,10 +405,16 @@ public class CsLibrary4A {
         else Log.i("Hello2", "setAntennaSelect" + stringNOTCONNECT);
         return false;
     }
-    public int getAntennaEnable() {
+    public boolean getAntennaEnable() {
+    	if (DEBUG) Log.i("Hello2", "getAntennaEnable");
+    	if (isCs108Connected()|| isCs710Connected()) return (getAntennaEnableNum() > 0);
+        else Log.i("Hello2", "getAntennaEnable" + stringNOTCONNECT);
+        return false;
+    }
+    public int getAntennaEnableNum() {
         if (DEBUG) Log.i("Hello2", "getAntennaEnable");
-        if (isCs108Connected()) return cs108Library4A.getAntennaEnable();
-        else if (isCs710Connected()) return cs710Library4A.getAntennaEnable();
+        if (isCs108Connected()) return cs108Library4A.getAntennaEnableNum();
+        else if (isCs710Connected()) return cs710Library4A.getAntennaEnableNum();
         else Log.i("Hello2", "getAntennaEnable" + stringNOTCONNECT);
         return -1;
     }
@@ -489,10 +530,16 @@ public class CsLibrary4A {
         else Log.i("Hello2", "setFastId" + stringNOTCONNECT);
         return false;
     }
-    public int getInvAlgo() {
+    public boolean getInvAlgo() {
         if (DEBUG) Log.i("Hello2", "getInvAlgo");
-        if (isCs108Connected()) return cs108Library4A.getInvAlgo();
-        else if (isCs710Connected()) return cs710Library4A.getInvAlgo();
+        if (isCs108Connected() || isCs710Connected()) return (getInvAlgoNum() == 3);
+        else Log.i("Hello2", "getInvAlgo" + stringNOTCONNECT);
+        return false;
+    }
+    public int getInvAlgoNum() {
+        if (DEBUG) Log.i("Hello2", "getInvAlgo");
+        if (isCs108Connected()) return cs108Library4A.getInvAlgoNum();
+        else if (isCs710Connected()) return cs710Library4A.getInvAlgoNum();
         else Log.i("Hello2", "getInvAlgo" + stringNOTCONNECT);
         return -1;
     }
@@ -621,10 +668,19 @@ public class CsLibrary4A {
         else Log.i("Hello2", "setTagDelay" + stringNOTCONNECT);
         return false;
     }
-    public int getIntraPkDelay() {
+    public byte getIntraPkDelay() {
+        byte byteValue;
         if (DEBUG) Log.i("Hello2", "getIntraPkDelay");
-        if (isCs108Connected()) return cs108Library4A.getIntraPkDelay();
-        else if (isCs710Connected()) return cs710Library4A.getIntraPkDelay();
+        if (isCs108Connected() || isCs710Connected()) {
+            return ((byte) getIntraPkDelayInt());
+        }
+        else Log.i("Hello2", "getIntraPkDelay" + stringNOTCONNECT);
+        return -1;
+    }
+    public int getIntraPkDelayInt() {
+        if (DEBUG) Log.i("Hello2", "getIntraPkDelay");
+        if (isCs108Connected()) return cs108Library4A.getIntraPkDelayInt();
+        else if (isCs710Connected()) return cs710Library4A.getIntraPkDelayInt();
         else Log.i("Hello2", "getIntraPkDelay" + stringNOTCONNECT);
         return -1;
     }
@@ -635,10 +691,18 @@ public class CsLibrary4A {
         else Log.i("Hello2", "setIntraPkDelay" + stringNOTCONNECT);
         return false;
     }
-    public int getDupDelay() {
+    public byte getDupDelay() {
         if (DEBUG) Log.i("Hello2", "getDupDelay");
-        if (isCs108Connected()) return cs108Library4A.getDupDelay();
-        else if (isCs710Connected()) return cs710Library4A.getDupDelay();
+        if (isCs108Connected() || isCs710Connected()) {
+            return ((byte) getDupDelayInt());
+        }
+        else Log.i("Hello2", "getDupDelay" + stringNOTCONNECT);
+        return -1;
+    }
+    public int getDupDelayInt() {
+        if (DEBUG) Log.i("Hello2", "getDupDelay");
+        if (isCs108Connected()) return cs108Library4A.getDupDelayInt();
+        else if (isCs710Connected()) return cs710Library4A.getDupDelayInt();
         else Log.i("Hello2", "getDupDelay" + stringNOTCONNECT);
         return -1;
     }
@@ -899,6 +963,20 @@ public class CsLibrary4A {
         else Log.i("Hello2", "setPostMatchCriteria" + stringNOTCONNECT);
         return false;
     }
+    public int mrfidToWriteSize() {
+        if (DEBUG2) Log.i("Hello2", "mrfidToWriteSize");
+        if (isCs108Connected()) return cs108Library4A.rfidToWriteSize();
+        else if (isCs710Connected()) return cs710Library4A.rfidToWriteSize();
+        else Log.i("Hello2", "rfidToWriteSize" + stringNOTCONNECT);
+        return -1;
+    }
+    public void mrfidToWritePrint() {
+        if (DEBUG2) Log.i("Hello2", "mrfidToWritePrint");
+        if (isCs108Connected()) cs108Library4A.mrfidToWritePrint();
+        else if (isCs710Connected()) cs710Library4A.mrfidToWritePrint();
+        else Log.i("Hello2", "mrfidToWritePrint" + stringNOTCONNECT);
+        return;
+    }
     public int dataToWriteSize() {
         if (DEBUG2) Log.i("Hello2", "dataToWriteSize");
         if (isCs108Connected()) return cs108Library4A.dataToWriteSize();
@@ -906,8 +984,8 @@ public class CsLibrary4A {
         else Log.i("Hello2", "dataToWriteSize" + stringNOTCONNECT);
         return -1;
     }
-    public int mrfidToWriteSize() {
-        if (DEBUG2) Log.i("Hello2", "mrfidToWriteSize");
+    public int rfidToWriteSize() {
+        if (DEBUG2) Log.i("Hello2", "rfidToWriteSize");
         if (isCs108Connected()) return cs108Library4A.rfidToWriteSize();
         else if (isCs710Connected()) return cs710Library4A.rfidToWriteSize();
         else Log.i("Hello2", "rfidToWriteSize" + stringNOTCONNECT);
@@ -967,10 +1045,17 @@ public class CsLibrary4A {
         else Log.i("Hello2", "setSelectedTag 1" + stringNOTCONNECT);
         return false;
     }
+    public boolean setSelectedTag(boolean selectOne, String selectMask, int selectBank, int selectOffset, long pwrlevel, int qValue, int matchRep) {
+        appendToLog("csLibraryA: setSelectCriteria strTagId = " + selectMask + ", selectBank = " + selectBank + ", selectOffset = " + selectOffset + ", pwrlevel = " + pwrlevel + ", qValue = " + qValue + ", matchRep = " + matchRep);
+        if (isCs108Connected()) return cs108Library4A.setSelectedTag4Access(selectOne, selectMask, selectBank, selectOffset, pwrlevel, qValue, matchRep);
+        else if (isCs710Connected()) return cs710Library4A.setSelectedTag4Access(selectOne, selectMask, selectBank, selectOffset, pwrlevel, qValue, matchRep);
+        else Log.i("Hello2", "setSelectedTag 2" + stringNOTCONNECT);
+        return false;
+    }
     public boolean setSelectedTag4Access(boolean selectOne, String selectMask, int selectBank, int selectOffset, long pwrlevel, int qValue, int matchRep) {
         appendToLog("csLibraryA.setSelectTag: seelctOne = " + selectOne + ", selectMask = " + selectMask + ", selectBank = " + selectBank + ", selectOffset = " + selectOffset + ", pwrlevel = " + pwrlevel + ", qValue = " + qValue + ", matchRep = " + matchRep);
         if (isCs108Connected()) return cs108Library4A.setSelectedTag4Access(selectOne, selectMask, selectBank, selectOffset, pwrlevel, qValue, matchRep);
-        else if (isCs710Connected()) return cs710Library4A.setSelectedTag4Access(selectMask, selectBank, selectOffset, pwrlevel, qValue, matchRep);
+        else if (isCs710Connected()) return cs710Library4A.setSelectedTag4Access(selectOne, selectMask, selectBank, selectOffset, pwrlevel, qValue, matchRep);
         else Log.i("Hello2", "setSelectedTag 2" + stringNOTCONNECT);
         return false;
     }
@@ -1015,6 +1100,12 @@ public class CsLibrary4A {
         else if (isCs710Connected()) return cs710Library4A.setChannelHoppingStatus(channelOrderHopping);
         else Log.i("Hello2", "setChannelHoppingStatus" + stringNOTCONNECT);
         return false;
+    }
+    public String[] getChannelFrequencyList() {
+        if (isCs108Connected()) return cs108Library4A.getChannelFrequencyList();
+        else if (isCs710Connected()) return cs710Library4A.getChannelFrequencyList();
+        else Log.i("Hello2", "getChannelFrequencyList" + stringNOTCONNECT);
+        return null;
     }
     public String[] getChannelFrequencyList(int iRegionPosition) {
         if (isCs108Connected()) return cs108Library4A.getChannelFrequencyList(iRegionPosition);
@@ -1588,10 +1679,10 @@ public class CsLibrary4A {
         else Log.i("Hello2", "getServerTopicMqtt" + stringNOTCONNECT);
         return null;
     }
-    public boolean setTopicMqtt(String topic) {
+    public boolean setTopicMqtt(String topicMqtt) {
         if (DEBUG) Log.i("Hello2", "setServerTopicMqtt");
-        if (isCs108Connected()) return cs108Library4A.setTopicMqtt(topic);
-        else if (isCs710Connected()) return cs710Library4A.setTopicMqtt(topic);
+        if (isCs108Connected()) return cs108Library4A.setTopicMqtt(topicMqtt);
+        else if (isCs710Connected()) return cs710Library4A.setTopicMqtt(topicMqtt);
         else Log.i("Hello2", "setServerTopicMqtt" + stringNOTCONNECT);
         return false;
     }
@@ -1679,7 +1770,6 @@ public class CsLibrary4A {
         else Log.i("Hello2", "setPartnerReaderName" + stringNOTCONNECT);
         return false;
     }
-
     public int getBatteryDisplaySetting() {
         if (DEBUG) Log.i("Hello2", "getBatteryDisplaySetting");
         if (isCs108Connected()) return cs108Library4A.getBatteryDisplaySetting();
@@ -1955,7 +2045,7 @@ public class CsLibrary4A {
         else Log.i("Hello2", "setTriggerReporting" + stringNOTCONNECT);
         return false;
     }
-    public int iNO_SUCH_SETTING = -1;
+    public final int iNO_SUCH_SETTING = 10000;
     public short getTriggerReportingCount() {
         if (DEBUG) Log.i("Hello2", "getTriggerReportingCount");
         if (isCs108Connected()) return cs108Library4A.getTriggerReportingCount();
@@ -2038,14 +2128,15 @@ public class CsLibrary4A {
         else Log.i("Hello2", "setRfidOn" + stringNOTCONNECT);
         return false;
     }
-
     public void saveSetting2File() {
         if (DEBUG) Log.i("Hello2", "saveSetting2File");
         if (isCs108Connected()) cs108Library4A.saveSetting2File();
         else if (isCs710Connected()) cs710Library4A.saveSetting2File();
         else Log.i("Hello2", "saveSetting2File" + stringNOTCONNECT);
     }
-
+    public int getcsModel() {
+    	return getCsModel();
+    }
     public int getCsModel() {
         if (DEBUG2) Log.i("Hello2", "getCsModel");
         if (isCs108Connected()) return cs108Library4A.getCsModel();
@@ -2074,7 +2165,6 @@ public class CsLibrary4A {
         else Log.i("Hello2", "setAntennaInvCount" + stringNOTCONNECT);
         return false;
     }
-
     public void clearInvalidata() {
         if (DEBUG2) Log.i("Hello2", "clearInvalidata");
         if (isCs108Connected()) cs108Library4A.clearInvalidata();

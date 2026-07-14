@@ -29,7 +29,7 @@ public class NotificationConnector {
 
     public interface NotificationListener { void onChange(); }
     NotificationListener listener;
-    public void setNotificationListener(NotificationListener listener) { this.listener = listener; }
+    public void setNotificationListener0(NotificationListener listener) { this.listener = listener; }
     boolean mTriggerStatus;
     public boolean getTriggerStatus() { return mTriggerStatus; }
     void setTriggerStatus(boolean mTriggerStatus) {

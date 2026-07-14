@@ -482,7 +482,7 @@ public class SettingOperateFragment extends CommonFragment {
                         setTextViewChannel(iValue1+1);
                     }
                 }
-                if (checkBoxPortEnable != null) checkBoxPortEnable.setChecked(MainActivity.csLibrary4A.getAntennaEnable() > 0);
+                if (checkBoxPortEnable != null) checkBoxPortEnable.setChecked(MainActivity.csLibrary4A.getAntennaEnableNum() > 0);
                 if (checkBoxPowerBoost != null) checkBoxPowerBoost.setChecked(MainActivity.csLibrary4A.getPowerBoost() > 0);
                 if (updating == false) {
                     lValue = MainActivity.csLibrary4A.getPwrlevel();
@@ -501,8 +501,8 @@ public class SettingOperateFragment extends CommonFragment {
                     }
                 }
                 if (editTextTagDelay != null)   editTextTagDelay.setText(String.valueOf(MainActivity.csLibrary4A.getTagDelay()));
-                if (editTextIntraPkDelay != null)   editTextIntraPkDelay.setText(String.valueOf(MainActivity.csLibrary4A.getIntraPkDelay()));
-                if (editTextDupDelay != null)   editTextDupDelay.setText(String.valueOf(MainActivity.csLibrary4A.getDupDelay()));
+                if (editTextIntraPkDelay != null)   editTextIntraPkDelay.setText(String.valueOf(MainActivity.csLibrary4A.getIntraPkDelayInt()));
+                if (editTextDupDelay != null)   editTextDupDelay.setText(String.valueOf(MainActivity.csLibrary4A.getDupDelayInt()));
                 if (updating == false) {
                     spinnerQueryTarget.setSelection(MainActivity.csLibrary4A.getQueryTarget());
                 }
@@ -532,7 +532,7 @@ public class SettingOperateFragment extends CommonFragment {
                     else checkBoxFastId.setChecked(iValue > 0 ? true : false);
                 }
                 if (updating == false) {
-                    spinnerInvAlgo.setSelection(MainActivity.csLibrary4A.getInvAlgo() == 3 ? 0 : 1);
+                    spinnerInvAlgo.setSelection(MainActivity.csLibrary4A.getInvAlgoNum() == 3 ? 0 : 1);
                 }
                 if (updating == false) {
                     int iRetry = MainActivity.csLibrary4A.getRetryCount();
@@ -685,7 +685,7 @@ public class SettingOperateFragment extends CommonFragment {
             else if (MainActivity.csLibrary4A.setAntennaSelect(channel - 1) == false) invalidRequest = true;
             else changedChannel = true;
         }
-        if (invalidRequest == false && ((MainActivity.csLibrary4A.getAntennaEnable() > 0) != portEnable || sameCheck == false || changedChannel)) {
+        if (invalidRequest == false && ((MainActivity.csLibrary4A.getAntennaEnableNum() > 0) != portEnable || sameCheck == false || changedChannel)) {
             sameSetting = false; MainActivity.csLibrary4A.appendToLog("point 5");
             if (MainActivity.csLibrary4A.setAntennaEnable(portEnable) == false) {
                 MainActivity.csLibrary4A.appendToLog("point 5A");
@@ -720,7 +720,7 @@ public class SettingOperateFragment extends CommonFragment {
             }
         }
         if ((invalidRequest == false && editTextIntraPkDelay != null)) {
-            if (MainActivity.csLibrary4A.getIntraPkDelay() != byteIntraPkDelay || sameCheck == false) {
+            if (MainActivity.csLibrary4A.getIntraPkDelayInt() != byteIntraPkDelay || sameCheck == false) {
                 sameSetting = false; MainActivity.csLibrary4A.appendToLog("point 9A");
                 if (byteDupDelay < byteIntraPkDelayMin || byteIntraPkDelay > byteIntraPkDelayMax) invalidRequest = true;
                 else if (MainActivity.csLibrary4A.setIntraPkDelay(byteIntraPkDelay) == false)
@@ -728,7 +728,7 @@ public class SettingOperateFragment extends CommonFragment {
             }
         }
         if ((invalidRequest == false && editTextDupDelay != null)) {
-            if (MainActivity.csLibrary4A.getDupDelay() != byteDupDelay || sameCheck == false) {
+            if (MainActivity.csLibrary4A.getDupDelayInt() != byteDupDelay || sameCheck == false) {
                 sameSetting = false; MainActivity.csLibrary4A.appendToLog("point 9");
                 if (byteDupDelay < byteDupDelayMin || byteDupDelay > byteDupDelayMax) invalidRequest = true;
                 else if (MainActivity.csLibrary4A.setDupDelay(byteDupDelay) == false)
@@ -767,7 +767,7 @@ public class SettingOperateFragment extends CommonFragment {
                 invalidRequest = true;
         }
         if (invalidRequest == false) {
-            if (MainActivity.csLibrary4A.getInvAlgo() != invAlgoDynamic || sameCheck == false) {
+            if (MainActivity.csLibrary4A.getInvAlgoNum() != invAlgoDynamic || sameCheck == false) {
                 sameSetting = false; MainActivity.csLibrary4A.appendToLog("point 13");
                 if (MainActivity.csLibrary4A.setInvAlgo(invAlgoDynamic == 3) == false)
                     invalidRequest = true;

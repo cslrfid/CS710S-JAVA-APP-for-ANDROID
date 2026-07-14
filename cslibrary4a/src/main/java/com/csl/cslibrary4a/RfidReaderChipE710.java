@@ -16,7 +16,8 @@ public class RfidReaderChipE710 {
     boolean sameCheck = true;
     int intervalRx000UplinkHandler;
     boolean aborting = false;
-    Context context; Utility utility; RfidConnector rfidConnector;
+    Context context; Utility utility;
+    RfidConnector rfidConnector;
     public int powerLevelMax = 320;
     public RfidReaderChipE710(Context context, Utility utility, RfidConnector rfidConnector, int intervalRx000UplinkHandler) {
         this.context = context;
