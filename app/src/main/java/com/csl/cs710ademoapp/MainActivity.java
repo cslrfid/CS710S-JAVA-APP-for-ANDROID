@@ -1,10 +1,5 @@
 package com.csl.cs710ademoapp;
 
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_ALIEN;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_ASYGN;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_CTESIUS;
-import static com.csl.cslibrary4a.RfidReader.TagType.TAG_EM_BAP;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -73,18 +68,19 @@ public class MainActivity extends AppCompatActivity {
     private ListView mDrawerList;
     private CharSequence mTitle;
 
-    public static Context mContext;
+    public static Context context;
     public static CsLibrary4A csLibrary4A;
     public static SharedObjects sharedObjects;
     public static SensorConnector mSensorConnector;
     public static ReaderDevice tagSelected;
+    public static RfidReader.TagType tagTypeExpected;
 
     Handler mHandler = new Handler();
 
     public static String mDid; public static int selectHold; public static int selectFor;
     public static RfidReader.TagType tagType;
     public static class Config {
-        public String configPassword, configPower, config0, config1, config2, config3;
+        public String configPassword, configPower, config0, configRssiUpperLimit, configRssiLowerLimit, configHumidityThreshold;
     };
     public static Config config  = new Config();
     public static String stringPackageName = null;
@@ -110,10 +106,10 @@ public class MainActivity extends AppCompatActivity {
         mDrawerList.setAdapter(new DrawerListAdapter(this, R.layout.drawer_list_item, DrawerListContent.ITEMS));
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
-        mContext = this;
-        sharedObjects = new SharedObjects(mContext);
-        csLibrary4A = new CsLibrary4A(mContext, mLogView);
-        mSensorConnector = new SensorConnector(mContext);
+        context = this;
+        sharedObjects = new SharedObjects(context);
+        csLibrary4A = new CsLibrary4A(context, mLogView);
+        mSensorConnector = new SensorConnector(context);
 
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
@@ -124,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onRestart() {
         super.onRestart();
-        MainActivity.csLibrary4A.connect(null);
+        MainActivity.csLibrary4A.appendToLog("going to connect 1"); MainActivity.csLibrary4A.connect(null);
         if (DEBUG) csLibrary4A.appendToLog("MainActivity.onRestart()");
     }
 
@@ -169,7 +165,6 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             if (DEBUG) MainActivity.csLibrary4A.appendToLog("AAA: mrfidToWriteSize = " + csLibrary4A.mrfidToWriteSize());
             if (csLibrary4A.mrfidToWriteSize() != 0) {
-                MainActivity.csLibrary4A.mrfidToWritePrint();
                 configureDisplaying = true;
                 mHandler.postDelayed(configureRunnable, 500);
             } else {
@@ -187,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
                 && position != DrawerPositions.ABOUT
                 && position != DrawerPositions.CONNECT
                 && position != DrawerPositions.DIRECTWEDGE && csLibrary4A.isBleConnected() == false) {
-            Toast.makeText(MainActivity.mContext, "Bluetooth Disconnected.  Please Connect.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.context, "Bluetooth Disconnected.  Please Connect.", Toast.LENGTH_SHORT).show();
             return;
         }
         switch (position) {
@@ -237,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new ImpinjFragment();
                 break;
             case ALIEN:
-                fragment = InventoryRfidiMultiFragment.newInstance(true, TAG_ALIEN, "" /*"E2003"*/);
+                fragment = InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_ALIEN, "" /*"E2003"*/);
                 break;
             case UCODE8:
                 fragment = new Ucode8Fragment();
@@ -246,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new UcodeFragment();
                 break;
             case BAPCARD:
-                fragment = InventoryRfidiMultiFragment.newInstance(true, TAG_EM_BAP, "" /*"E200B0"*/);
+                fragment = InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_EM_BAP, "" /*"E200B0"*/);
                 break;
             case COLDCHAIN:
                 fragment = new ColdChainFragment();
@@ -261,19 +256,16 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new LongjingFragment();
                 break;
             case AXZON:
-                fragment = AxzonSelectorFragment.newInstance(true);
-                break;
-            case RFMICRON:
-                fragment = AxzonSelectorFragment.newInstance(false);
+                fragment = AxzonSelectorFragment.newInstance();
                 break;
             case FDMICRO:
                 fragment = new FdmicroFragment();
                 break;
             case CTESIUS:
-                fragment = InventoryRfidiMultiFragment.newInstance(true, TAG_CTESIUS, ""); //""E203510");
+                fragment = InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_CTESIUS, ""); //""E203510");
                 break;
             case ASYGNTAG:
-                fragment = InventoryRfidiMultiFragment.newInstance(true, TAG_ASYGN, ""); //""E283A");
+                fragment = InventoryRfidiMultiFragment.newInstance(true, RfidReader.TagType.TAG_ASYGN, ""); //""E283A");
                 break;
 
             case REGISTER:
@@ -388,7 +380,6 @@ public class MainActivity extends AppCompatActivity {
     public void kilowayClicked(View view) { selectItem(DrawerPositions.KILOWAY); }
     public void longjingClicked(View view) { selectItem(DrawerPositions.LONGJING); }
     public void axzonClicked(View view) { selectItem(DrawerPositions.AXZON); }
-    public void rfMicronClicked(View view) { selectItem(DrawerPositions.RFMICRON); }
     public void fdmicroClicked(View view) { selectItem(DrawerPositions.FDMICRO); }
     public void ctesiusClicked(View view) { selectItem(DrawerPositions.CTESIUS); }
     public void asygnClicked(View view) { selectItem(DrawerPositions.ASYGNTAG); }

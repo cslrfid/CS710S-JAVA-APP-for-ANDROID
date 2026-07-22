@@ -1,7 +1,6 @@
 package com.csl.cslibrary4a;
 
 import android.content.Context;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -12,11 +11,12 @@ public class BluetoothConnector {
 //    public boolean userDebugEnableDefault = false;
 //    public boolean userDebugEnable = userDebugEnableDefault;
 
-    Context context; Utility utility; boolean userDebugEnable;
-    public BluetoothConnector(Context context, Utility utility, boolean userDebugEnable) {
+    Context context; Utility utility; boolean userDebugEnable; boolean bis108;
+    public BluetoothConnector(Context context, Utility utility, boolean userDebugEnable, boolean bis108) {
         this.context = context;
         this.utility = utility; DEBUG_PKDATA = utility.DEBUG_PKDATA;
         this.userDebugEnable = userDebugEnable;
+        this.bis108 = bis108;
     }
     private String byteArrayToString(byte[] packet) { return utility.byteArrayToString(packet); }
     private boolean compareArray(byte[] array1, byte[] array2, int length) { return utility.compareByteArray(array1, array2, length); }
@@ -30,7 +30,7 @@ public class BluetoothConnector {
     }
 
     public enum BluetoothIcPayloadEvents {
-        BLUETOOTH_GET_VERSION, BLUETOOTH_SET_DEVICE_NAME, BLUETOOTH_GET_DEVICE_NAME, BLUETOOTH_FORCE_BT_DISCONNECT
+        BLUETOOTH_GET_VERSION, BLUETOOTH_SEND_IMAGE, BLUETOOTH_SET_DEVICE_NAME, BLUETOOTH_GET_DEVICE_NAME, BLUETOOTH_FORCE_BT_DISCONNECT
     }
 
     public class BluetoothIcData {
@@ -62,6 +62,27 @@ public class BluetoothConnector {
             if (DEBUG) appendToLog("mBluetoothIcVersionUpdated is true with data = " + byteArrayToString(mBluetoothIcVersion) + ", icsModel = " + icsModel);
             return retValue;
         }
+    }
+
+    byte[] image_subpart_data; int image_total_subpart, image_subpart;
+    void sendImage(byte[] image_subpart_data, int image_total_subpart, int image_subpart) {
+        this.image_subpart_data = image_subpart_data; this.image_total_subpart = image_total_subpart; this.image_subpart = image_subpart;
+        appendToLog("ConnectorController.sendImageData: buffer = " + byteArrayToString(image_subpart_data));
+        BluetoothIcData cs108BluetoothIcData = new BluetoothIcData();
+        cs108BluetoothIcData.bluetoothIcPayloadEvent = BluetoothIcPayloadEvents.BLUETOOTH_SEND_IMAGE;
+        byte[] dataOut1 = new byte[] { (byte)(image_total_subpart >> 8), (byte)image_total_subpart, (byte)(image_subpart >> 8), (byte)image_subpart };
+        byte[] dataOut = new byte[238];
+        System.arraycopy(dataOut1, 0, dataOut, 0, dataOut1.length);
+        for (int i = 0; i < image_subpart_data.length; i++)
+        {
+            dataOut[i + 4] = image_subpart_data[i];
+        }
+        for (int i = image_subpart_data.length; i < 234; i++)
+        {
+            dataOut[i + 4] = (byte)0xFF;
+        }
+        cs108BluetoothIcData.dataValues = dataOut;
+        bluetoothIcToWrite.add(cs108BluetoothIcData);
     }
 
     public byte[] deviceName = null;
@@ -117,6 +138,11 @@ public class BluetoothConnector {
             case BLUETOOTH_GET_VERSION:
                 validEvent = true;
                 break;
+            case BLUETOOTH_SEND_IMAGE:
+                dataBuf[3] = (byte)0xeb;
+                dataBuf[pos] = 1;
+                validEvent = true;
+                break;
             case BLUETOOTH_SET_DEVICE_NAME:
                 dataBuf[pos] = 3;
                 validEvent = true;
@@ -160,9 +186,11 @@ public class BluetoothConnector {
         return null;
     }
 
+    int replyResult;
+    public int getReplyResult() { return replyResult; }
     public boolean isMatchBluetoothIcToWrite(ConnectorData connectorData) {
         boolean match = false;
-        if (bluetoothIcToWrite.size() != 0 && connectorData.dataValues[0] == (byte)0xC0) {
+        if (bluetoothIcToWrite.size() != 0 && (connectorData.dataValues[0] == (byte)0xC0 && connectorData.dataValues[1] != 1)) {
             byte[] dataInCompare = new byte[]{(byte) 0xC0, 0};
             if (arrayTypeSet(dataInCompare, 1, bluetoothIcToWrite.get(0).bluetoothIcPayloadEvent) && (connectorData.dataValues.length >= dataInCompare.length + 1)) {
                 if (match = compareArray(connectorData.dataValues, dataInCompare, dataInCompare.length)) {
@@ -174,8 +202,13 @@ public class BluetoothConnector {
                             int length = mBluetoothIcVersion.length;
                             if (connectorData.dataValues.length - 2 < length) length = connectorData.dataValues.length - 2;
                             System.arraycopy(connectorData.dataValues, 2, mBluetoothIcVersion, 0, length);
-                            if (mBluetoothIcVersion[0] == 3) icsModel = 463;
-                            else if (mBluetoothIcVersion[0] == 1) icsModel = 108;
+                            if (bis108) {
+                                if (mBluetoothIcVersion[0] == 3) icsModel = 463;
+                                else if (mBluetoothIcVersion[0] == 1) icsModel = 108;
+                            } else {
+                                if (mBluetoothIcVersion[0] == 3) icsModel = 203;
+                                else if (mBluetoothIcVersion[0] == 1) icsModel = 710;
+                            }
                             mBluetoothIcVersionUpdated = true;
                             if (DEBUG) appendToLog("mBluetoothIcVersionUpdated is true");
                             bprocessed = true;
@@ -191,11 +224,12 @@ public class BluetoothConnector {
                         if (DEBUG_PKDATA) appendToLog("PkData: matched mBluetoothIc.GetDeviceName.Reply data is found with name=" + byteArrayToString(deviceName) + ", dataValues.length=" + connectorData.dataValues.length + ", deviceName.length=" + deviceName.length);
                     } else {
                         bprocessed = true;
+                        replyResult = connectorData.dataValues[2];
                         if (DEBUG) appendToLog("matched mBluetoothIc.Other.Reply data is found.");
                     }
                     String string = "Up3  " + (bprocessed ? "" : "Unprocessed, ") + bluetoothIcToWrite.get(0).bluetoothIcPayloadEvent.toString() + ", " + byteArrayToString(data1);
                     utility.writeDebug2File(string);
-                    bluetoothIcToWrite.remove(0); sendDataToWriteSent = 0;
+                    bluetoothIcToWrite.remove(0); sendDataToWriteSent = 0; dataToRemoved = true;
                     if (DEBUG_PKDATA) appendToLog("PkData: new mBluetoothIcToWrite size = " + bluetoothIcToWrite.size());
                 }
             }
@@ -203,14 +237,15 @@ public class BluetoothConnector {
         return match;
     }
 
-    public int sendDataToWriteSent = 0;
+    public int sendDataToWriteSent = 0; public boolean dataToRemoved = false;
     boolean bluetoothFailure = false;
+    public boolean isFailure() { return bluetoothFailure; }
     public byte[] sendBluetoothIcToWrite(boolean usbConnection) {
         if (bluetoothFailure) {
-            bluetoothIcToWrite.remove(0); sendDataToWriteSent = 0;
+            bluetoothIcToWrite.remove(0); sendDataToWriteSent = 0; dataToRemoved = true;
         } else if (sendDataToWriteSent >= 5) {
             int oldSize = bluetoothIcToWrite.size();
-            bluetoothIcToWrite.remove(0); sendDataToWriteSent = 0;
+            bluetoothIcToWrite.remove(0); sendDataToWriteSent = 0; dataToRemoved = true;
             if (DEBUG) appendToLog("Removed after sending count-out with oldSize = " + oldSize + ", updated mBluetoothIcToWrite.size() = " + bluetoothIcToWrite.size());
             if (DEBUG) appendToLog("Removed after sending count-out.");
             String string = "Problem in sending data to Bluetooth Module. Removed data sending after count-out";

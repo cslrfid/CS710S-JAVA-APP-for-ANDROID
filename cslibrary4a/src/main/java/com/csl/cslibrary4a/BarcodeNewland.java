@@ -1,7 +1,6 @@
 package com.csl.cslibrary4a;
 
 import android.content.Context;
-import android.widget.TextView;
 
 import androidx.annotation.Keep;
 

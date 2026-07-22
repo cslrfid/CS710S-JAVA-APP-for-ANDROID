@@ -4,7 +4,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-public class SettingTask extends AsyncTaskA {
+import com.csl.cslibrary4a.CustomAsyncTask;
+
+public class SettingTaskCustom extends CustomAsyncTask {
     final boolean DEBUG = false;
     private enum TaskCancelRReason {
         SAME_SETTING, INVALD_REQUEST, TIMEOUT
@@ -15,7 +17,7 @@ public class SettingTask extends AsyncTaskA {
     boolean sameSetting = false;
     boolean invalidRequest = false;
 
-    public SettingTask(Button button, boolean sameSetting, boolean invalidRequest) {
+    public SettingTaskCustom(Button button, boolean sameSetting, boolean invalidRequest) {
         button.setVisibility(View.INVISIBLE);
         this.button = button;
         this.sameSetting = sameSetting;
@@ -58,13 +60,13 @@ public class SettingTask extends AsyncTaskA {
         if (taskCancelReason != null) {
             switch (taskCancelReason) {
                 case SAME_SETTING:
-                    Toast.makeText(MainActivity.mContext, R.string.toast_same_setting, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.context, R.string.toast_same_setting, Toast.LENGTH_SHORT).show();
                     break;
                 case INVALD_REQUEST:
-                    Toast.makeText(MainActivity.mContext, R.string.toast_invalid_sendHostRequest, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.context, R.string.toast_invalid_sendHostRequest, Toast.LENGTH_SHORT).show();
                     break;
                 case TIMEOUT:
-                    Toast.makeText(MainActivity.mContext, R.string.toast_abort_by_TIMEOUT, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.context, R.string.toast_abort_by_TIMEOUT, Toast.LENGTH_SHORT).show();
                     break;
             }
         }
@@ -75,7 +77,7 @@ public class SettingTask extends AsyncTaskA {
     protected void onPostExecute(String result) {
         if (DEBUG) MainActivity.csLibrary4A.appendToLog("Setting0Fragment.SettingTask.onPostExecute(): " + result);
 
-        Toast.makeText(MainActivity.mContext, R.string.toast_saved, Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.context, R.string.toast_saved, Toast.LENGTH_SHORT).show();
         button.setVisibility(View.VISIBLE);
     }
 }

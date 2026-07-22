@@ -266,10 +266,10 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
         MainActivity.csLibrary4A.appendToLog("started = " + started);
         if (started == false) {
             if (MainActivity.csLibrary4A.isBleConnected() == false) {
-                Toast.makeText(MainActivity.mContext, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                 return;
             } else if (MainActivity.csLibrary4A.isRfidFailure()) {
-                Toast.makeText(MainActivity.mContext, "Rfid is disabled", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.context, "Rfid is disabled", Toast.LENGTH_SHORT).show();
                 return;
             } else if (MainActivity.csLibrary4A.mrfidToWriteSize() != 0) {
                 //Toast.makeText(MainActivity.mContext, R.string.toast_not_ready, Toast.LENGTH_SHORT).show();
@@ -412,11 +412,12 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
                 match = true;
             }
             if (match == false) {
+                MainActivity.tagTypeExpected = null;
                 deviceTag = new ReaderDevice("", MainActivity.csLibrary4A.byteArrayToString(uplinkPacket.decodedEpc), false, null,
                         MainActivity.csLibrary4A.byteArrayToString(uplinkPacket.decodedPc),
                         null,
                         (uplinkPacket.decodedCrc != null ? MainActivity.csLibrary4A.byteArrayToString(uplinkPacket.decodedCrc) : null),
-                        null, null,
+                        null,
                         null, 0, 0,
                         null, 0, 0,
                         null, null, null, null,

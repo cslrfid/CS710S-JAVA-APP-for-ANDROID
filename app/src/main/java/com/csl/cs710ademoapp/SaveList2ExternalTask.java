@@ -1,10 +1,12 @@
 package com.csl.cs710ademoapp;
 
+import static android.Manifest.permission.BLUETOOTH_SCAN;
 import static android.content.Context.WIFI_SERVICE;
 import static com.csl.cs710ademoapp.MainActivity.csLibrary4A;
-import static com.csl.cs710ademoapp.MainActivity.mContext;
+import static com.csl.cs710ademoapp.MainActivity.context;
 
 import android.bluetooth.BluetoothAdapter;
+import android.content.pm.PackageManager;
 import android.media.MediaScannerConnection;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
@@ -13,6 +15,9 @@ import android.os.Environment;
 import android.provider.Settings;
 import android.util.Log;
 
+import androidx.core.app.ActivityCompat;
+
+import com.csl.cslibrary4a.CustomPopupWindow;
 import com.csl.cslibrary4a.ReaderDevice;
 import com.csl.cslibrary4a.RfidReaderChipData;
 
@@ -63,17 +68,20 @@ public class SaveList2ExternalTask extends AsyncTask<Void,Void,String> {
     public SaveList2ExternalTask(ArrayList<ReaderDevice> tagsList) {
         this.tagsList = tagsList;
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ActivityCompat.checkSelfPermission(context, BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) return;
+        }
         stringBluetoothMAC = BluetoothAdapter.getDefaultAdapter().getAddress().replaceAll(":", "");
         csLibrary4A.appendToLog("stringBluetoothMac from getMacAddress = " + stringBluetoothMAC);
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S) { }
         else if (stringBluetoothMAC.contains("020000000000")) {
             final String SECURE_SETTINGS_BLUETOOTH_ADDRESS = "bluetooth_address";
-            String macAddress = Settings.Secure.getString(mContext.getContentResolver(), SECURE_SETTINGS_BLUETOOTH_ADDRESS); //Not OK in android 8, >= 32
+            String macAddress = Settings.Secure.getString(context.getContentResolver(), SECURE_SETTINGS_BLUETOOTH_ADDRESS); //Not OK in android 8, >= 32
             csLibrary4A.appendToLog("stringBluetoothMac from Settings.Secure.getString = " + macAddress);
             stringBluetoothMAC = macAddress;
         }
 
-        stringWifiMac = ((WifiManager) MainActivity.mContext.getSystemService(WIFI_SERVICE)).getConnectionInfo().getMacAddress().replaceAll(":", "");
+        stringWifiMac = ((WifiManager) MainActivity.context.getSystemService(WIFI_SERVICE)).getConnectionInfo().getMacAddress().replaceAll(":", "");
         csLibrary4A.appendToLog("stringWifMac from getMacAddress = " + stringWifiMac);
         if (stringWifiMac.contains("020000000000")) {
             try {
@@ -82,7 +90,7 @@ public class SaveList2ExternalTask extends AsyncTask<Void,Void,String> {
                     csLibrary4A.appendToLog("nif.getName = " + nif.getName() + ", macByts = " + csLibrary4A.byteArrayToString(nif.getHardwareAddress()));
                 }
 
-                WifiManager wifiMan = (WifiManager) mContext.getSystemService(WIFI_SERVICE);
+                WifiManager wifiMan = (WifiManager) context.getSystemService(WIFI_SERVICE);
                 int wifiState = wifiMan.getWifiState();
                 //wifiMan.setWifiEnabled(true);
                 File fl = new File("/sys/class/net/wlan0/address");
@@ -119,13 +127,14 @@ public class SaveList2ExternalTask extends AsyncTask<Void,Void,String> {
             else messageStr = createCSV(tagsList, null);
             resultDisplay = save2File(messageStr, true);
         }
-        customPopupWindow = new CustomPopupWindow(mContext);
+        customPopupWindow = new CustomPopupWindow(context);
         csLibrary4A.appendToLog("SaveList2ExternalTask: resultDisplay = " + resultDisplay);
         if (resultDisplay == null) resultDisplay = "";
         else {
             resultDisplay += "\n";
             savedFile = true;
-            customPopupWindow.popupStart(resultDisplay + "Connecting server. Please wait.", true);
+            customPopupWindow.setdata(true, false);
+            customPopupWindow.popupStart(resultDisplay + "Connecting server. Please wait.", false);
             csLibrary4A.appendToLog("SaveList2ExternalTask: popupStart is done");
         }
     }
@@ -376,27 +385,14 @@ public class SaveList2ExternalTask extends AsyncTask<Void,Void,String> {
         String resultDisplay = "";
         if (MainActivity.csLibrary4A.getSaveFileEnable() == false) return "No saving file as it is disabled";
         boolean writeExtPermission = true;
-/*
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (mContext.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                csLibrary4A.appendToLog("WRITE_EXTERNAL_STORAGE Permission is required !!!");
-                writeExtPermission = false;
-                if (requestPermission) {
-                    csLibrary4A.appendToLog("requestPermissions WRITE_EXTERNAL_STORAGE 1");
-                    MainActivity.permissionRequesting = true; requestPermissions((Activity) mContext, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-                    if (false) Toast.makeText(mContext, R.string.toast_permission_not_granted, Toast.LENGTH_SHORT).show();
-                    return null;
-                }
-            } else csLibrary4A.appendToLog("WRITE_EXTERNAL_STORAGE Permission is GRANTED !!!");
-        }
-*/
+
         errorDisplay = null;
         if (writeExtPermission == false) {
             errorDisplay = "denied WRITE_EXTERNAL_STORAGE Permission !!!";
         } else if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) == false) errorDisplay = "Error in mouting external storage !!!";
         else {
-            String strDir = "cs108Java";
-            if (MainActivity.stringPackageName.contains("cs710ademoapp")) strDir = "csReaderJava";
+            String strDir = "csReaderJava";
+            if (MainActivity.stringPackageName.contains("cs108ademoapp")) strDir = "cs108Java";
             csLibrary4A.appendToLog("SaveList2ExternalTask.save2File: strDir = " + strDir);
             File path = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + Environment.DIRECTORY_DOWNLOADS + "/" + strDir);
             if (path.exists() == false) path.mkdirs();
@@ -413,7 +409,7 @@ public class SaveList2ExternalTask extends AsyncTask<Void,Void,String> {
                         errorDisplay = "Error in write()";
                         outputStream.write(messageStr.getBytes());
                         errorDisplay = "Error in close()"; outputStream.close();
-                        MediaScannerConnection.scanFile(mContext, new String[]{file.getAbsolutePath()}, null, null);
+                        MediaScannerConnection.scanFile(context, new String[]{file.getAbsolutePath()}, null, null);
                         resultDisplay = "Success in saving data to Download/" + strDir + "/" + fileName;
                         errorDisplay = null;
                     } catch (Exception ex) {

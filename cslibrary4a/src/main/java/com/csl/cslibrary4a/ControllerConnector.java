@@ -1,7 +1,6 @@
 package com.csl.cslibrary4a;
 
 import android.content.Context;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -27,7 +26,7 @@ public class ControllerConnector {
     }
 
     public enum ControllerPayloadEvents {
-        CONTROLLER_GET_VERSION, CONTROLLER_GET_SERIALNUMBER, CONTROLLER_GET_MODELNAME, CONTROLLER_RESET
+        CONTROLLER_GET_VERSION, CONTROLLER_SEND_IMAGE, BLUETOOTH_SEND_IMAGE, CONTROLLER_GET_SERIALNUMBER, CONTROLLER_GET_MODELNAME, CONTROLLER_RESET
     }
 
     class ControllerReadData {
@@ -57,6 +56,13 @@ public class ControllerConnector {
             if (DEBUG) appendToLog("controllerVersion string = " + string);
             return string;
         }
+    }
+
+    byte[] image_subpart_data; int image_total_subpart, image_subpart;
+    public void sendImage(boolean bIsBluetoothImage, byte[] image_subpart_data, int image_total_subpart, int image_subpart) {
+        this.image_subpart_data = image_subpart_data; this.image_total_subpart = image_total_subpart; this.image_subpart = image_subpart;
+        appendToLog("ConnectorController.sendImageData: buffer = " + byteArrayToString(image_subpart_data));
+        controllerToWrite.add(bIsBluetoothImage ? ControllerPayloadEvents.BLUETOOTH_SEND_IMAGE : ControllerPayloadEvents.CONTROLLER_SEND_IMAGE);
     }
 
     private byte[] serialNumber = null;
@@ -127,7 +133,6 @@ public class ControllerConnector {
         boolean bRetValue = false;
         bRetValue = controllerToWrite.add(ControllerConnector.ControllerPayloadEvents.CONTROLLER_RESET);
         appendToLog("add RESET to mSiliconLabIcWrite with length = " + controllerToWrite.size());
-        //mRfidDevice.setInventoring(false);
         return bRetValue;
     }
 
@@ -135,8 +140,18 @@ public class ControllerConnector {
 
     private boolean arrayTypeSet(byte[] dataBuf, int pos, ControllerPayloadEvents event) {
         boolean validEvent = false;
+        appendToLog("ConnectorController.arrayTypeSet: pos = " + pos + ", event = " + event.toString() + ", dataBuf = " + byteArrayToString(dataBuf));
         switch (event) {
             case CONTROLLER_GET_VERSION:
+                validEvent = true;
+                break;
+            case CONTROLLER_SEND_IMAGE:
+                dataBuf[pos] = 1;
+                validEvent = true;
+                break;
+            case BLUETOOTH_SEND_IMAGE:
+                dataBuf[pos-1] = (byte)0xc0;
+                dataBuf[pos] = 1;
                 validEvent = true;
                 break;
             case CONTROLLER_GET_SERIALNUMBER:
@@ -160,6 +175,20 @@ public class ControllerConnector {
         byte[] dataOut = null;
         if (event == ControllerPayloadEvents.CONTROLLER_GET_VERSION) {
             dataOut = new byte[]{(byte) 0xA7, (byte) 0xB3, 2, (byte) 0xE8, (byte) 0x82, (byte) 0x37, 0, 0, (byte) 0xB0, 0};
+        } else if (event == ControllerPayloadEvents.CONTROLLER_SEND_IMAGE || event == ControllerPayloadEvents.BLUETOOTH_SEND_IMAGE) {
+            dataOut = new byte[248];
+            byte[] dataOut1 = new byte[] {(byte) 0xA7, (byte) 0xB3, (byte) 240, (byte) 0xE8, (byte) 0x82, (byte) 0x37, 0, 0,
+                    (byte) 0xB0, 1, (byte)(image_total_subpart >> 8), (byte)image_total_subpart, (byte)(image_subpart >> 8), (byte)image_subpart };
+            if (event == ControllerPayloadEvents.BLUETOOTH_SEND_IMAGE) dataOut1[8] = (byte) 0xC0;
+            System.arraycopy(dataOut1, 0, dataOut, 0, dataOut1.length);
+            for (int i = 0; i < image_subpart_data.length; i++)
+            {
+                dataOut[i + 14] = image_subpart_data[i];
+            }
+            for (int i = image_subpart_data.length; i < 234; i++)
+            {
+                dataOut[i + 14] = (byte)0xFF;
+            }
         } else if (event == ControllerPayloadEvents.CONTROLLER_GET_SERIALNUMBER) {
             dataOut = new byte[]{(byte) 0xA7, (byte) 0xB3, 3, (byte) 0xE8, (byte) 0x82, (byte) 0x37, 0, 0, (byte) 0xB0, 4, 0};
         } else if (event == ControllerPayloadEvents.CONTROLLER_GET_MODELNAME) {
@@ -168,13 +197,16 @@ public class ControllerConnector {
             dataOut = new byte[]{(byte) 0xA7, (byte) 0xB3, 2, (byte) 0xE8, (byte) 0x82, (byte) 0x37, 0, 0, (byte) 0xB0, 12};
         }
         if (usbConnection && dataOut != null) dataOut[1] = (byte) 0xE6;
+        appendToLog("ConnectorController.writeController: sendImageData: dataOut = " + byteArrayToString(dataOut));
         if (DEBUG) appendToLog(byteArrayToString(dataOut) + " for " + event.toString());
         return dataOut;
     }
-
+    int replyResult;
+    public int getReplyResult() { return replyResult; }
     public boolean isMatchControllerToWrite(ConnectorData connectorData) {
         boolean match = false;
-        if (controllerToWrite.size() != 0 && connectorData.dataValues[0] == (byte)0xB0) {
+        if (false) appendToLog("ConnectorController.isMatchControllerToWrite: BtData, connectorData.dataValues = " + byteArrayToString(connectorData.dataValues));
+        if (controllerToWrite.size() != 0 && (connectorData.dataValues[0] == (byte)0xB0 || (connectorData.dataValues[0] == (byte)0xC0 && connectorData.dataValues[1] == 1))) {
             byte[] dataInCompare = new byte[]{(byte) 0xB0, 0};
             if (arrayTypeSet(dataInCompare, 1, controllerToWrite.get(0)) && (connectorData.dataValues.length >= dataInCompare.length + 1)) {
                 if (match = compareArray(connectorData.dataValues, dataInCompare, dataInCompare.length)) {
@@ -184,6 +216,8 @@ public class ControllerConnector {
                             System.arraycopy(connectorData.dataValues, 2, controllerVersion, 0, controllerVersion.length);
                             if (utility.DEBUG_PKDATA) appendToLog("PkData: matched Controller.Reply.GetVersion with version = " + byteArrayToString(controllerVersion));
                         }
+                    } else if (controllerToWrite.get(0) == ControllerPayloadEvents.CONTROLLER_SEND_IMAGE || controllerToWrite.get(0) == ControllerPayloadEvents.BLUETOOTH_SEND_IMAGE) {
+                        replyResult = connectorData.dataValues[2];
                     } else if (controllerToWrite.get(0) == ControllerPayloadEvents.CONTROLLER_GET_SERIALNUMBER) {
                         int length = connectorData.dataValues.length - 2;
                         serialNumber = new byte[length];
@@ -195,13 +229,11 @@ public class ControllerConnector {
                         System.arraycopy(connectorData.dataValues, 2, modelName, 0, length);
                         if (utility.DEBUG_PKDATA) appendToLog("PkData: matched controller.GetModelName.reply with modelName = " + byteArrayToString(modelName));
                     } else if (controllerToWrite.get(0) == ControllerPayloadEvents.CONTROLLER_RESET) {
-                        if (connectorData.dataValues[2] != 0) {
-                            appendToLog("Controller RESET is found with error");
-                        } else appendToLog("matched Controller.reply data is found");
+                        replyResult = connectorData.dataValues[2];
                     } else {
                         appendToLog("matched controller.Other.reply data is found.");
                     }
-                    controllerToWrite.remove(0); sendDataToWriteSent = 0;
+                    controllerToWrite.remove(0); sendControllerToWriteSent = 0; mControllerToWriteRemoved = true;
                     if (utility.DEBUG_PKDATA) appendToLog("PkData: new controllerToWrite size = " + controllerToWrite.size());
 
                 }
@@ -210,14 +242,15 @@ public class ControllerConnector {
         return match;
     }
 
-    public int sendDataToWriteSent = 0;
+    public int sendControllerToWriteSent = 0; public boolean mControllerToWriteRemoved = false;
     boolean controllerFailure = false;
+    public boolean isFailure() { return controllerFailure; }
     public byte[] sendControllerToWrite(boolean usbConnection) {
         if (controllerFailure) {
-            controllerToWrite.remove(0); sendDataToWriteSent = 0;
-        } else if (sendDataToWriteSent >= 5) {
+            controllerToWrite.remove(0); sendControllerToWriteSent = 0; mControllerToWriteRemoved = true;
+        } else if (sendControllerToWriteSent >= 5) {
             int oldSize = controllerToWrite.size();
-            controllerToWrite.remove(0); sendDataToWriteSent = 0;
+            controllerToWrite.remove(0); sendControllerToWriteSent = 0; mControllerToWriteRemoved = true;
             if (DEBUG) appendToLog("Removed after sending count-out with oldSize = " + oldSize + ", updated controllerToWrite.size() = " + controllerToWrite.size());
             if (DEBUG) appendToLog("Removed after sending count-out.");
             String string = "Problem in sending data to Controller Module. Removed data sending after count-out";
@@ -226,7 +259,7 @@ public class ControllerConnector {
             controllerFailure = true; // disconnect(false);
         } else {
             if (DEBUG) appendToLog("size = " + controllerToWrite.size());
-            sendDataToWriteSent++;
+            sendControllerToWriteSent++;
             return writeController(controllerToWrite.get(0), usbConnection);
         }
         return null;

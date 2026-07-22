@@ -1,66 +1,61 @@
 package com.csl.cslibrary4a;
 
-import static android.bluetooth.BluetoothClass.Service.LE_AUDIO;
-import static android.bluetooth.BluetoothClass.Service.LIMITED_DISCOVERABILITY;
-import static android.bluetooth.BluetoothDevice.BOND_BONDED;
-import static android.bluetooth.BluetoothDevice.BOND_BONDING;
-import static android.bluetooth.BluetoothDevice.BOND_NONE;
-import static android.bluetooth.BluetoothDevice.DEVICE_TYPE_CLASSIC;
-import static android.bluetooth.BluetoothDevice.DEVICE_TYPE_DUAL;
-import static android.bluetooth.BluetoothDevice.DEVICE_TYPE_LE;
-import static android.bluetooth.BluetoothDevice.DEVICE_TYPE_UNKNOWN;
-
-import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGattCallback;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothManager;
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.os.ParcelUuid;
+import android.net.Uri;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.core.app.ActivityCompat;
-
-import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Set;
 
 public class CsLibrary4A {
-    String stringVersion = "0";
     boolean DEBUG = false, DEBUG2 = false;
     Utility utility;
     Cs710Library4A cs710Library4A;
     Cs108Library4A cs108Library4A;
     Context context; TextView textViewLog;
 
+    public AccessTaskCustom getAccessTaskCustom(Button button, boolean invalidRequest, boolean selectOne,
+                                   String selectMask, int selectBank, int selectOffset,
+                                   String strPassword, int powerLevel, RfidReaderChipData.HostCommands hostCommand,
+                                   boolean bEnableErrorPopWindow, Runnable updateRunnable,
+                                                CustomMediaPlayer playerN, CustomMediaPlayer playerO) {
+        AccessTaskCustom accessTaskCustom = new AccessTaskCustom(button, invalidRequest, selectOne,
+                selectMask, selectBank, selectOffset,
+                strPassword, powerLevel, hostCommand,
+                bEnableErrorPopWindow, updateRunnable,
+                context, this, playerN, playerO);
+        return accessTaskCustom;
+    }
+    public AccessTaskCustom getAccessTaskCustom(Button button, TextView textViewWriteCount, boolean invalidRequest, boolean selectOne,
+                                   String selectMask, int selectBank, int selectOffset,
+                                   String strPassword, int powerLevel, RfidReaderChipData.HostCommands hostCommand,
+                                   int qValue, int repeat, boolean resetCount, boolean bSkipClearFilter,
+                                   TextView registerRunTime, TextView registerTagGot, TextView registerVoltageLevel, TextView registerYieldView, TextView registerTotalView,
+                                   CustomMediaPlayer playerN, CustomMediaPlayer playerO) {
+        AccessTaskCustom accessTaskCustom = new AccessTaskCustom(button, textViewWriteCount, invalidRequest, selectOne,
+                selectMask, selectBank, selectOffset,
+                strPassword, powerLevel, hostCommand,
+                qValue, repeat, resetCount, bSkipClearFilter,
+                registerRunTime, registerTagGot, registerVoltageLevel, registerYieldView, registerTotalView, context, this, playerN, playerO);
+        return accessTaskCustom;
+    }
+
     public CsLibrary4A(Context context, TextView textViewLog) {
         this.context = context;
         this.textViewLog = textViewLog;
-        cs710Library4A = new Cs710Library4A(context, textViewLog); utility = cs710Library4A.utility;
-        cs710Library4A.setCsReaderConnectorCombo();
-        //cs108Library4A = new Cs108Library4A(context, textViewLog);
+        cs710Library4A = new Cs710Library4A(context, textViewLog); utility = cs710Library4A.utility; cs710Library4A.csReaderConnector.setScanType(0x03);
+        cs108Library4A = new Cs108Library4A(context, textViewLog);
         stringNOTCONNECT = " is called before Connection !!!";
         dBuV_dBm_constant = RfidReader.dBuV_dBm_constant;
-        iNO_SUCH_SETTING = cs710Library4A.iNO_SUCH_SETTING;
+        Log.i("Hello2", "CsLibrary4A.CsLibrary: context.getPackageName is " + context.getPackageName());
     }
     public String getlibraryVersion() {
-        if (DEBUG) Log.i("Hello2", "getlibraryVersion");
-        String string710 = cs710Library4A.getlibraryVersion(); appendToLog("string710 = " + string710);
-        int iPos0 = string710.indexOf(".");
-        int iPos1 = string710.substring(iPos0 + 1).indexOf(".");
-        String string108 = (cs108Library4A != null ? cs108Library4A.getlibraryVersion() : string710); appendToLog("string108 = " + string108);
-        int iPos2 = string108.indexOf(".");
-        int iPos3 = string108.substring(iPos2 + 1).indexOf(".");
-        return utility.StringVersionHeader + stringVersion + "-" + string710.substring(iPos0 + iPos1 + 2) + "-" + string108.substring(iPos2 + iPos3 + 2);
+        String stringVersion = BuildConfig.VERSION_NAME;
+        String stringSubVersion = "";
+        return utility.StringVersionHeader +  stringVersion + (stringSubVersion.length() == 0 ? "" : ("-" + stringSubVersion));
     }
     public String checkVersion() {
-        if (DEBUG) Log.i("Hello2", "checkVersion");
         if (isCs108Connected()) return cs108Library4A.checkVersion();
         else if (isCs710Connected()) return cs710Library4A.checkVersion();
         else Log.i("Hello2", "checkVersion" + stringNOTCONNECT);
@@ -107,8 +102,14 @@ public class CsLibrary4A {
     public String getEpc4upcSerial(Utility.EpcClass epcClass, String filter, String companyPrefix, String itemReference, String serialNumber) {
         return utility.getEpc4upcSerial(epcClass, filter, companyPrefix, itemReference, serialNumber);
     }
+    public String getEpc4upcSerial(int iEpcClass, String filter, String companyPrefix, String itemReference, String serialNumber) {
+        return utility.getEpc4upcSerial(iEpcClass, filter, companyPrefix, itemReference, serialNumber);
+    }
     public boolean checkHostProcessorVersion(String version, int majorVersion, int minorVersion, int buildVersion) {
         return utility.checkHostProcessorVersion(version, majorVersion, minorVersion, buildVersion);
+    }
+    public String getFileName4Uri(Uri uri) {
+        return utility.getFileName4Uri(uri);
     }
 
     //============ android bluetooth ============
@@ -124,162 +125,8 @@ public class CsLibrary4A {
         boolean bValue = false, bValue1 = false, bValue7 = false, DEBUG = true;
         if (DEBUG) appendToLog("CsLibrary.scanLeDevice[" + enable + "]");
 
-        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (bluetoothAdapter == null) {
-            appendToLog("CsLibrary.scanLeDevice: bluetoothAdapter is null");
-            // device doesn't support bluetooth
-        } else {
-            appendToLog("CsLibrary.scanLeDevice: bluetoothAdapter is valid");
-/*
-            if(!bluetoothAdapter.isEnabled()) {
-                Intent enableAdapter;
-                enableAdapter = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableAdapter, 0);
-            }
-*/
-            // Do whatever you want to do with your bluetoothAdapter
-            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                appendToLog("CsLibrary.scanLeDevice: bluetoothConnect permission is not granted");
-            } else {
-                appendToLog("CsLibrary.scanLeDevice: bluetoothConnect permission is granted");
-
-                BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-                //List<BluetoothDevice> bluetoothDevices = bluetoothManager.getConnectedDevices(GATT);
-                Set<BluetoothDevice> bluetoothDevices = bluetoothAdapter.getBondedDevices();
-                appendToLog("CsLibrary.scanLeDevice: bluetoothDevices size = " + bluetoothDevices.size());
-                int i = 0;
-                for (BluetoothDevice bluetoothDevice : bluetoothDevices) {
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", Name = " + bluetoothDevice.getName());
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", Address = " + bluetoothDevice.getAddress());
-                    String string = "CsLibrary.scanLeDevice: " + i + ", Type = " + bluetoothDevice.getType();
-                    switch (bluetoothDevice.getType()) {
-                        case DEVICE_TYPE_CLASSIC:
-                            string += " Classic - BR/EDR device";
-                            break;
-                        case DEVICE_TYPE_LE:
-                            string += " Low Energy - LE only device";
-                            break;
-                        case DEVICE_TYPE_DUAL:
-                            string += " Dual Mode - BR/EDR/LE device";
-                            break;
-                        default:
-                        case DEVICE_TYPE_UNKNOWN:
-                            string += " Unknown device";
-                            break;
-                    }
-                    appendToLog(string);
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", bluetoothClass = " + bluetoothDevice.getBluetoothClass().toString());
-                    int iDeviceClass = bluetoothDevice.getBluetoothClass().getDeviceClass();
-                    int iDeviceClassService = iDeviceClass >> 13;
-                    int iDeviceClassMajor = (iDeviceClass & 0x1F00) >> 8;
-                    int iDeviceClassMinor = (iDeviceClass & 0xFF) >> 2;
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", bluetoothClass = " + String.format("%X", iDeviceClass)
-                            + ", " + String.format("%X", iDeviceClassService)
-                            + ", " + String.format("%X", iDeviceClassMajor)
-                            + ", " + String.format("%X", iDeviceClassMinor));
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", doesClassMatch[Profile_HID] = " + bluetoothDevice.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_HID));
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", doesClassMatch[Profile_HEADSET] = " + bluetoothDevice.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_HEADSET));
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", doesClassMatch[Profile_A2DP] = " + bluetoothDevice.getBluetoothClass().doesClassMatch(BluetoothClass.PROFILE_A2DP));
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", hasService[LIMITED_DISCOVERABILITY] = " + bluetoothDevice.getBluetoothClass().hasService(LIMITED_DISCOVERABILITY));
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", hasService[LE_AUDIO] = " + bluetoothDevice.getBluetoothClass().hasService(LE_AUDIO));
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", describeContents = " + bluetoothDevice.describeContents());
-                    boolean connected = false;
-                    try {
-                        Method m = bluetoothDevice.getClass().getMethod("isConnected", (Class[]) null);
-                        connected = (boolean) m.invoke(bluetoothDevice, (Object[]) null);
-                    } catch (Exception ex) {
-                        appendToLog("CsLibrary.scanLeDevice: Exception " + ex.toString());
-                    }
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", connected = " + connected);
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-                        appendToLog("CsLibrary.scanLeDevice: " + i + ", AddressType = " + bluetoothDevice.getAddressType());
-                    }
-                    string = "CsLibrary.scanLeDevice: " + i + ", BondState = ";
-                    switch (bluetoothDevice.getBondState()) {
-                        case BOND_NONE:
-                            string += "None";
-                            break;
-                        case BOND_BONDING:
-                            string += "Bonding";
-                            break;
-                        case BOND_BONDED:
-                            string  += "Bonded";
-                            break;
-                        default:
-                            string += "Unknown";
-                            break;
-                    }
-                    appendToLog(string);
-                    ParcelUuid[] parcelUuids = bluetoothDevice.getUuids();
-                    appendToLog("CsLibrary.scanLeDevice: " + i + ", Uuids.size = " + (parcelUuids == null ? "null" : parcelUuids.length));
-                    for (int k = 0; parcelUuids != null && k < parcelUuids.length; k++) {
-                        String string0 = "", string1 = "", string2 = parcelUuids[k].toString();
-                        String string3 = string2.split("-")[0];
-                        appendToLog("CsLibrary.scanLeDevice: string3 = " + string3);
-                        int iString2 = 0;
-                        if (string3.substring(0, 4).matches("0000")) iString2 = Integer.parseInt(string3, 16);
-                        if (iString2 >= 0x1000 && iString2 < 0x1410) string0 = "SDP ";
-                        else if (iString2 >= 0x1800 && iString2 < 0x1860) string0 = "GATT ";
-                        if (iString2 == 0x1101) string1 = "Serial Port, ";
-                        else if (iString2 == 0x110b) string1 = "Audio Sink, ";
-                        else if (iString2 == 0x110e) string1 = "A/V Remote Control, ";
-                        else if (iString2 == 0x1124) string1 = "HID, ";
-                        else if (iString2 == 0x180f) string1 = "Battery, ";
-                        else if (iString2 == 0x1812) {
-                            string1 = "Human Interface Device, ";
-/*
-                            UUID UUID_READER_SERVICE = UUID.fromString(string2);
-                            BluetoothGattService s = bluetoothGatt.getService(service);
-                            mReaderStreamOutCharacteristic = getCharacteristic(UUID_READER_SERVICE, UUID_READER_STREAM_OUT_CHARACTERISTIC);
-                            mReaderStreamInCharacteristic = getCharacteristic(UUID_READER_SERVICE, UUID_READER_STREAM_IN_CHARACTERISTIC);
-*/
-                        }
-                        appendToLog("CsLibrary.scanLeDevice: " + i + "," + k + ", " + string0 + "Service Class: " + string1 + string2);
-                    }
-
-                    if (false) {
-                        android.bluetooth.BluetoothGatt bluetoothGatt = bluetoothDevice.connectGatt(context, false, new BluetoothGattCallback() {
-                            @Override
-                            public void onCharacteristicChanged(android.bluetooth.BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-                                appendToLog("CsLibrary.scanLeDevice: onCharacteristicChanged");
-                                super.onCharacteristicChanged(gatt, characteristic);
-                            }
-                        });
-                        appendToLog("CsLibrary.scanLeDevice: " + i + ", connectGatt is " + (bluetoothGatt != null ? "valid" : "false"));
-                        if (bluetoothGatt != null) {
-                            List<BluetoothGattService> bluetoothGattServices = bluetoothGatt.getServices();
-                            appendToLog("CsLibrary.scanLeDevice: " + i + ", bluetoothGattServices size is " + bluetoothGattServices.size());
-                            for (int a = 0; a < bluetoothGattServices.size(); a++) {
-                                appendToLog("CsLibrary.scanLeDevice: " + i + "," + a + " bluetoothGattService is " + bluetoothGattServices.get(a).toString());
-                            }
-                        }
-                    }
-
-                    String stringClassCode = bluetoothDevice.getBluetoothClass().toString().toUpperCase();
-                    if (connected && (stringClassCode.matches("1F00") || stringClassCode.matches("540"))) {
-                        if (false) {
-                            BluetoothGatt.CsScanData scanResultA = new BluetoothGatt.CsScanData(bluetoothDevice, 0, null);
-                            scanResultA.serviceUUID2p2 = 6;
-                            cs710Library4A.csReaderConnector.mScanResultList.add(scanResultA);
-                            appendToLog("CsLibrary.scanLeDevice: mScanResultList.size = " + cs710Library4A.mScanResultList.size());
-                        } else {
-                            cs710Library4A.bluetoothGatt.removeBond(bluetoothDevice);
-                        }
-                    }
-                    i++;
-                }
-            }
-        }
-
         bValue1 = (cs108Library4A != null && cs108Library4A.scanLeDevice(enable));
-        bValue7 = cs710Library4A.scanLeDevice(enable);
+        if (!context.getPackageName().contains("cs108ademoapp")) bValue7 = cs710Library4A.scanLeDevice(enable);
         if (bValue1 || bValue7) bValue = true;
         return bValue;
     }
@@ -292,26 +139,27 @@ public class CsLibrary4A {
             csScanData1 = (cs108Library4A == null ? null : cs108Library4A.getNewDeviceScanned());
             if (true) csScanData = csScanData1;
             else if (csScanData1 != null) {
-                csScanData = new BluetoothGatt.CsScanData(csScanData1.getDevice(), csScanData1.rssi, csScanData1.getScanRecord());
-                csScanData.serviceUUID2p2 = csScanData1.serviceUUID2p2;
+                csScanData = csScanData1; csScanData.serviceUUID2p2 = csScanData1.serviceUUID2p2;
             }
         } else if (true) {
             csScanData = csScanData7;
         } else {
-            csScanData = new BluetoothGatt.CsScanData(csScanData7.getDevice(), csScanData7.rssi, csScanData7.getScanRecord());
-            csScanData.serviceUUID2p2 = csScanData7.serviceUUID2p2;
+            csScanData = csScanData7; csScanData.serviceUUID2p2 = csScanData7.serviceUUID2p2;
         }
-        if (csScanData != null) {
-            //appendToLog("DeviceFinder, CsLibrary4A.getNewDeviceScanned: csScanData.getAddress is " + csScanData.getAddress());
-        }
-        if (csScanData != null) appendToLog("found982 with name = " + csScanData.name + ", device.name = " + csScanData.device.getName());
         return csScanData;
     }
     public String getBluetoothDeviceAddress() {
-        if (DEBUG) Log.i("Hello2", "getBluetoothDeviceAddress");
-        if (isCs108Connected()) return cs108Library4A.getBluetoothDeviceAddress();
-        else if (isCs710Connected()) return cs710Library4A.getBluetoothDeviceAddress();
-        else Log.i("Hello2", "getBluetoothDeviceAddress" + stringNOTCONNECT);
+        if (DEBUG) Log.i("Hello2", "getReaderAddress");
+        if (isCs108Connected()) return cs108Library4A.getReaderAddress();
+        else if (isCs710Connected()) return cs710Library4A.getReaderAddress();
+        else Log.i("Hello2", "getReaderAddress" + stringNOTCONNECT);
+        return null;
+    }
+    public String getReaderAddress() {
+        if (DEBUG) Log.i("Hello2", "getReaderAddress");
+        if (isCs108Connected()) return cs108Library4A.getReaderAddress();
+        else if (isCs710Connected()) return cs710Library4A.getReaderAddress();
+        else Log.i("Hello2", "getReaderAddress" + stringNOTCONNECT);
         return null;
     }
     public String getBluetoothDeviceName() {
@@ -321,9 +169,16 @@ public class CsLibrary4A {
         else Log.i("Hello2", "getBluetoothDeviceName" + stringNOTCONNECT);
         return null;
     }
+    public String getReaderName() {
+        if (DEBUG) Log.i("Hello2", "getReaderName");
+        if (isCs108Connected()) return cs108Library4A.getReaderName();
+        else if (isCs710Connected()) return cs710Library4A.getReaderName();
+        else Log.i("Hello2", "getReaderName" + stringNOTCONNECT);
+        return null;
+    }
     public boolean isBleConnected() {
-        boolean bValue = false, DEBUG = true;
-        if (DEBUG && false) Log.i("Hello2", "CsLibrary4A.isBleConnected");
+        boolean bValue = false, DEBUG = false;
+        if (DEBUG) Log.i("Hello2", "CsLibrary4A.isReaderConnected: isCs108Connected = " + isCs108Connected() + ", isCs710Connected = " + isCs710Connected());
         if (isCs108Connected()) {
             bValue = cs108Library4A.isBleConnected();
             if (bValue == false) bConnectStatus = 0;
@@ -331,54 +186,37 @@ public class CsLibrary4A {
             bValue = cs710Library4A.isBleConnected();
             if (bValue == false) bConnectStatus = 0;
         } else {
-            bValue = cs710Library4A.isBleConnected();
+            if (DEBUG) Log.i("Hello2", "CsLibrary4A.isReaderConnected: cs710Library4A.isReaderConnected = " + cs710Library4A.isReaderConnected() + ", cs108Library4A.isReaderConnected = " + cs108Library4A.isReaderConnected());
+            bValue = cs710Library4A.isReaderConnected();
             if (bValue) bConnectStatus = 7;
             else {
-                bValue = (cs108Library4A != null && cs108Library4A.isBleConnected());
+                bValue = (cs108Library4A != null && cs108Library4A.isReaderConnected());
                 if (bValue) bConnectStatus = 1;
                 else bConnectStatus = 0;
             }
         }
         return bValue;
     }
+    public boolean isReaderConnected() {
+        return isBleConnected();
+    }
     public void connect(ReaderDevice readerDevice) {
+        appendToLog("CsLibrary.connect: starts");
         if (DEBUG || true) Log.i("Hello", "CsLibrary4A.connect: readerDevice is " + (readerDevice != null ? "valid" : "null") + ", iServiceUuidConnectedBefore = " + iServiceUuidConnectedBefore);
-        cs710Library4A.bluetoothGatt.removeBond(readerDevice);
         int iServiceUuid = -1;
         if (readerDevice == null) iServiceUuid = iServiceUuidConnectedBefore;
         else iServiceUuid = readerDevice.getServiceUUID2p1();
         Log.i("Hello", "CsLibrary4A.connect: iServiceUuid = " + iServiceUuid);
         if (iServiceUuid == 0 || iServiceUuid == 1 || iServiceUuid == 4) {
-            if (true) {
-                appendToLog("CsLibrary4A.connect: going to connect cs108");
-                if (cs108Library4A == null) cs108Library4A = new Cs108Library4A(context, textViewLog);
-                cs108Library4A.connect(readerDevice); iServiceUuidConnectedBefore = 0;
-            } else {
-                if (true) {
-                    cs108Library4A.connect(readerDevice);
-                    iServiceUuidConnectedBefore = 0;
-                } else {
-                    ReaderDevice readerDevice1 = null;
-                    if (readerDevice != null) readerDevice1 = new ReaderDevice(
-                            readerDevice.getName(), readerDevice.getAddress(), readerDevice.getSelected(),
-                            readerDevice.getDetails(), readerDevice.getCount(), readerDevice.getRssi(),
-                            readerDevice.getServiceUUID2p1());
-                    cs108Library4A.connect(readerDevice1);
-                    iServiceUuidConnectedBefore = 0;
-                }
-            }
-        } else if (iServiceUuid == 2 || iServiceUuid == 3 || iServiceUuid == 5 || iServiceUuid == 6) {
+            appendToLog("CsLibrary4A.connect: going to connect cs108");
+            if (cs108Library4A == null) cs108Library4A = new Cs108Library4A(context, textViewLog);
+            cs108Library4A.connect(readerDevice); iServiceUuidConnectedBefore = 0;
+        } else if (iServiceUuid == 2 || iServiceUuid == 3 || iServiceUuid == 5) {
             appendToLog("CsLibrary4A.connect: going to connect cs710");
             cs710Library4A.connect(readerDevice); iServiceUuidConnectedBefore = 2;
         } else appendToLog("CsLibrary4A.connect: invalid serviceUUID = " + (readerDevice == null ? "null" : readerDevice.getServiceUUID2p1()));
     }
     public void disconnect(boolean tempDisconnect) {
-        //appendToLog("CsLibrary4A.disconnect, Fragment: Starts");
-        //ReaderDevice readerDevice = null;
-        //if (isCs108Connected() && cs108Library4A != null) readerDevice = cs108Library4A.readerDeviceConnect;
-        //else if (isCs710Connected() && cs710Library4A != null) readerDevice = cs710Library4A.readerDeviceConnect;
-        //cs710Library4A.bluetoothGatt.removeBond(readerDevice);
-
         if (isCs108Connected()) cs108Library4A.disconnect(tempDisconnect);
         else if (isCs710Connected()) cs710Library4A.disconnect(tempDisconnect);
     }
@@ -411,8 +249,10 @@ public class CsLibrary4A {
         return -1;
     }
 
-
     //============ Rfid ============
+    //============ Rfid ============
+    //============ Rfid ============
+
     public String getAuthMatchData() {
         if (DEBUG) Log.i("Hello2", "getAuthMatchData");
         if (isCs108Connected()) return cs108Library4A.getAuthMatchData();
@@ -497,11 +337,24 @@ public class CsLibrary4A {
         else Log.i("Hello2", "getRfidOnStatus" + stringNOTCONNECT);
         return false;
     }
+    public int getRfidReplyResult() {
+        if (DEBUG) Log.i("Hello2", "getRfidReplyResult");
+        if (isCs108Connected()) return cs108Library4A.getRfidReplyResult();
+        else if (isCs710Connected()) return cs710Library4A.getRfidReplyResult();
+        else Log.i("Hello2", "getRfidReplyResult" + stringNOTCONNECT);
+        return -1;
+    }
     public boolean isRfidFailure() {
         if (DEBUG2) Log.i("Hello2", "isRfidFailure");
         if (isCs108Connected()) return cs108Library4A.isRfidFailure();
         else if (isCs710Connected()) return cs710Library4A.isRfidFailure();
         return false;
+    }
+    public void sendRfidImage(byte[] image_subpart_data, int image_total_subpart, int image_subpart) {
+        if (DEBUG2) Log.i("Hello2", "sendRfidImage");
+        if (isCs108Connected()) cs108Library4A.sendRfidImage(image_subpart_data, image_total_subpart, image_subpart);
+        else if (isCs710Connected()) cs710Library4A.sendRfidImage(image_subpart_data, image_total_subpart, image_subpart);
+        else Log.i("Hello2", "sendRfidImage" + stringNOTCONNECT);
     }
     public void setReaderDefault() {
         if (DEBUG) Log.i("Hello2", "setReaderDefault");
@@ -553,11 +406,17 @@ public class CsLibrary4A {
         return false;
     }
     public boolean getAntennaEnable() {
-        if (DEBUG) Log.i("Hello2", "getAntennaEnable");
-        if (isCs108Connected()) return cs108Library4A.getAntennaEnable();
-        else if (isCs710Connected()) return cs710Library4A.getAntennaEnable();
+    	if (DEBUG) Log.i("Hello2", "getAntennaEnable");
+    	if (isCs108Connected()|| isCs710Connected()) return (getAntennaEnableNum() > 0);
         else Log.i("Hello2", "getAntennaEnable" + stringNOTCONNECT);
         return false;
+    }
+    public int getAntennaEnableNum() {
+        if (DEBUG) Log.i("Hello2", "getAntennaEnable");
+        if (isCs108Connected()) return cs108Library4A.getAntennaEnableNum();
+        else if (isCs710Connected()) return cs710Library4A.getAntennaEnableNum();
+        else Log.i("Hello2", "getAntennaEnable" + stringNOTCONNECT);
+        return -1;
     }
     public boolean setAntennaEnable(boolean enable) {
         if (DEBUG) Log.i("Hello2", "setAntennaEnable");
@@ -587,11 +446,32 @@ public class CsLibrary4A {
         else Log.i("Hello2", "getPwrlevel" + stringNOTCONNECT);
         return -1;
     }
+    public long getPowerLevelMax() {
+        if (DEBUG) Log.i("Hello2", "getMaxPowerLevel");
+        if (isCs108Connected()) return cs108Library4A.getPowerLevelMax();
+        else if (isCs710Connected()) return cs710Library4A.getPowerLevelMax();
+        else Log.i("Hello2", "getMaxPowerLevel" + stringNOTCONNECT);
+        return -1;
+    }
     public boolean setPowerLevel(long pwrlevel) {
         if (DEBUG) Log.i("Hello2", "setPowerLevel");
         if (isCs108Connected()) return cs108Library4A.setPowerLevel(pwrlevel);
         else if (isCs710Connected()) return cs710Library4A.setPowerLevel(pwrlevel);
         else Log.i("Hello2", "setPowerLevel" + stringNOTCONNECT);
+        return false;
+    }
+    public int getPowerBoost() {
+        if (DEBUG) Log.i("Hello2", "getPowerBoost");
+        if (isCs108Connected()) return cs108Library4A.getPowerBoost();
+        else if (isCs710Connected()) return cs710Library4A.getPowerBoost();
+        else Log.i("Hello2", "getPowerBoost" + stringNOTCONNECT);
+        return -1;
+    }
+    public boolean setPowerBoost(boolean powerBoost) {
+        if (DEBUG) Log.i("Hello2", "setPowerBoost");
+        if (isCs108Connected()) return cs108Library4A.setPowerBoost(powerBoost);
+        else if (isCs710Connected()) return cs710Library4A.setPowerBoost(powerBoost);
+        else Log.i("Hello2", "setPowerBoost" + stringNOTCONNECT);
         return false;
     }
     public int getQueryTarget() {
@@ -652,10 +532,16 @@ public class CsLibrary4A {
     }
     public boolean getInvAlgo() {
         if (DEBUG) Log.i("Hello2", "getInvAlgo");
-        if (isCs108Connected()) return cs108Library4A.getInvAlgo();
-        else if (isCs710Connected()) return cs710Library4A.getInvAlgo();
+        if (isCs108Connected() || isCs710Connected()) return (getInvAlgoNum() == 3);
         else Log.i("Hello2", "getInvAlgo" + stringNOTCONNECT);
         return false;
+    }
+    public int getInvAlgoNum() {
+        if (DEBUG) Log.i("Hello2", "getInvAlgo");
+        if (isCs108Connected()) return cs108Library4A.getInvAlgoNum();
+        else if (isCs710Connected()) return cs710Library4A.getInvAlgoNum();
+        else Log.i("Hello2", "getInvAlgo" + stringNOTCONNECT);
+        return -1;
     }
     public boolean setInvAlgo(boolean dynamicAlgo) {
         if (DEBUG) Log.i("Hello2", "setInvAlgo");
@@ -783,9 +669,18 @@ public class CsLibrary4A {
         return false;
     }
     public byte getIntraPkDelay() {
+        byte byteValue;
         if (DEBUG) Log.i("Hello2", "getIntraPkDelay");
-        if (isCs108Connected()) return cs108Library4A.getIntraPkDelay();
-        else if (isCs710Connected()) return cs710Library4A.getIntraPkDelay();
+        if (isCs108Connected() || isCs710Connected()) {
+            return ((byte) getIntraPkDelayInt());
+        }
+        else Log.i("Hello2", "getIntraPkDelay" + stringNOTCONNECT);
+        return -1;
+    }
+    public int getIntraPkDelayInt() {
+        if (DEBUG) Log.i("Hello2", "getIntraPkDelay");
+        if (isCs108Connected()) return cs108Library4A.getIntraPkDelayInt();
+        else if (isCs710Connected()) return cs710Library4A.getIntraPkDelayInt();
         else Log.i("Hello2", "getIntraPkDelay" + stringNOTCONNECT);
         return -1;
     }
@@ -798,8 +693,16 @@ public class CsLibrary4A {
     }
     public byte getDupDelay() {
         if (DEBUG) Log.i("Hello2", "getDupDelay");
-        if (isCs108Connected()) return cs108Library4A.getDupDelay();
-        else if (isCs710Connected()) return cs710Library4A.getDupDelay();
+        if (isCs108Connected() || isCs710Connected()) {
+            return ((byte) getDupDelayInt());
+        }
+        else Log.i("Hello2", "getDupDelay" + stringNOTCONNECT);
+        return -1;
+    }
+    public int getDupDelayInt() {
+        if (DEBUG) Log.i("Hello2", "getDupDelay");
+        if (isCs108Connected()) return cs108Library4A.getDupDelayInt();
+        else if (isCs710Connected()) return cs710Library4A.getDupDelayInt();
         else Log.i("Hello2", "getDupDelay" + stringNOTCONNECT);
         return -1;
     }
@@ -1062,13 +965,31 @@ public class CsLibrary4A {
     }
     public int mrfidToWriteSize() {
         if (DEBUG2) Log.i("Hello2", "mrfidToWriteSize");
-        if (isCs108Connected()) return cs108Library4A.mrfidToWriteSize();
-        else if (isCs710Connected()) return cs710Library4A.mrfidToWriteSize();
-        else Log.i("Hello2", "mrfidToWriteSize" + stringNOTCONNECT);
+        if (isCs108Connected()) return cs108Library4A.rfidToWriteSize();
+        else if (isCs710Connected()) return cs710Library4A.rfidToWriteSize();
+        else Log.i("Hello2", "rfidToWriteSize" + stringNOTCONNECT);
         return -1;
     }
     public void mrfidToWritePrint() {
-        Log.i("Hello2", "mrfidToWritePrint");
+        if (DEBUG2) Log.i("Hello2", "mrfidToWritePrint");
+        if (isCs108Connected()) cs108Library4A.mrfidToWritePrint();
+        else if (isCs710Connected()) cs710Library4A.mrfidToWritePrint();
+        else Log.i("Hello2", "mrfidToWritePrint" + stringNOTCONNECT);
+        return;
+    }
+    public int dataToWriteSize() {
+        if (DEBUG2) Log.i("Hello2", "dataToWriteSize");
+        if (isCs108Connected()) return cs108Library4A.dataToWriteSize();
+        else if (isCs710Connected()) return cs710Library4A.dataToWriteSize();
+        else Log.i("Hello2", "dataToWriteSize" + stringNOTCONNECT);
+        return -1;
+    }
+    public int rfidToWriteSize() {
+        if (DEBUG2) Log.i("Hello2", "rfidToWriteSize");
+        if (isCs108Connected()) return cs108Library4A.rfidToWriteSize();
+        else if (isCs710Connected()) return cs710Library4A.rfidToWriteSize();
+        else Log.i("Hello2", "rfidToWriteSize" + stringNOTCONNECT);
+        return -1;
     }
     public long getTagRate() {
         if (DEBUG) Log.i("Hello2", "getTagRate");
@@ -1076,6 +997,16 @@ public class CsLibrary4A {
         else if (isCs710Connected()) return cs710Library4A.getTagRate();
         else Log.i("Hello2", "getTagRate" + stringNOTCONNECT);
         return -1;
+    }
+    public boolean isInventoring() {
+        if (DEBUG) Log.i("Hello2", "isInventoring");
+        if (isCs108Connected()) {
+            return cs108Library4A.isInventoring();
+        } else if (isCs710Connected()) {
+            return cs710Library4A.isInventoring();
+        }
+        else Log.i("Hello2", "isInventoring" + stringNOTCONNECT);
+        return false;
     }
     public boolean startOperation(RfidReaderChipData.OperationTypes operationTypes) {
         if (DEBUG) Log.i("Hello2", "startOperation");
@@ -1088,14 +1019,14 @@ public class CsLibrary4A {
         return false;
     }
     public boolean abortOperation() {
-        if (DEBUG) Log.i("Hello2", "abortOperation");
+        if (DEBUG || true) Log.i("Hello2", "CsLibrary.abortOperation");
         if (isCs108Connected()) return cs108Library4A.abortOperation();
         else if (isCs710Connected()) return cs710Library4A.abortOperation();
         else Log.i("Hello2", "abortOperation" + stringNOTCONNECT);
         return false;
     }
     public void restoreAfterTagSelect() {
-        if (DEBUG | true) Log.i("Hello2", "restoreAfterTagSelect");
+        if (DEBUG || true) Log.i("Hello2", "restoreAfterTagSelect");
         if (isCs108Connected()) cs108Library4A.restoreAfterTagSelect();
         else if (isCs710Connected()) cs710Library4A.restoreAfterTagSelect();
         else Log.i("Hello2", "restoreAfterTagSelect" + stringNOTCONNECT);
@@ -1116,8 +1047,15 @@ public class CsLibrary4A {
     }
     public boolean setSelectedTag(boolean selectOne, String selectMask, int selectBank, int selectOffset, long pwrlevel, int qValue, int matchRep) {
         appendToLog("csLibraryA: setSelectCriteria strTagId = " + selectMask + ", selectBank = " + selectBank + ", selectOffset = " + selectOffset + ", pwrlevel = " + pwrlevel + ", qValue = " + qValue + ", matchRep = " + matchRep);
-        if (isCs108Connected()) return cs108Library4A.setSelectedTag(selectOne, selectMask, selectBank, selectOffset, pwrlevel, qValue, matchRep);
-        else if (isCs710Connected()) return cs710Library4A.setSelectedTag(selectMask, selectBank, selectOffset, pwrlevel, qValue, matchRep);
+        if (isCs108Connected()) return cs108Library4A.setSelectedTag4Access(selectOne, selectMask, selectBank, selectOffset, pwrlevel, qValue, matchRep);
+        else if (isCs710Connected()) return cs710Library4A.setSelectedTag4Access(selectOne, selectMask, selectBank, selectOffset, pwrlevel, qValue, matchRep);
+        else Log.i("Hello2", "setSelectedTag 2" + stringNOTCONNECT);
+        return false;
+    }
+    public boolean setSelectedTag4Access(boolean selectOne, String selectMask, int selectBank, int selectOffset, long pwrlevel, int qValue, int matchRep) {
+        appendToLog("csLibraryA.setSelectTag: seelctOne = " + selectOne + ", selectMask = " + selectMask + ", selectBank = " + selectBank + ", selectOffset = " + selectOffset + ", pwrlevel = " + pwrlevel + ", qValue = " + qValue + ", matchRep = " + matchRep);
+        if (isCs108Connected()) return cs108Library4A.setSelectedTag4Access(selectOne, selectMask, selectBank, selectOffset, pwrlevel, qValue, matchRep);
+        else if (isCs710Connected()) return cs710Library4A.setSelectedTag4Access(selectOne, selectMask, selectBank, selectOffset, pwrlevel, qValue, matchRep);
         else Log.i("Hello2", "setSelectedTag 2" + stringNOTCONNECT);
         return false;
     }
@@ -1157,12 +1095,21 @@ public class CsLibrary4A {
         return false;
     }
     public boolean setChannelHoppingStatus(boolean channelOrderHopping) {
-        Log.i("Hello2", "setChannelHoppingStatus");
+        if (DEBUG) Log.i("Hello2", "setChannelHoppingStatus");
+        if (isCs108Connected()) return cs108Library4A.setChannelHoppingStatus(channelOrderHopping);
+        else if (isCs710Connected()) return cs710Library4A.setChannelHoppingStatus(channelOrderHopping);
+        else Log.i("Hello2", "setChannelHoppingStatus" + stringNOTCONNECT);
         return false;
     }
     public String[] getChannelFrequencyList() {
         if (isCs108Connected()) return cs108Library4A.getChannelFrequencyList();
         else if (isCs710Connected()) return cs710Library4A.getChannelFrequencyList();
+        else Log.i("Hello2", "getChannelFrequencyList" + stringNOTCONNECT);
+        return null;
+    }
+    public String[] getChannelFrequencyList(int iRegionPosition) {
+        if (isCs108Connected()) return cs108Library4A.getChannelFrequencyList(iRegionPosition);
+        else if (isCs710Connected()) return cs710Library4A.getChannelFrequencyList(iRegionPosition);
         else Log.i("Hello2", "getChannelFrequencyList" + stringNOTCONNECT);
         return null;
     }
@@ -1179,6 +1126,13 @@ public class CsLibrary4A {
         else if (isCs710Connected()) return cs710Library4A.setChannel(channelSelect);
         else Log.i("Hello2", "setChannel" + stringNOTCONNECT);
         return false;
+    }
+    public int getQ2Population(int iQValue) {
+        if (DEBUG) Log.i("Hello2", "getQ2Population");
+        if (isCs108Connected()) return cs108Library4A.getQ2Population(iQValue);
+        else if (isCs710Connected()) return cs710Library4A.getQ2Population(iQValue);
+        else Log.i("Hello2", "getQ2Population" + stringNOTCONNECT);
+        return -1;
     }
     public byte getPopulation2Q(int population) {
         if (DEBUG) Log.i("Hello2", "getPopulation2Q");
@@ -1217,95 +1171,24 @@ public class CsLibrary4A {
     }
     public RfidReaderChipData.Rx000pkgData onRFIDEvent() {
         if (DEBUG2) Log.i("Hello2", "onRFIDEvent");
-        if (isCs108Connected()) {
-            RfidReaderChipData.Rx000pkgData rx000pkgData = null;
-            RfidReaderChipData.Rx000pkgData rx000pkgData1 = cs108Library4A.onRFIDEvent();
-            if (rx000pkgData1 != null) {
-                rx000pkgData = new RfidReaderChipData.Rx000pkgData();
-                switch (rx000pkgData1.responseType) {
-                    case TYPE_18K6C_INVENTORY_COMPACT:
-                        rx000pkgData.responseType = RfidReaderChipData.HostCmdResponseTypes.TYPE_18K6C_INVENTORY_COMPACT;
-                        break;
-                    case TYPE_18K6C_INVENTORY:
-                        rx000pkgData.responseType = RfidReaderChipData.HostCmdResponseTypes.TYPE_18K6C_INVENTORY;
-                        break;
-                    case TYPE_COMMAND_ABORT_RETURN:
-                        rx000pkgData.responseType = RfidReaderChipData.HostCmdResponseTypes.TYPE_COMMAND_ABORT_RETURN;
-                        break;
-                    case TYPE_COMMAND_END:
-                        rx000pkgData.responseType = RfidReaderChipData.HostCmdResponseTypes.TYPE_COMMAND_END;
-                        break;
-                    case TYPE_18K6C_TAG_ACCESS:
-                        rx000pkgData.responseType = RfidReaderChipData.HostCmdResponseTypes.TYPE_18K6C_TAG_ACCESS;
-                        break;
-                    default:
-                        Log.i("Hello2", "onRFIDEvent: responseType = " + rx000pkgData1.responseType.toString());
-                }
-                rx000pkgData.flags = rx000pkgData1.flags;
-                rx000pkgData.dataValues = rx000pkgData1.dataValues;
-                rx000pkgData.decodedTime = rx000pkgData1.decodedTime;
-                rx000pkgData.decodedRssi = rx000pkgData1.decodedRssi;
-                rx000pkgData.decodedPhase = rx000pkgData1.decodedPhase;
-                rx000pkgData.decodedChidx = rx000pkgData1.decodedChidx;
-                rx000pkgData.decodedPort = rx000pkgData1.decodedPort;
-                rx000pkgData.decodedPc = rx000pkgData1.decodedPc;
-                rx000pkgData.decodedEpc = rx000pkgData1.decodedEpc;
-                rx000pkgData.decodedCrc = rx000pkgData1.decodedCrc;
-                rx000pkgData.decodedData1 = rx000pkgData1.decodedData1;
-                rx000pkgData.decodedData2 = rx000pkgData1.decodedData2;
-                rx000pkgData.decodedResult = rx000pkgData1.decodedResult;
-                rx000pkgData.decodedError = rx000pkgData1.decodedError;
-            }
-            return rx000pkgData;
-        } else if (isCs710Connected()) {
-            RfidReaderChipData.Rx000pkgData rx000pkgData = null;
-            RfidReaderChipData.Rx000pkgData rx000pkgData1 = cs710Library4A.onRFIDEvent();
-            if (rx000pkgData1 != null) {
-                rx000pkgData = new RfidReaderChipData.Rx000pkgData();
-                switch (rx000pkgData1.responseType) {
-                    case TYPE_18K6C_INVENTORY_COMPACT:
-                        rx000pkgData.responseType = RfidReaderChipData.HostCmdResponseTypes.TYPE_18K6C_INVENTORY_COMPACT;
-                        break;
-                    case TYPE_18K6C_INVENTORY:
-                        rx000pkgData.responseType = RfidReaderChipData.HostCmdResponseTypes.TYPE_18K6C_INVENTORY;
-                        break;
-                    case TYPE_COMMAND_ABORT_RETURN:
-                        rx000pkgData.responseType = RfidReaderChipData.HostCmdResponseTypes.TYPE_COMMAND_ABORT_RETURN;
-                        break;
-                    case TYPE_COMMAND_END:
-                        rx000pkgData.responseType = RfidReaderChipData.HostCmdResponseTypes.TYPE_COMMAND_END;
-                        break;
-                    case TYPE_18K6C_TAG_ACCESS:
-                        rx000pkgData.responseType = RfidReaderChipData.HostCmdResponseTypes.TYPE_18K6C_TAG_ACCESS;
-                        break;
-                    default:
-                        Log.i("Hello2", "onRFIDEvent: responseType = " + rx000pkgData1.responseType.toString());
-                }
-                rx000pkgData.flags = rx000pkgData1.flags;
-                rx000pkgData.dataValues = rx000pkgData1.dataValues;
-                rx000pkgData.decodedTime = rx000pkgData1.decodedTime;
-                rx000pkgData.decodedRssi = rx000pkgData1.decodedRssi;
-                rx000pkgData.decodedPhase = rx000pkgData1.decodedPhase;
-                rx000pkgData.decodedChidx = rx000pkgData1.decodedChidx;
-                rx000pkgData.decodedPort = rx000pkgData1.decodedPort;
-                rx000pkgData.decodedPc = rx000pkgData1.decodedPc;
-                rx000pkgData.decodedEpc = rx000pkgData1.decodedEpc;
-                rx000pkgData.decodedCrc = rx000pkgData1.decodedCrc;
-                rx000pkgData.decodedData1 = rx000pkgData1.decodedData1;
-                rx000pkgData.decodedData2 = rx000pkgData1.decodedData2;
-                rx000pkgData.decodedResult = rx000pkgData1.decodedResult;
-                rx000pkgData.decodedError = rx000pkgData1.decodedError;
-            }
-            if (rx000pkgData != null) appendToLog("response0 = " + rx000pkgData.responseType.toString() + ", " + byteArrayToString(rx000pkgData.dataValues));
-            return rx000pkgData;
-        }
+        RfidReaderChipData.Rx000pkgData rx000pkgData = null;
+        if (isCs108Connected()) rx000pkgData = cs108Library4A.onRFIDEvent();
+        else if (isCs710Connected()) rx000pkgData = cs710Library4A.onRFIDEvent();
         else Log.i("Hello2", "onRFIDEvent" + stringNOTCONNECT);
-        return null;
+        return rx000pkgData;
     }
     public String getModelNumber() {
         if (DEBUG) Log.i("Hello2", "getModelNumber");
-        if (isCs108Connected()) return cs108Library4A.getModelNumber();
-        else if (isCs710Connected()) return cs710Library4A.getModelNumber();
+        if (isCs108Connected()) {
+            String string = cs108Library4A.getModelNumber();
+            Log.i("Hello2", "CsLibrary.getModelNumber: 108, string = " + string);
+            return string;
+        }
+        else if (isCs710Connected()) {
+            String string = cs710Library4A.getModelNumber();
+            Log.i("Hello2", "CsLibrary.getModelNumber: 710, string = " + string);
+            return string;
+        }
         else Log.i("Hello2", "getModelNumber" + stringNOTCONNECT);
         return null;
     }
@@ -1422,103 +1305,9 @@ public class CsLibrary4A {
         return false;
     }
     public boolean sendHostRegRequestHST_CMD(RfidReaderChipData.HostCommands hostCommand) {
-        if (DEBUG | true) Log.i("Hello2", "sendHostRegRequestHST_CMD with hostCommand = " + hostCommand.toString());
-        if (isCs108Connected()) {
-            RfidReaderChipData.HostCommands hostCommands1 = null;
-            switch (hostCommand) {
-                case CMD_18K6CREAD:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_18K6CREAD;
-                    break;
-                case CMD_18K6CWRITE:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_18K6CWRITE;
-                    break;
-                case CMD_18K6CLOCK:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_18K6CLOCK;
-                    break;
-                case CMD_18K6CKILL:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_18K6CKILL;
-                    break;
-                case CMD_18K6CAUTHENTICATE:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_18K6CAUTHENTICATE;
-                    break;
-                case CMD_UNTRACEABLE:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_UNTRACEABLE;
-                    break;
-                case CMD_GETSENSORDATA:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_GETSENSORDATA;
-                    break;
-                case CMD_FDM_RDMEM:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_FDM_RDMEM;
-                    break;
-                case CMD_FDM_WRMEM:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_FDM_WRMEM;
-                    break;
-                case CMD_FDM_AUTH:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_FDM_AUTH;
-                    break;
-                case CMD_FDM_GET_TEMPERATURE:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_FDM_GET_TEMPERATURE;
-                    break;
-                case CMD_FDM_START_LOGGING:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_FDM_START_LOGGING;
-                    break;
-                case CMD_FDM_STOP_LOGGING:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_FDM_STOP_LOGGING;
-                    break;
-                case CMD_FDM_WRREG:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_FDM_WRREG;
-                    break;
-                case CMD_FDM_RDREG:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_FDM_RDREG;
-                    break;
-                case CMD_FDM_DEEP_SLEEP:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_FDM_DEEP_SLEEP;
-                    break;
-                case CMD_FDM_OPMODE_CHECK:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_FDM_OPMODE_CHECK;
-                    break;
-                case CMD_FDM_INIT_REGFILE:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_FDM_INIT_REGFILE;
-                    break;
-                case CMD_FDM_LED_CTRL:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_FDM_LED_CTRL;
-                    break;
-                default:
-                    Log.i("Hello2", "Skip sendHostRegRequestHST_CMD: hostCommand = " + hostCommand.toString());
-                    break;
-            }
-            if (hostCommands1 == null) return false;
-            else return cs108Library4A.sendHostRegRequestHST_CMD(hostCommands1);
-        } else if (isCs710Connected()) {
-            RfidReaderChipData.HostCommands hostCommands1 = null;
-            switch (hostCommand) {
-                case CMD_18K6CREAD:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_18K6CREAD;
-                    break;
-                case CMD_18K6CWRITE:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_18K6CWRITE;
-                    break;
-                case CMD_18K6CLOCK:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_18K6CLOCK;
-                    break;
-                case CMD_18K6CKILL:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_18K6CKILL;
-                    break;
-                case CMD_18K6CAUTHENTICATE:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_18K6CAUTHENTICATE;
-                    break;
-                case CMD_UNTRACEABLE:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_UNTRACEABLE;
-                    break;
-                case CMD_GETSENSORDATA:
-                    hostCommands1 = RfidReaderChipData.HostCommands.CMD_GETSENSORDATA;
-                default:
-                    Log.i("Hello2", "sendHostRegRequestHST_CMD: hostCommand = " + hostCommand.toString());
-                    break;
-            }
-            if (hostCommands1 == null) return false;
-            return cs710Library4A.sendHostRegRequestHST_CMD(hostCommands1);
-        }
+        if (DEBUG) Log.i("Hello2", "sendHostRegRequestHST_CMD with hostCommand = " + hostCommand.toString());
+        if (isCs108Connected()) return cs108Library4A.sendHostRegRequestHST_CMD(hostCommand);
+        else if (isCs710Connected()) return cs710Library4A.sendHostRegRequestHST_CMD(hostCommand);
         else Log.i("Hello2", "sendHostRegRequestHST_CMD" + stringNOTCONNECT);
         return false;
     }
@@ -1729,12 +1518,6 @@ public class CsLibrary4A {
         else if (isCs710Connected()) cs710Library4A.setSameCheck(sameCheck1);
         else Log.i("Hello2", "setSameCheck" + stringNOTCONNECT);
     }
-    public void saveSetting2File() {
-        if (DEBUG) Log.i("Hello2", "saveSetting2File");
-        if (isCs108Connected()) cs108Library4A.saveSetting2File();
-        else if (isCs710Connected()) cs710Library4A.saveSetting2File();
-        else Log.i("Hello2", "saveSetting2File" + stringNOTCONNECT);
-    }
     public int getBeepCount() {
         if (DEBUG) Log.i("Hello2", "getBeepCount");
         if (isCs108Connected()) return cs108Library4A.getBeepCount();
@@ -1829,8 +1612,8 @@ public class CsLibrary4A {
     }
     public String getForegroundReader() {
         String string = null;
-        if (isCs710Connected()) string = cs710Library4A.getForegroundReader().trim();
-        else string = (cs108Library4A == null ? null : cs108Library4A.getForegroundReader().trim());
+        if (cs710Library4A != null) string = cs710Library4A.getForegroundReader().trim();
+        else if (cs108Library4A != null) string = cs108Library4A.getForegroundReader().trim();
         return string;
     }
     public boolean getForegroundServiceEnable() {
@@ -1896,10 +1679,10 @@ public class CsLibrary4A {
         else Log.i("Hello2", "getServerTopicMqtt" + stringNOTCONNECT);
         return null;
     }
-    public boolean setTopicMqtt(String topic) {
+    public boolean setTopicMqtt(String topicMqtt) {
         if (DEBUG) Log.i("Hello2", "setServerTopicMqtt");
-        if (isCs108Connected()) return cs108Library4A.setTopicMqtt(topic);
-        else if (isCs710Connected()) return cs710Library4A.setTopicMqtt(topic);
+        if (isCs108Connected()) return cs108Library4A.setTopicMqtt(topicMqtt);
+        else if (isCs710Connected()) return cs710Library4A.setTopicMqtt(topicMqtt);
         else Log.i("Hello2", "setServerTopicMqtt" + stringNOTCONNECT);
         return false;
     }
@@ -1973,7 +1756,20 @@ public class CsLibrary4A {
         else Log.i("Hello2", "setServerImpinjPassword" + stringNOTCONNECT);
         return false;
     }
-
+    public String getPartnerReaderName() {
+        if (DEBUG) Log.i("Hello2", "getPartnerReaderName");
+        if (isCs108Connected()) return cs108Library4A.getPartnerReaderName();
+        else if (isCs710Connected()) return cs710Library4A.getPartnerReaderName();
+        else Log.i("Hello2", "getPartnerReaderName" + stringNOTCONNECT);
+        return null;
+    }
+    public boolean setPartnerReaderName(String partnerReaderName) {
+        if (DEBUG) Log.i("Hello2", "setPartnerReaderName");
+        if (isCs108Connected()) return cs108Library4A.setPartnerReaderName(partnerReaderName);
+        else if (isCs710Connected()) return cs710Library4A.setPartnerReaderName(partnerReaderName);
+        else Log.i("Hello2", "setPartnerReaderName" + stringNOTCONNECT);
+        return false;
+    }
     public int getBatteryDisplaySetting() {
         if (DEBUG) Log.i("Hello2", "getBatteryDisplaySetting");
         if (isCs108Connected()) return cs108Library4A.getBatteryDisplaySetting();
@@ -2114,12 +1910,32 @@ public class CsLibrary4A {
     }
 
     //============ Bluetooth ============
+    public boolean isBluetoothICFailure() {
+        if (DEBUG) Log.i("Hello2", "isBluetoothICFailure");
+        if (isCs108Connected()) return cs108Library4A.isBluetoothICFailure();
+        else if (isCs710Connected()) return cs710Library4A.isBluetoothICFailure();
+        else Log.i("Hello2", "isBluetoothICFailure" + stringNOTCONNECT);
+        return false;
+    }
+    public int getBluetoothICReplyResult() {
+        if (DEBUG) Log.i("Hello2", "getBluetoothICReplyResult");
+        if (isCs108Connected()) return cs108Library4A.getBluetoothICReplyResult();
+        else if (isCs710Connected()) return cs710Library4A.getBluetoothICReplyResult();
+        else Log.i("Hello2", "getBluetoothICReplyResult" + stringNOTCONNECT);
+        return -1;
+    }
     public String getBluetoothICFirmwareVersion() {
         if (DEBUG) Log.i("Hello2", "getBluetoothICFirmwareVersion");
         if (isCs108Connected()) return cs108Library4A.getBluetoothICFirmwareVersion();
         else if (isCs710Connected()) return cs710Library4A.getBluetoothICFirmwareVersion();
         else Log.i("Hello2", "getBluetoothICFirmwareVersion" + stringNOTCONNECT);
         return null;
+    }
+    public void sendBluetoothIcImage(byte[] image_subpart_data, int image_total_subpart, int image_subpart) {
+        if (DEBUG) Log.i("Hello2", "sendBluetoothIcImage");
+        if (isCs108Connected()) cs108Library4A.sendBluetoothIcImage(image_subpart_data, image_total_subpart, image_subpart);
+        else if (isCs710Connected()) cs710Library4A.sendBluetoothIcImage(image_subpart_data, image_total_subpart, image_subpart);
+        else Log.i("Hello2", "sendBluetoothIcImage" + stringNOTCONNECT);
     }
     public String getBluetoothICFirmwareName() {
         if (DEBUG) Log.i("Hello2", "getBluetoothICFirmwareName");
@@ -2137,12 +1953,32 @@ public class CsLibrary4A {
     }
 
     //============ Controller ============
+    public int getControllerReplyResult() {
+        if (DEBUG) Log.i("Hello2", "getControllerReplyResult");
+        if (isCs108Connected()) return cs108Library4A.getControllerReplyResult();
+        else if (isCs710Connected()) return cs710Library4A.getControllerReplyResult();
+        else Log.i("Hello2", "getControllerReplyResult" + stringNOTCONNECT);
+        return -1;
+    }
+    public boolean isControllerFailure() {
+        if (DEBUG) Log.i("Hello2", "isControllerFailure");
+        if (isCs108Connected()) return cs108Library4A.isControllerFailure();
+        else if (isCs710Connected()) return cs710Library4A.isControllerFailure();
+        else Log.i("Hello2", "isControllerFailure" + stringNOTCONNECT);
+        return false;
+    }
     public String hostProcessorICGetFirmwareVersion() {
         if (DEBUG) Log.i("Hello2", "hostProcessorICGetFirmwareVersion");
         if (isCs108Connected()) return cs108Library4A.hostProcessorICGetFirmwareVersion();
         else if (isCs710Connected()) return cs710Library4A.hostProcessorICGetFirmwareVersion();
         else Log.i("Hello2", "hostProcessorICGetFirmwareVersion" + stringNOTCONNECT);
         return null;
+    }
+    public void sendHostProcessorICImage(byte[] image_subpart_data, int image_total_subpart, int image_subpart) {
+        if (DEBUG) Log.i("Hello2", "sendHostProcessorICImage");
+        if (isCs108Connected()) cs108Library4A.sendHostProcessorICImage(image_subpart_data, image_total_subpart, image_subpart);
+        else if (isCs710Connected()) cs710Library4A.sendHostProcessorICImage(image_subpart_data, image_total_subpart, image_subpart);
+        else Log.i("Hello2", "sendHostProcessorICImage" + stringNOTCONNECT);
     }
     public String getHostProcessorICSerialNumber() {
         if (DEBUG) Log.i("Hello2", "getHostProcessorICSerialNumber");
@@ -2209,7 +2045,7 @@ public class CsLibrary4A {
         else Log.i("Hello2", "setTriggerReporting" + stringNOTCONNECT);
         return false;
     }
-    public int iNO_SUCH_SETTING = -1;
+    public final int iNO_SUCH_SETTING = 10000;
     public short getTriggerReportingCount() {
         if (DEBUG) Log.i("Hello2", "getTriggerReportingCount");
         if (isCs108Connected()) return cs108Library4A.getTriggerReportingCount();
@@ -2260,23 +2096,12 @@ public class CsLibrary4A {
         else Log.i("Hello2", "getTriggerCount" + stringNOTCONNECT);
         return -1;
     }
-    //public interface NotificationListener { void onChange(); }
     public void setNotificationListener(NotificationConnector.NotificationListener listener) {
         if (DEBUG) Log.i("Hello2", "setNotificationListener");
         if (isCs108Connected()) {
-            cs108Library4A.setNotificationListener(new NotificationConnector.NotificationListener() {
-                @Override
-                public void onChange() {
-                    listener.onChange();
-                }
-            });
+            cs108Library4A.setNotificationListener(listener);
         } else if (isCs710Connected()) {
-            cs710Library4A.setNotificationListener(new NotificationConnector.NotificationListener() {
-                @Override
-                public void onChange() {
-                    listener.onChange();
-                }
-            });
+            cs710Library4A.setNotificationListener(listener);
         }
         else Log.i("Hello2", "setNotificationListener" + stringNOTCONNECT);
     }
@@ -2303,11 +2128,20 @@ public class CsLibrary4A {
         else Log.i("Hello2", "setRfidOn" + stringNOTCONNECT);
         return false;
     }
+    public void saveSetting2File() {
+        if (DEBUG) Log.i("Hello2", "saveSetting2File");
+        if (isCs108Connected()) cs108Library4A.saveSetting2File();
+        else if (isCs710Connected()) cs710Library4A.saveSetting2File();
+        else Log.i("Hello2", "saveSetting2File" + stringNOTCONNECT);
+    }
     public int getcsModel() {
-        if (DEBUG2) Log.i("Hello2", "getcsModel");
-        if (isCs108Connected()) return cs108Library4A.getcsModel();
-        else if (isCs710Connected()) return cs710Library4A.getcsModel();
-        else Log.i("Hello2", "getcsModel" + stringNOTCONNECT);
+    	return getCsModel();
+    }
+    public int getCsModel() {
+        if (DEBUG2) Log.i("Hello2", "getCsModel");
+        if (isCs108Connected()) return cs108Library4A.getCsModel();
+        else if (isCs710Connected()) return cs710Library4A.getCsModel();
+        else Log.i("Hello2", "getCsModel" + stringNOTCONNECT);
         return -1;
     }
     public int getAntennaCycle() {
@@ -2362,8 +2196,8 @@ public class CsLibrary4A {
     //============ not public ============
     int bConnectStatus = 0;
     int iServiceUuidConnectedBefore = -1;
-    private boolean isCs108Connected() { return (bConnectStatus == 1); }
-    private boolean isCs710Connected() { return (bConnectStatus == 7); }
+    public boolean isCs108Connected() { return (bConnectStatus == 1); }
+    public boolean isCs710Connected() { return (bConnectStatus == 7); }
 
     public int setSelectData(RfidReader.TagType tagType, String mDid, boolean bNeedSelectedTagByTID, String stringProtectPassword, int selectFor, int selectHold) {
         if (DEBUG2) Log.i("Hello2", "setSelectData");
@@ -2388,10 +2222,84 @@ public class CsLibrary4A {
     }
     public boolean setOtherInventoryData(RfidReader.TagType tagType, String mDid) {
         if (DEBUG2) Log.i("Hello2", "setOtherInventoryData");
-        //appendToLog("BtDataOut: tagType = " + (tagType == null ? "null" : tagType.toString()) + ", mDid = " + mDid);
         if (isCs108Connected()) return cs108Library4A.setOtherInventoryData(tagType, mDid);
         else if (isCs710Connected()) return cs710Library4A.setOtherInventoryData(tagType, mDid);
         else Log.i("Hello2", "setOtherInventoryData" + stringNOTCONNECT);
         return false;
+    }
+    public String[] getEpcClassList() {
+        if (DEBUG) Log.i("Hello2", "getEpcClassList");
+        if (isCs108Connected()) return cs108Library4A.getEpcClassList();
+        else if (isCs710Connected()) return cs710Library4A.getEpcClassList();
+        else Log.i("Hello2", "getEpcClassList" + stringNOTCONNECT);
+        return null;
+    }
+    public byte[] getProtMode2DecryptedData(byte[] key1, String strAlgo, byte[] dataIn, byte[] iv) {
+        if (DEBUG) Log.i("Hello2", "getProtMode2DecryptedData");
+        if (isCs108Connected()) return cs108Library4A.getProtMode2DecryptedData(key1, strAlgo, dataIn, iv);
+        else if (isCs710Connected()) return cs710Library4A.getProtMode2DecryptedData(key1, strAlgo, dataIn, iv);
+        else Log.i("Hello2", "getProtMode2DecryptedData" + stringNOTCONNECT);
+        return null;
+    }
+    public AccessTaskCustom getAccessTaskCustom(Button button, boolean invalidRequest, boolean selectOne,
+                                                SelectData selectData, RfidReaderChipData.HostCommands hostCommand,
+                                                boolean bEnableErrorPopWindow, Runnable updateRunnable,
+                                                CustomMediaPlayer playerN, CustomMediaPlayer playerO) {
+        AccessTaskCustom accessTaskCustom = null;
+        if (isCs108Connected()) {
+            accessTaskCustom = cs108Library4A.getAccessTaskCustom(button, invalidRequest, selectOne,
+                    selectData, hostCommand,
+                    bEnableErrorPopWindow, updateRunnable, playerN, playerO);
+        }
+        else if (isCs710Connected()) {
+            accessTaskCustom = cs710Library4A.getAccessTaskCustom(button, invalidRequest, selectOne,
+                    selectData, hostCommand,
+                    bEnableErrorPopWindow, updateRunnable, playerN, playerO);
+        }
+        return accessTaskCustom;
+    }
+    public AccessTaskCustom getAccessTaskCustom(Button button, boolean invalidRequest, boolean selectOne,
+                                                SelectData selectData, RfidReaderChipData.HostCommands hostCommand,
+                                                int qValue, int repeat, boolean resetCount, boolean bSkipClearFilter,
+                                                TextView textViewWriteCount, TextView registerRunTime, TextView registerTagGot, TextView registerVoltageLevel, TextView registerYieldView, TextView registerTotalView,
+                                                CustomMediaPlayer playerN, CustomMediaPlayer playerO) {
+        AccessTaskCustom accessTaskCustom = null;
+        if (isCs108Connected()) {
+            accessTaskCustom = cs108Library4A.getAccessTaskCustom(button, invalidRequest, selectOne,
+                    selectData, hostCommand,
+                    qValue, repeat, resetCount, bSkipClearFilter,
+                    textViewWriteCount, registerRunTime, registerTagGot, registerVoltageLevel, registerYieldView, registerTotalView,
+                    playerN, playerO);
+        }
+        else if (isCs710Connected()) {
+            accessTaskCustom = cs710Library4A.getAccessTaskCustom(button, invalidRequest, selectOne,
+                    selectData, hostCommand,
+                    qValue, repeat, resetCount, bSkipClearFilter,
+                    textViewWriteCount, registerRunTime, registerTagGot, registerVoltageLevel, registerYieldView, registerTotalView,
+                    playerN, playerO);
+        }
+        return accessTaskCustom;
+    }
+    public AccessTaskCustom getAccessTaskCustom(Button button, boolean invalidRequest,
+                                                SelectData selectData, RfidReaderChipData.HostCommands hostCommand,
+                                                CustomMediaPlayer playerN, CustomMediaPlayer playerO) {
+        AccessTaskCustom accessTaskCustom = null;
+        if (isCs108Connected()) {
+            accessTaskCustom = cs108Library4A.getAccessTaskCustom(button, invalidRequest,
+                    selectData, hostCommand,
+                    playerN, playerO);
+        }
+        else if (isCs710Connected()) {
+            accessTaskCustom = cs710Library4A.getAccessTaskCustom(button, invalidRequest,
+                    selectData, hostCommand,
+                    playerN, playerO);
+        }
+        return accessTaskCustom;
+    }
+    public TagAxzonOpus getTagAxzonOpus(CustomMediaPlayer playerN, CustomMediaPlayer playerO, Button buttonRead, Button buttonWrite) {
+        TagAxzonOpus tagAxzonOpus = null;
+        if (isCs108Connected()) return cs108Library4A.getTagAxzonOpus(playerN, playerO, buttonRead, buttonWrite);
+        else if (isCs710Connected()) return cs710Library4A.getTagAxzonOpus(playerN, playerO, buttonRead, buttonWrite);
+        return tagAxzonOpus;
     }
 }

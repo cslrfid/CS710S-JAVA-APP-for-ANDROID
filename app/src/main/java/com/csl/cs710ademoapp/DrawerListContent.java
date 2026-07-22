@@ -27,7 +27,7 @@ public class DrawerListContent {
         BAPCARD, COLDCHAIN, AURASENSE,
         KILOWAY,
         LONGJING,
-        AXZON, RFMICRON,
+        AXZON,
         FDMICRO,
         CTESIUS,
         ASYGNTAG,
@@ -68,6 +68,7 @@ public class DrawerListContent {
                 case 25: return READWRITEUSER;
                 case 26: return WEDGE;
                 case 27: return DIRECTWEDGE;
+                case 28: return BLANK;
             }
             return null;
         }

@@ -14,20 +14,22 @@ public class SettingData {
 
     public int channel = -1;
     int antennaPower = -1;
-    Context context; Utility utility; NotificationConnector notificationConnector; RfidReader rfidReader; CsReaderConnector csReaderConnector;
-    //CsReaderConnector csReaderConnector;
+    Context context; Utility utility; NotificationConnector notificationConnector; RfidReader rfidReader;
+    CsReaderConnector csReaderConnector;
 
+    public SettingData(Context context, Utility utility) {
+        this.context = context;
+        this.utility = utility;
+        loadForegroundSettingFile();
+    }
     public SettingData(Context context, Utility utility, CsReaderConnector csReaderConnector) {
         this.context = context;
         this.utility = utility;
         this.csReaderConnector = csReaderConnector;
-        appendToLog("SettingData:"
-                + "\nthis.context is " + (this.context == null ? "null" : "valid")
-                + "\nthis.utility is " + (this.utility == null ? "null" : "valid")
-                + "\nthis.csReaderConnector is " + (this.csReaderConnector == null ? "null" : "valid")
-        );
+        this.rfidReader = csReaderConnector.rfidReader;
         loadForegroundSettingFile();
     }
+
     public void setConnectedConnectors(NotificationConnector notificationConnector, RfidReader rfidReader) {
         this.notificationConnector = notificationConnector;
         this.rfidReader = rfidReader;
@@ -115,6 +117,10 @@ public class SettingData {
     public String serverImpinjNameDefault = "", serverImpinjName = serverImpinjNameDefault;
     //String serverImpinjPasswordDefault = "Cne12345678?", serverImpinjPassword = serverImpinjPasswordDefault;
     public String serverImpinjPasswordDefault = "", serverImpinjPassword = serverImpinjPasswordDefault;
+    public String partnerReaderNameDefault = "", partnerReaderName = partnerReaderNameDefault;
+    public String getPartnerReaderName() {
+        return partnerReaderName;
+    }
 
     public int iForegroundDupElimDefault = 1, iForegroundDupElim = iForegroundDupElimDefault;
 
@@ -143,6 +149,9 @@ public class SettingData {
 
     public File fileSetting;
     boolean loadSettingFile(String stringMacAddress, String strlibraryVersion, boolean bChannelHoppingStatus, int iCurrentProfile) {
+    	return loadSettingFile(csReaderConnector.bluetoothConnector, stringMacAddress, strlibraryVersion, bChannelHoppingStatus, iCurrentProfile);
+    }
+    public boolean loadSettingFile(BluetoothConnector bluetoothConnector, String stringMacAddress, String strlibraryVersion, boolean bChannelHoppingStatus, int iCurrentProfile) {
         boolean DEBUG = true;
         appendToLog("SettingData.loadSettingFile:"
                 + "\nstringMacAddress = " + stringMacAddress
@@ -186,62 +195,81 @@ public class SettingData {
                     String[] dataArray = line.split(",");
                     if (dataArray.length == 2) {
                         if (dataArray[0].matches("appVersion")) {
-                            appendToLog("datArray[1] = " + dataArray[1] + ", strlibraryVersion = " + strlibraryVersion);
-                            if (dataArray[1].matches(strlibraryVersion)) bNeedDefault = false;
+                            appendToLog("SettingData.loadSettingFile: FileA, datArray[1] = " + dataArray[1] + ", strlibraryVersion = " + strlibraryVersion);
+                            //if (dataArray[1].matches(strlibraryVersion)) 
+								bNeedDefault = false;
                         } else if (bNeedDefault == true) {
+
                         } else if (dataArray[0].matches("countryInList")) {
-                            csReaderConnector.rfidReader.getRegionList(); //getRegionList();
+                            rfidReader.getRegionList(); //getRegionList();
                             int countryInListNew = Integer.valueOf(dataArray[1]);
-                            if (csReaderConnector.rfidReader.countryInList != countryInListNew && countryInListNew >= 0) csReaderConnector.rfidReader.setCountryInList(countryInListNew);
-                            csReaderConnector.rfidReader.channelOrderType = -1;
+                            if (rfidReader.countryInList != countryInListNew && countryInListNew >= 0) rfidReader.setCountryInList(countryInListNew);
+                            rfidReader.channelOrderType = -1;
                         } else if (dataArray[0].matches("channel")) {
                             int channelNew = Integer.valueOf(dataArray[1]);
-                            if (bChannelHoppingStatus == false && channelNew >= 0) csReaderConnector.rfidReader.setChannel(channelNew);
+                            if (bChannelHoppingStatus == false && channelNew >= 0) rfidReader.setChannel(channelNew);
+
+                        } else if (dataArray[0].matches("antennaPort")) {
+                            int iValue = Integer.valueOf(dataArray[1]);
+                            if (iValue >= 0) rfidReader.setAntennaSelect(iValue);
+                        } else if (dataArray[0].matches("antennaEnable")) {
+                            int iValue = Integer.valueOf(dataArray[1]);
+                            if (false) appendToLog("SettingData.loadSettingFile: old antennaEnable = " + rfidReader.getAntennaEnable() + ", new antennaEnable = " + iValue);
+                            if (iValue == 0 || iValue == 1) rfidReader.setAntennaEnable(iValue > 0);
                         } else if (dataArray[0].matches("antennaPower")) {
                             long lValue = Long.valueOf(dataArray[1]);
-                            if (lValue >= 0) csReaderConnector.rfidReader.setPowerLevel(lValue);
+                            if (lValue >= 0) rfidReader.setPowerLevel(lValue);
                         } else if (dataArray[0].matches("antennaDwell")) {
                             long lValue = Long.valueOf(dataArray[1]);
-                            if (lValue >= 0) {
-                                csReaderConnector.rfidReader.setAntennaDwell(lValue);
-                            }
+                            if (lValue >= 0) rfidReader.setAntennaDwell(lValue);
                         } else if (dataArray[0].matches("population")) {
                             population = Integer.valueOf(dataArray[1]);
-                        } else if (dataArray[0].matches("querySession")) {
-                            int iValue = Integer.valueOf(dataArray[1]);
-                            if (iValue >= 0) querySession = iValue;
-                        } else if (dataArray[0].matches("queryTarget")) {
-                            queryTarget = Integer.valueOf(dataArray[1]);
-                        } else if (dataArray[0].matches("tagFocus")) {
-                            int iValue = Integer.valueOf(dataArray[1]);
-                            if (iValue >= 0) csReaderConnector.rfidReader.tagFocus = iValue;
-                        } else if (dataArray[0].matches("fastId")) {
-                            int iValue = Integer.valueOf(dataArray[1]);
-                            if (iValue >= 0) csReaderConnector.rfidReader.fastId = iValue;
+                            rfidReader.setPopulation(population);
                         } else if (dataArray[0].matches("invAlgo")) {
                             invAlgo = dataArray[1].matches("true") ? true : false;
-                        } else if (dataArray[0].matches("retry")) {
-                            retry = Integer.valueOf(dataArray[1]);
+                            if (!invAlgo) {
+                                try {
+                                    int iValue = Integer.valueOf(dataArray[1]);
+                                    invAlgo = (iValue == 3);
+                                } catch (Exception ex) { }
+                            }
+                            rfidReader.setInvAlgo(invAlgo);
+                        } else if (dataArray[0].matches("tagFocus")) {
+                            int iValue = Integer.valueOf(dataArray[1]);
+                            if (iValue >= 0) rfidReader.setTagFocus(iValue > 0);
+                        } else if (dataArray[0].matches("fastId")) {
+                            int iValue = Integer.valueOf(dataArray[1]);
+                            if (iValue >= 0) rfidReader.setFastId(iValue > 0);
                         } else if (dataArray[0].matches("currentProfile")) {
                             int iValue = Integer.valueOf(dataArray[1]);
                             appendToLog("SettingData.loadSettingFile setCurrentLinkProfile as " + iValue);
-                            if (iValue >= 0) csReaderConnector.rfidReader.setCurrentLinkProfile(iValue);
+                            if (iValue >= 0) rfidReader.setCurrentLinkProfile(iValue);
+
+                        } else if (dataArray[0].matches("powerBoost")) {
+                            int iValue = Integer.valueOf(dataArray[1]);
+                            if (false) appendToLog("SettingData.loadSettingFile: old powerBoost = " + rfidReader.getPowerBoost() + ", new powerBoost = " + iValue);
+                            if (iValue >= 0) rfidReader.setPowerBoost(iValue > 0);
+                        } else if (dataArray[0].matches("dupDelay")) {
+                            rfidReader.setDupDelay(Byte.valueOf(dataArray[1]));
+                        } else if (dataArray[0].matches("intraPkDelay")) {
+                            rfidReader.setIntraPkDelay(Byte.valueOf(dataArray[1]));
+                        } else if (dataArray[0].matches("retry")) {
+                            retry = Integer.valueOf(dataArray[1]);
+                        } else if (dataArray[0].matches("tagDelay")) {
+                            rfidReader.setTagDelay(Byte.valueOf(dataArray[1]));
+
                         } else if (dataArray[0].matches("rxGain")) {
-                            csReaderConnector.rfidReader.setRxGain(Integer.valueOf(dataArray[1]));
+                            rfidReader.setRxGain(Integer.valueOf(dataArray[1]));
                         } else if (dataArray[0].matches("deviceName")) {
-                            csReaderConnector.bluetoothConnector.deviceName = dataArray[1].getBytes();
+                            bluetoothConnector.deviceName = dataArray[1].getBytes();
                         } else if (dataArray[0].matches("batteryDisplay")) {
                             setBatteryDisplaySetting(Integer.valueOf(dataArray[1]));
                         } else if (dataArray[0].matches("rssiDisplay")) {
                             setRssiDisplaySetting(Integer.valueOf(dataArray[1]));
-                        } else if (dataArray[0].matches("tagDelay")) {
-                            csReaderConnector.rfidReader.setTagDelay(Byte.valueOf(dataArray[1]));
+
                         } else if (dataArray[0].matches("cycleDelay")) {
-                            csReaderConnector.rfidReader.setCycleDelay(Long.valueOf(dataArray[1]));
-                        } else if (dataArray[0].matches("intraPkDelay")) {
-                            csReaderConnector.rfidReader.setIntraPkDelay(Byte.valueOf(dataArray[1]));
-                        } else if (dataArray[0].matches("dupDelay")) {
-                            csReaderConnector.rfidReader.setDupDelay(Byte.valueOf(dataArray[1]));
+                            rfidReader.setCycleDelay(Long.valueOf(dataArray[1]));
+
 
                         } else if (dataArray[0].matches(("triggerReporting"))) {
                             appendToLog("FileA: going to setTriggerReporting with notificationConnector as " + (notificationConnector == null ? "null" : "valid"));
@@ -292,6 +320,8 @@ public class SettingData {
                             serverImpinjName = dataArray[1];
                         } else if (dataArray[0].matches(("serverImpinjPassword"))) {
                             serverImpinjPassword = dataArray[1];
+                        } else if (dataArray[0].matches(("partnerReaderName"))) {
+                            partnerReaderName = dataArray[1];
 
                         } else if (dataArray[0].matches("barcode2TriggerMode")) {
                             if (dataArray[1].matches("true")) barcode2TriggerMode = true;
@@ -316,19 +346,27 @@ public class SettingData {
                             userDebugEnable = dataArray[1].matches("true") ? true : false;
                         }
                     }
+                    else if (dataArray.length == 3) {
+                        if (dataArray[0].matches("querySession")) {
+                            int iValue = Integer.valueOf(dataArray[1]);
+                            int iValue1 = Integer.valueOf(dataArray[2]);
+                            if (iValue >= 0) querySession = iValue;
+                            if (iValue1 >= 0) queryTarget = iValue1;
+                            appendToLog("FileA: querySession = " + querySession + ", queryTarget = " + queryTarget);
+                            rfidReader.setTagGroup(querySelect, querySession, queryTarget);
+                        }
+                    }
                 }
-                csReaderConnector.rfidReader.setInvAlgo(invAlgo);
-                csReaderConnector.rfidReader.setPopulation(population);
-                csReaderConnector.rfidReader.setRetryCount(retry);
-                csReaderConnector.rfidReader.setTagGroup(querySelect, querySession, queryTarget);
-                csReaderConnector.rfidReader.setTagFocus(csReaderConnector.rfidReader.tagFocus > 0 ? true : false);
+
+                rfidReader.setRetryCount(retry);
+                rfidReader.setTagFocus(rfidReader.getTagFocus() > 0);
                 if (preFilterData != null && preFilterData.enable) {
                     if (utility.DEBUG_SELECT) appendToLog("Debug_Select: SettingData.loadingSettingFile. preFilterData is valid. Going to setSelectCriteria");
                     appendToLog("BtDataOut BBB 5");
-                    csReaderConnector.rfidReader.setSelectCriteria(0, preFilterData.enable, preFilterData.target, preFilterData.action, preFilterData.bank, preFilterData.offset, preFilterData.mask, preFilterData.maskbit);
+                    rfidReader.setSelectCriteria(0, preFilterData.enable, preFilterData.target, preFilterData.action, preFilterData.bank, preFilterData.offset, preFilterData.mask, preFilterData.maskbit);
                 } else {
                     if (utility.DEBUG_SELECT) appendToLog("Debug_Select: SettingData.loadingSettingFile. preFilterData is null or disabled. Going to setSelectCriteriaDisable");
-                    csReaderConnector.rfidReader.setSelectCriteriaDisable(0);
+                    rfidReader.setSelectCriteriaDisable(0);
                 }
             }
             try {
@@ -338,13 +376,22 @@ public class SettingData {
         }
         if (bNeedDefault) {
             appendToLog("saveSetting2File default !!!");
-            csReaderConnector.rfidReader.setReaderDefault();
-            saveSetting2File(strlibraryVersion, bChannelHoppingStatus, iCurrentProfile);
+            int iValue = bluetoothConnector.getCsModel();
+            if (iValue == 203) iValue = 2; else iValue = 1;
+            for (int i = 0; i < iValue; i++) {
+                rfidReader.setAntennaSelect(i);
+                rfidReader.setReaderDefault();
+            }
+            saveSetting2File(bluetoothConnector, strlibraryVersion, bChannelHoppingStatus);
         }
         return bNeedDefault;
     }
+
     public void saveSetting2File(String strLibraryVersion, boolean bChannelHoppingStatus, int iCurrentProfile) {
-        boolean DEBUG = false;
+    	saveSetting2File(csReaderConnector.bluetoothConnector, strLibraryVersion, bChannelHoppingStatus);
+    }
+    public void saveSetting2File(BluetoothConnector bluetoothConnector, String strLibraryVersion, boolean bChannelHoppingStatus) {
+        boolean DEBUG = true;
         if (DEBUG) appendToLog("Start");
         FileOutputStream stream;
         try {
@@ -352,30 +399,50 @@ public class SettingData {
             write2FileStream(stream, "Start of data\n");
 
             write2FileStream(stream, "appVersion," + strLibraryVersion + "\n");
-            write2FileStream(stream, "countryInList," + String.valueOf(csReaderConnector.rfidReader.countryInList + "\n"));
+            write2FileStream(stream, "countryInList," + String.valueOf(rfidReader.countryInList + "\n"));
             if (!bChannelHoppingStatus) write2FileStream(stream, "channel," + String.valueOf(channel + "\n"));
 
-            write2FileStream(stream, "antennaPower," + String.valueOf(csReaderConnector.rfidReader.getPwrlevel() + "\n"));
-            write2FileStream(stream, "antennaDwell," + String.valueOf(csReaderConnector.rfidReader.getAntennaDwell() + "\n"));
-            write2FileStream(stream, "population," + String.valueOf(csReaderConnector.rfidReader.getPopulation() +"\n"));
-            write2FileStream(stream, "querySession," + String.valueOf(csReaderConnector.rfidReader.getQuerySession() + "\n"));
-            write2FileStream(stream, "queryTarget," + String.valueOf(csReaderConnector.rfidReader.getQueryTarget() + "\n"));
-            write2FileStream(stream, "tagFocus," + String.valueOf(csReaderConnector.rfidReader.getTagFocus() + "\n"));
-            write2FileStream(stream, "fastId," + String.valueOf(csReaderConnector.rfidReader.getFastId() + "\n"));
-            write2FileStream(stream, "invAlgo," + String.valueOf(csReaderConnector.rfidReader.getInvAlgo() + "\n"));
-            write2FileStream(stream, "retry," + String.valueOf(csReaderConnector.rfidReader.getRetryCount() + "\n"));
-            int iValue = csReaderConnector.rfidReader.getCurrentProfile();
-            appendToLog("SettingData.saveSettingFile getCurrentProfile as " + iValue);
-            write2FileStream(stream, "currentProfile," + String.valueOf(iValue + "\n"));
-            write2FileStream(stream, "rxGain," + String.valueOf(csReaderConnector.rfidReader.getRxGain() + "\n"));
+            int iCsModel = bluetoothConnector.getCsModel();
+            int iPortCount = 1;
+            if (iCsModel == 203) iPortCount = 2;
+            for (int i = iPortCount - 1; i >= 0; i--) {
+            	if (rfidReader.antennas != null) {
+                write2FileStream(stream, "antennaPort," + String.valueOf(rfidReader.antennas[i].port + "\n"));
+                write2FileStream(stream, "antennaEnable," + String.valueOf(rfidReader.antennas[i].getAntennaEnable() + "\n"));
+                write2FileStream(stream, "antennaPower," + String.valueOf(rfidReader.antennas[i].getPwrlevel() + "\n"));
+                write2FileStream(stream, "antennaDwell," + String.valueOf(rfidReader.antennas[i].getAntennaDwell() + "\n"));
+                write2FileStream(stream, "population," + String.valueOf(rfidReader.antennas[i].getPopulation() + "\n"));
+                write2FileStream(stream, "invAlgo," + String.valueOf(rfidReader.antennas[i].getInvAlgo() + "\n"));
+                write2FileStream(stream, "querySession," + String.valueOf(rfidReader.antennas[i].getQuerySession() + "," +  String.valueOf(rfidReader.antennas[i].getQueryTarget()) + "\n"));
+                write2FileStream(stream, "tagFocus," + String.valueOf(rfidReader.antennas[i].getTagFocus() + "\n"));
+                write2FileStream(stream, "fastId," + String.valueOf(rfidReader.antennas[i].getFastId() + "\n"));
+                write2FileStream(stream, "currentProfile," + String.valueOf(rfidReader.antennas[i].getCurrentProfile() + "\n"));
+            	} else {
+                write2FileStream(stream, "antennaPower," + String.valueOf(rfidReader.getPwrlevel() + "\n"));
+                write2FileStream(stream, "antennaDwell," + String.valueOf(rfidReader.getAntennaDwell() + "\n"));
+                write2FileStream(stream, "population," + String.valueOf(rfidReader.getPopulation() +"\n"));
+                write2FileStream(stream, "querySession," + String.valueOf(rfidReader.getQuerySession() + "\n"));
+                write2FileStream(stream, "queryTarget," + String.valueOf(rfidReader.getQueryTarget() + "\n"));
+                write2FileStream(stream, "tagFocus," + String.valueOf(rfidReader.getTagFocus() + "\n"));
+                write2FileStream(stream, "fastId," + String.valueOf(rfidReader.getFastId() + "\n"));
+                write2FileStream(stream, "invAlgo," + String.valueOf(rfidReader.getInvAlgo() + "\n"));
+                write2FileStream(stream, "retry," + String.valueOf(rfidReader.getRetryCount() + "\n"));
+                int iValue = rfidReader.getCurrentProfile();
+                appendToLog("SettingData.saveSettingFile getCurrentProfile as " + iValue);
+                }
+            }
+            write2FileStream(stream, "powerBoost," + String.valueOf(rfidReader.getPowerBoost() + "\n"));
+            write2FileStream(stream, "dupDelay," + String.valueOf(rfidReader.getDupDelay() + "\n"));
+            write2FileStream(stream, "intraPkDelay," + String.valueOf(rfidReader.getIntraPkDelay() + "\n"));
+            write2FileStream(stream, "retry," + String.valueOf(rfidReader.getRetryCount() + "\n"));
+            write2FileStream(stream, "tagDelay," + String.valueOf(rfidReader.getTagDelay() + "\n"));
+            write2FileStream(stream, "cycleDelay," + String.valueOf(rfidReader.getCycleDelay() + "\n"));
 
-            write2FileStream(stream, "deviceName," + csReaderConnector.bluetoothConnector.getBluetoothIcName() + "\n");
+            write2FileStream(stream, "rxGain," + String.valueOf(rfidReader.getRxGain() + "\n"));
+
+            write2FileStream(stream, "deviceName," + bluetoothConnector.getBluetoothIcName() + "\n");
             write2FileStream(stream, "batteryDisplay," + String.valueOf(batteryDisplaySelect + "\n"));
             write2FileStream(stream, "rssiDisplay," + String.valueOf(rssiDisplaySelect + "\n"));
-            write2FileStream(stream, "tagDelay," + String.valueOf(csReaderConnector.rfidReader.getTagDelay() + "\n"));
-            write2FileStream(stream, "cycleDelay," + String.valueOf(csReaderConnector.rfidReader.getCycleDelay() + "\n"));
-            write2FileStream(stream, "intraPkDelay," + String.valueOf(csReaderConnector.rfidReader.getIntraPkDelay() + "\n"));
-            write2FileStream(stream, "dupDelay," + String.valueOf(csReaderConnector.rfidReader.getDupDelay() + "\n"));
 
             write2FileStream(stream, "triggerReporting," + String.valueOf(notificationConnector.getTriggerReporting() + "\n"));
             write2FileStream(stream, "triggerReportingCount," + String.valueOf(notificationConnector.getTriggerReportingCount() + "\n"));
@@ -401,6 +468,7 @@ public class SettingData {
             write2FileStream(stream, "serverImpinjLocation," + serverImpinjLocation + "\n");
             write2FileStream(stream, "serverImpinjName," + serverImpinjName + "\n");
             write2FileStream(stream, "serverImpinjPassword," + serverImpinjPassword + "\n");
+            write2FileStream(stream, "partnerReaderName," + partnerReaderName + "\n");
             write2FileStream(stream, "barcode2TriggerMode," + String.valueOf(barcode2TriggerMode + "\n"));
 
 //            write2FileStream(stream, "wedgePrefix," + getWedgePrefix() + "\n");
@@ -486,7 +554,7 @@ public class SettingData {
     public String wedgePrefix = null, wedgeSuffix = null;
     public int wedgeOutput = 0, wedgeDelimiter = 0x0a, wedgePower = 300;
     public String fileNameWedgeSetting = "csReaderA_SimpleWedge";
-    void loadWedgeSettingFile() {
+    public void loadWedgeSettingFile() {
         appendToLog("KKK: loadWedgeSettingFile starts");
         File path = context.getFilesDir();
         File file = new File(path, fileNameWedgeSetting);
@@ -532,7 +600,7 @@ public class SettingData {
             }
         }
     }
-    void saveWedgeSetting2File() {
+    public void saveWedgeSetting2File() {
         appendToLog("KKK: saveWedgeSetting2File starts");
         File path = context.getFilesDir();
         File file = new File(path, fileNameWedgeSetting);

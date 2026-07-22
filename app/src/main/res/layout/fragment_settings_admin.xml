@@ -394,6 +394,11 @@
             </TableRow>
         </LinearLayout>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"/>
+
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -668,6 +673,27 @@
 
             <EditText
                 android:id="@+id/settingAdminServerImpinjPassword"
+                style="@style/style_normal_font"
+                android:gravity="center" />
+        </TableRow>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray" />
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                style="@style/style_normal_font"
+                android:text="Reader to leave alone:" />
+
+            <EditText
+                android:id="@+id/settingAdminPartnerReaderName"
                 style="@style/style_normal_font"
                 android:gravity="center" />
         </TableRow>

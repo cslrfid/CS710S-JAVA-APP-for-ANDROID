@@ -21,7 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.csl.cs710ademoapp.AccessTask1;
-import com.csl.cs710ademoapp.CustomPopupWindow;
+import com.csl.cslibrary4a.CustomPopupWindow;
 import com.csl.cs710ademoapp.GenericTextWatcher;
 import com.csl.cs710ademoapp.SelectTag;
 import com.csl.cs710ademoapp.MainActivity;
@@ -29,7 +29,7 @@ import com.csl.cs710ademoapp.R;
 import com.csl.cslibrary4a.ReaderDevice;
 import com.csl.cslibrary4a.RfidReaderChipData;
 
-import static com.csl.cs710ademoapp.MainActivity.mContext;
+import static com.csl.cs710ademoapp.MainActivity.context;
 import static com.csl.cs710ademoapp.MainActivity.tagSelected;
 
 public class AccessReadWriteFragment extends CommonFragment {
@@ -45,7 +45,7 @@ public class AccessReadWriteFragment extends CommonFragment {
 
     String accEpcValue = ""; String accXpcValue = ""; String accTidValue = ""; String accUserValue = "";
     enum ReadWriteTypes {
-        NULL, RESERVE, PC, EPC, XPC, TID, USER, EPC1
+        NULL, KILLPWD, ACCPWD, PC, EPC, XPC, TID, USER, EPC1
     }
     boolean operationRead = false;
     ReadWriteTypes readWriteTypes;
@@ -68,7 +68,7 @@ public class AccessReadWriteFragment extends CommonFragment {
         actionBar.setIcon(R.drawable.dl_access);
         actionBar.setTitle(R.string.title_activity_readwrite);
 
-        selectTag = new SelectTag((Activity)getActivity(), 0);
+        selectTag = new SelectTag((Activity)getActivity(), view,0);
 
         spinnerSelectBank = (Spinner) getActivity().findViewById(R.id.selectMemoryBank);
         ArrayAdapter<CharSequence> targetAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.read_memoryBank_options, R.layout.custom_spinner_layout);
@@ -137,10 +137,10 @@ public class AccessReadWriteFragment extends CommonFragment {
             @Override
             public void onClick(View v) {
                 if (MainActivity.csLibrary4A.isBleConnected() == false) {
-                    Toast.makeText(MainActivity.mContext, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
-                    Toast.makeText(MainActivity.mContext, "Rfid is disabled", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.context, "Rfid is disabled", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 operationRead = true; startAccessTask();
@@ -152,10 +152,10 @@ public class AccessReadWriteFragment extends CommonFragment {
             @Override
             public void onClick(View v) {
                 if (MainActivity.csLibrary4A.isBleConnected() == false) {
-                    Toast.makeText(MainActivity.mContext, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.context, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
                     return;
                 } else if (MainActivity.csLibrary4A.isRfidFailure()) {
-                    Toast.makeText(MainActivity.mContext, "Rfid is disabled", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.context, "Rfid is disabled", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 operationRead = false; startAccessTask();
@@ -241,7 +241,7 @@ public class AccessReadWriteFragment extends CommonFragment {
         editTextAccessRWEpc.setText(strTemp);
 
         if (needPopup) {
-            CustomPopupWindow customPopupWindow = new CustomPopupWindow(mContext);
+            CustomPopupWindow customPopupWindow = new CustomPopupWindow(context);
             customPopupWindow.popupStart("Changing EPC Length will automatically modify to " + (iWordCount * 16) + " bits.", false);
         }
     }
@@ -249,7 +249,7 @@ public class AccessReadWriteFragment extends CommonFragment {
     long msStartTime;
     void startAccessTask() {
         if (selectTag.editTextTagID.getText().toString().length() == 0) {
-            Toast.makeText(MainActivity.mContext, "Please select tag first !!!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.context, "Please select tag first !!!", Toast.LENGTH_SHORT).show();
             return;
         }
         if (updating == false) {
@@ -292,7 +292,7 @@ public class AccessReadWriteFragment extends CommonFragment {
                             selectTag.editTextTagID.getText().toString(), spinnerSelectBank.getSelectedItemPosition() + 1, selectOffset,
                             editTextAccessRWAccPassword.getText().toString(),
                             Integer.valueOf(editTextaccessRWAntennaPower.getText().toString()),
-                            (operationRead ? RfidReaderChipData.HostCommands.CMD_18K6CREAD: RfidReaderChipData.HostCommands.CMD_18K6CWRITE), updateRunnable);
+                            (operationRead ? RfidReaderChipData.HostCommands.CMD_18K6CREAD: RfidReaderChipData.HostCommands.CMD_18K6CWRITE), updateRunnable, context, MainActivity.sharedObjects.playerN, MainActivity.sharedObjects.playerO);
                     accessTask.execute();
                     rerunRequest = true;
                 }
@@ -303,15 +303,15 @@ public class AccessReadWriteFragment extends CommonFragment {
             }
             else {
                 if (bankProcessing == 0 && bcheckBoxAll) {
-                    Toast.makeText(MainActivity.mContext, "no choice selected yet", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.context, "no choice selected yet", Toast.LENGTH_SHORT).show();
                 }
                 updating = false;
             }
         }
     };
 
-    TextView textViewReserveOk, textViewPcOk, textViewEpcOk, textViewTidOk, textViewUserOk, textViewEpc1Ok;
-    CheckBox checkBoxReserve, checkBoxPc, checkBoxEpc, checkBoxTid, checkBoxUser, checkBoxEpc1;
+    TextView textViewKillPwdOk, textViewAccPwdOk, textViewPcOk, textViewEpcOk, textViewTidOk, textViewUserOk, textViewEpc1Ok;
+    CheckBox checkBoxKillPwd, checkBoxAccPwd, checkBoxPc, checkBoxEpc, checkBoxTid, checkBoxUser, checkBoxEpc1;
     int accessBank, accSize, accOffset; String accWriteData;
     int restartCounter = 0; int restartAccessBank = -1;
     boolean processResult() {
@@ -324,8 +324,11 @@ public class AccessReadWriteFragment extends CommonFragment {
             accessResult = accessTask.getResult();
             if (DEBUG) MainActivity.csLibrary4A.appendToLog("processResult(): accessResult = " + accessResult);
             if (accessResult == null) {
-                if (readWriteTypes == ReadWriteTypes.RESERVE) {
-                    textViewReserveOk.setText("E"); checkBoxReserve.setChecked(false);
+                if (readWriteTypes == ReadWriteTypes.KILLPWD) {
+                    textViewKillPwdOk.setText("E"); checkBoxKillPwd.setChecked(false);
+                }
+                if (readWriteTypes == ReadWriteTypes.ACCPWD) {
+                    textViewAccPwdOk.setText("E"); checkBoxAccPwd.setChecked(false);
                 }
                 if (readWriteTypes == ReadWriteTypes.PC) {
                     textViewPcOk.setText("E"); checkBoxPc.setChecked(false);
@@ -344,8 +347,9 @@ public class AccessReadWriteFragment extends CommonFragment {
                 }
             } else {
                 if (DEBUG) MainActivity.csLibrary4A.appendToLog("accessResult = " + accessResult);
-                if (readWriteTypes == ReadWriteTypes.RESERVE) {
-                    textViewReserveOk.setText("O"); checkBoxReserve.setChecked(false);
+                if (readWriteTypes == ReadWriteTypes.KILLPWD) {
+                    textViewKillPwdOk.setText("O");
+                    checkBoxKillPwd.setChecked(false);
                     readWriteTypes = ReadWriteTypes.NULL;
                     if (accessResult.length() == 0 || operationRead == false) {
                     } else if (accessResult.length() < 8) {
@@ -353,12 +357,14 @@ public class AccessReadWriteFragment extends CommonFragment {
                     } else {
                         editTextAccessRWKillPwd.setText(accessResult.substring(0, 8));
                     }
-                    if (accessResult.length() <= 8) {
-                        editTextAccessRWAccPwd.setText("");
-                    } else if (accessResult.length() < 16) {
-                        editTextAccessRWAccPwd.setText(accessResult.subSequence(8, accessResult.length()));
+                } else if (readWriteTypes == ReadWriteTypes.ACCPWD) {
+                    textViewAccPwdOk.setText("O"); checkBoxAccPwd.setChecked(false);
+                    readWriteTypes = ReadWriteTypes.NULL;
+                    if (accessResult.length() == 0 || operationRead == false) {
+                    } else if (accessResult.length() < 8) {
+                        editTextAccessRWAccPwd.setText(accessResult);
                     } else {
-                        editTextAccessRWAccPwd.setText(accessResult.subSequence(8, 16));
+                        editTextAccessRWAccPwd.setText(accessResult.substring(0, 8));
                     }
                 } else if (readWriteTypes == ReadWriteTypes.PC) {
                     textViewPcOk.setText("O"); checkBoxPc.setChecked(false);
@@ -446,34 +452,42 @@ public class AccessReadWriteFragment extends CommonFragment {
         String writeData = "";
         boolean invalidRequest1 = false;
 
-        textViewReserveOk = (TextView) getActivity().findViewById(R.id.accessRWReserveOK);
+        textViewKillPwdOk = (TextView) getActivity().findViewById(R.id.accessRWKillPwdOK);
+        textViewAccPwdOk = (TextView) getActivity().findViewById(R.id.accessRWAccPwdOK);
         textViewPcOk = (TextView) getActivity().findViewById(R.id.accessRWPcOK);
         textViewEpcOk = (TextView) getActivity().findViewById(R.id.accessRWEpcOK);
         textViewTidOk = (TextView) getActivity().findViewById(R.id.accessRWTidOK);
         textViewUserOk = (TextView) getActivity().findViewById(R.id.accessRWUserOK);
         textViewEpc1Ok = (TextView) getActivity().findViewById(R.id.accessRWEpc1OK);
 
-        checkBoxReserve = (CheckBox) getActivity().findViewById(R.id.accessRWReserveTitle);
+        checkBoxKillPwd = (CheckBox) getActivity().findViewById(R.id.accessRWKillPwdTitle);
+        checkBoxAccPwd = (CheckBox) getActivity().findViewById(R.id.accessRWAccPwdTitle);
         checkBoxPc = (CheckBox) getActivity().findViewById(R.id.accessRWPcTitle);
         checkBoxEpc = (CheckBox) getActivity().findViewById(R.id.accessRWEpcTitle);
         checkBoxTid = (CheckBox) getActivity().findViewById(R.id.accessRWTidTitle);
         checkBoxUser = (CheckBox) getActivity().findViewById(R.id.accessRWUserTitle);
         checkBoxEpc1 = (CheckBox) getActivity().findViewById(R.id.accessRWEpc1);
 
-        if (checkBoxReserve.isChecked() == true) {
-            textViewReserveOk.setText("");
-            accessBank = 0; accOffset = 0; accSize = 4; readWriteTypes = ReadWriteTypes.RESERVE;
+        if (checkBoxKillPwd.isChecked() == true) {
+            textViewKillPwdOk.setText("");
+            accessBank = 0; accOffset = 0; accSize = 2;
+            readWriteTypes = ReadWriteTypes.KILLPWD;
             if (operationRead) {
                 editTextAccessRWKillPwd.setText("");
-                editTextAccessRWAccPwd.setText("");
             } else {
                 String strValue = editTextAccessRWKillPwd.getText().toString();
-                String strValue1 = editTextAccessRWAccPwd.getText().toString();
-                if (strValue.length() != 8 || strValue1.length() != 8) {
-                    invalidRequest1 = true;
-                } else {
-                    writeData = strValue + strValue1;
-                }
+                if (strValue.length() != 8) invalidRequest1 = true;
+                else writeData = strValue;
+            }
+        } else if (checkBoxAccPwd.isChecked() == true) {
+            textViewAccPwdOk.setText("");
+            accessBank = 0; accOffset = 2; accSize = 2; readWriteTypes = ReadWriteTypes.ACCPWD;
+            if (operationRead) {
+                editTextAccessRWAccPwd.setText("");
+            } else {
+                String strValue = editTextAccessRWAccPwd.getText().toString();
+                if (strValue.length() != 8) invalidRequest1 = true;
+                else writeData = strValue;
             }
         } else if (checkBoxPc.isChecked() == true || ((checkBoxEpc.isChecked() == true) && (strPCValueRef.length() != 4) )) {
             textViewPcOk.setText("");

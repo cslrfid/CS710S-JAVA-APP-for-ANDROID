@@ -3,11 +3,14 @@ package com.csl.cslibrary4a;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.OpenableColumns;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -22,6 +25,10 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Locale;
 
@@ -35,7 +42,9 @@ public class Utility {
     public final boolean DEBUG_PKDATA = false;
     public final boolean DEBUG_APDATA = false;
     public final boolean DEBUG_COMPACT = false;
+    public final boolean DEBUG_INVENTORING = false;
     public final boolean ENABLE_USBDATA = false;
+    public final boolean DEBUGTHREAD = false;
     private Context mContext; private TextView mLogView;
     public Utility(Context context, TextView mLogView) {
         mContext = context;
@@ -179,10 +188,6 @@ public class Utility {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (mContext.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 writeExtPermission = false;
-                //appendToLog("requestPermissions WRITE_EXTERNAL_STORAGE 1");
-                //requestPermissions((Activity) mContext, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-                //if (false) Toast.makeText(mContext, R.string.toast_permission_not_granted, Toast.LENGTH_SHORT).show();
-                //return;
             }
         }
         String errorDisplay = null;
@@ -241,7 +246,7 @@ public class Utility {
         return null;
     }
 
-    public String StringVersionHeader = "21.";
+    public String StringVersionHeader = "23.";
     public String getCombinedVersion(String string0) {
         String string1 = BuildConfig.VERSION_NAME;
         int iValue1 = Integer.parseInt(string1);
@@ -444,10 +449,28 @@ public class Utility {
     public enum EpcClass {
         SGTIN, SSCC, SGLN, GRAI, GIAI, GSRN, GSRNP, GDTI, CPI, SGCN
     }
+    public String[] getEpcClassList() {
+        String[] strEpcClassList = new String[10];
+        strEpcClassList[0] = "SGTIN - Serialized Global Trade Item Number";
+        strEpcClassList[1] = "SSCC - Serial Shipping Container Code";
+        strEpcClassList[2] = "SGLN - Serialized Global Location Number";
+        strEpcClassList[3] = "GRAI - Global Returnable Asset Identifier";
+        strEpcClassList[4] = "GIAI - Global Individual Asset Identifier";
+        strEpcClassList[5] = "GSRN - Global Service Relation Number, Recipient";
+        strEpcClassList[6] = "GSRNP - Global Service Relation Number, Provider";
+        strEpcClassList[7] = "GDTI - Global Document Type Identifier";
+        strEpcClassList[8] = "CPI - Component Part Identifier";
+        strEpcClassList[9] = "SGCN - Serialized Globald Coupon Number";
+        return strEpcClassList;
+    }
+    public String getEpc4upcSerial(int iEpcClass, String filter, String companyPrefix, String itemReference, String serialNumber) {
+    	return getEpc4upcSerial(Utility.EpcClass.values()[iEpcClass], filter, companyPrefix, itemReference, serialNumber);
+    }
     public String getEpc4upcSerial(EpcClass epcClass, String filter, String companyPrefix, String itemReference, String serialNumber) {
         String strValue = null;
         ParseSGTIN parseSGTIN = null;
         String strURI = "urn:epc:tag:";
+        //EpcClass epcClass = Utility.EpcClass.values()[iEpcClass];
         appendToLog("epcClass is " + epcClass.toString());
         switch (epcClass) {
             default:
@@ -530,14 +553,16 @@ public class Utility {
         try {
             if (DEBUG) appendToLog("checkpoint 1");
             int value = Integer.valueOf(versionPart[0]);
-            if (value < majorVersion) { if (DEBUG) appendToLog("return false 4"); return false; }
-            if (value > majorVersion) return true;
+            //if (value < majorVersion) { if (DEBUG) appendToLog("return false 4"); return false; }
+            //if (value > majorVersion) return true;
+            if (value != majorVersion) return false;
 
             if (DEBUG) appendToLog("checkpoint 2");
             if (versionPart.length < 2) return true;
             value = Integer.valueOf(versionPart[1]);
-            if (value < minorVersion) { if (DEBUG) appendToLog("return false 5"); return false; }
-            if (value > minorVersion) return true;
+            //if (value < minorVersion) { if (DEBUG) appendToLog("return false 5"); return false; }
+            //if (value > minorVersion) return true;
+            if (value != minorVersion) return false;
 
             if (DEBUG) appendToLog("checkpoint 3");
             if (versionPart.length < 3) return true;
@@ -603,5 +628,32 @@ public class Utility {
             if (true) appendToLog("bSign = " + bSign + ", iExp = " + iExp + ", iMant = " + iMant + ", iValue = " + iValue + ", strValue = " + strValue);
         }
         return strValue;
+    }
+
+    public String getFileName4Uri(Uri uri) {
+        String string = uri.getPath();
+        appendToLog("Utility.getFileName4Uri: uri.getScheme = " + uri.getScheme() + ", uri.getPath = " + uri.getPath());
+        if (uri.getScheme().equals("file")) {
+            string = uri.getPath();
+        } else if (uri.getScheme().equals("content")) {
+            Cursor cursor = mContext.getContentResolver().query(uri, null, null, null, null);
+            appendToLog("Utility.getFileName4Uri: cursor is " + (cursor == null ? "null" : "valid"));
+            appendToLog("Utility.getFileName4Uri: cursor.getColumnCount = " + cursor.getColumnCount());
+            cursor.moveToPosition(0);
+            int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+            appendToLog("Utility.: cursor.getString[" + nameIndex + "] = "); // + cursor.getString(nameIndex));
+            for (int i = 0; i < cursor.getColumnCount(); i++) {
+                appendToLog("Utility.getFileName4Uri: cursor.getColumnName[" + i + "] = " + cursor.getColumnName(i));
+                appendToLog("Utility.getFileName4Uri: cursor.getString[" + i + "] = " + cursor.getString(i));
+            }
+            string = cursor.getString(nameIndex);
+        }
+        return string;
+    }
+
+    public String getStringEpochSecond(long epoch) {
+        LocalDateTime dateTime = Instant.ofEpochSecond(epoch).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return (dateTime.format(formatter));
     }
 }

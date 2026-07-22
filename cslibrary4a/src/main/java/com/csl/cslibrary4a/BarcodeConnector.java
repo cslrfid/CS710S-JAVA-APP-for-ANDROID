@@ -1,7 +1,6 @@
 package com.csl.cslibrary4a;
 
 import android.content.Context;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -167,6 +166,9 @@ public class BarcodeConnector {
 
     public int sendDataToWriteSent = 0; public boolean mDataToWriteRemoved = false;
     public boolean barcodeFailure = false;
+    public boolean isBarcodeFailure() {
+        return barcodeFailure;
+    }
     public byte[] sendBarcodeToWrite(boolean usbConnection) {
         boolean DEBUG = false;
         /*if (barcodePowerOnTimeOut != 0) {
@@ -264,8 +266,7 @@ public class BarcodeConnector {
                     break;
             }
         }
-        if (found && DEBUG)  appendToLog("found Barcode.read data = " + byteArrayToString(connectorData.dataValues));
-        appendToLog("BarcodeConnector.isBarcodeToRead: found = " + found);
+        if (DEBUG) appendToLog("ConnectorBarcode.isBarcodeToRead: found = " + (!found ? "false" : byteArrayToString(connectorData.dataValues)));
         return found;
     }
 }

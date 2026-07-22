@@ -28,11 +28,8 @@ public class NotificationConnector {
     }
 
     public interface NotificationListener { void onChange(); }
-
     NotificationListener listener;
     public void setNotificationListener0(NotificationListener listener) { this.listener = listener; }
-
-    //NotificationListener getListener() { return listener; }
     boolean mTriggerStatus;
     public boolean getTriggerStatus() { return mTriggerStatus; }
     void setTriggerStatus(boolean mTriggerStatus) {
@@ -41,7 +38,6 @@ public class NotificationConnector {
             if (listener != null) listener.onChange();
         }
     }
-
     boolean autoRfidAbortStatus = true, autoRfidAbortStatusUpdate = false;
     boolean getAutoRfidAbortStatus() {
         if (!autoRfidAbortStatusUpdate) {
@@ -351,7 +347,7 @@ public class NotificationConnector {
         return bValue;
     }
     public boolean setAutoRFIDAbort(boolean enable) {
-        if (false) appendToLog("BtDataOut: setAutoRFIDAbort with enable = " + enable + ", current autoRFIDAbort is " + autoRfidAbortStatus);
+        if (true) appendToLog("NotificationConnector.setAutoRFIDAbort: input enable = " + enable + ", current autoRFIDAbort is " + autoRfidAbortStatus);
         if (autoRfidAbortStatusUpdate) {
             if ((enable && autoRfidAbortStatus) || (!enable && !autoRfidAbortStatus))
                 return true;
@@ -361,7 +357,7 @@ public class NotificationConnector {
         csReaderNotificationData.dataValues = new byte[1];
         setAutoRfidAbortStatus(enable);
         csReaderNotificationData.dataValues[0] = (enable ? (byte)1 : 0);
-        boolean bValue = notificationToWrite.add(csReaderNotificationData); appendToLog("notificationToWrite is added with length = " + notificationToWrite.size());
+        boolean bValue = notificationToWrite.add(csReaderNotificationData);
         if (DEBUG_PKDATA) appendToLog("PkData: add NOTIFICATION_AUTO_RFIDINV_ABORT." + byteArrayToString(csReaderNotificationData.dataValues) + " to mNotificationToWrite with length = " + notificationToWrite.size());
         return bValue;
     }
