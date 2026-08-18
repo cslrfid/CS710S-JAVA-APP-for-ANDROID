@@ -11,8 +11,8 @@ android {
         applicationId "com.csl.cs710ademoapp"
         minSdk 26
         targetSdk 37
-        versionCode 18
-        versionName "4.24.0"
+        versionCode 17
+        versionName "4.23.3"
         ndk {
             debugSymbolLevel = 'FULL'
         }
