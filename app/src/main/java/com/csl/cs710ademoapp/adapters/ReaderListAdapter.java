@@ -89,7 +89,9 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
 
         TextView countTextView = (TextView) convertView.findViewById(R.id.reader_count);
         if (reader.getCount() != 0) {
-            countTextView.setText(String.valueOf(reader.getCount()));
+            String string = String.valueOf(reader.getCount());
+            if (!select4Rssi) string += "\n(" + String.valueOf(reader.getAddress().length())  + ")";
+            countTextView.setText(string);
         } else {
             countTextView.setVisibility(View.GONE);
         }

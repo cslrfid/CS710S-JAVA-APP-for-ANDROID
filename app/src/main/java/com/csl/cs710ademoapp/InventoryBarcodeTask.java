@@ -78,7 +78,6 @@ public class InventoryBarcodeTask extends CustomAsyncTask {
             }
             byte[] onBarcodeEvent = MainActivity.csLibrary4A.onBarcodeEvent();
             if (onBarcodeEvent != null) {
-                MainActivity.csLibrary4A.appendToLog("InventoryBarcodeTask.doInBackground: BarStream: onBarcodeEvent= " + MainActivity.csLibrary4A.byteArrayToString(onBarcodeEvent));
                 String stringBar = null;
                 if (true) stringBar = new String(onBarcodeEvent);
                 else if (onBarcodeEvent.length != 0) {
@@ -158,20 +157,26 @@ public class InventoryBarcodeTask extends CustomAsyncTask {
                 yield = 0; total = 0; allTotal = 0;
             }
             if (match == false) {
+                MainActivity.csLibrary4A.appendToLogView("InventoryBarcodeTask.onProgressUpdate: New barcode = " + output[1] + ", length = " + output[1].length() + ", current sequence = " + MainActivity.csLibrary4A.getPackageSequenceNumber());
+                MainActivity.csLibrary4A.showBarcodeStringViewStored(true);
                 if (ALLOW_WEDGE) MainActivity.sharedObjects.serviceArrayList.add(output[1]);
                 MainActivity.csLibrary4A.appendToLog("InventoryBarcodeTask.onProgressUpdate: " + output[1] + " is added to MainActivity.shareObjects.serviceArrayList with size = " +  MainActivity.sharedObjects.serviceArrayList.size());
 
-                ReaderDevice readerDevice = new ReaderDevice("", output[1], false, "", 1, 0);
+                String strDetail = "Barcode Length = " + output[1].length() + ", current sequence = " + MainActivity.csLibrary4A.getPackageSequenceNumber();
+                ReaderDevice readerDevice = new ReaderDevice("", output[1], false, strDetail, 1, 0);
                 if (tagsList != null) {
                     if (bAdd2End) tagsList.add(readerDevice);
                     else tagsList.add(0, readerDevice);
                 }
                 yield++;
-                if (barcodeYieldView != null) barcodeYieldView.setText("Unique:" + String.valueOf(yield));
+                //if (barcodeYieldView != null) barcodeYieldView.setText("Unique:" + String.valueOf(yield));
                 requestNewSound = true; requestNewVibrate = true;
-            }
+            } else MainActivity.csLibrary4A.showBarcodeStringViewStored(true);
             total++; allTotal++;
-            if (barcodeRateView != null) barcodeRateView.setText("Total:" + String.valueOf(allTotal));
+            //if (barcodeRateView != null) barcodeRateView.setText("Total:" + String.valueOf(allTotal));
+            if (barcodeRateView != null) barcodeYieldView.setText("Unique:" + String.valueOf(yield) + "\n" + "Total:" + String.valueOf(allTotal));
+            if (barcodeRateView != null) barcodeRateView.setText("Error:" + String.valueOf(MainActivity.csLibrary4A.getInvalidata()) + ", " + MainActivity.csLibrary4A.getInvalidUpdata());
+
             if (readerListAdapter != null) readerListAdapter.notifyDataSetChanged();
 
             if (playerN != null && playerO != null) {

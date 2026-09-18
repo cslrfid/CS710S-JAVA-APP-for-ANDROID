@@ -851,8 +851,15 @@ public class Cs710Library4A {
     public boolean barcodeInventory(boolean start) {
         return csReaderConnector.barcodeInventory(start);
     }
+    public void showBarcodeStringViewStored(boolean bShow) {
+        csReaderConnector.showBarcodeStringViewStored(bShow);
+    }
     public byte[] onBarcodeEvent() {
         return csReaderConnector.onBarcodeEvent();
+    }
+    public int getPackageSequenceNumber() {
+        appendToLog("getPackageSequenceNumber: csReaderConnector.iSequenceNumber = " + csReaderConnector.iSequenceNumber);
+        return csReaderConnector.iSequenceNumber;
     }
 
     //============ Android General ============

@@ -46,6 +46,7 @@ public class InventoryBarcodeFragment extends CommonFragment {
         barcodeYieldView.setText(""); barcodeTotal.setText("");
         MainActivity.sharedObjects.barsList.clear();
         readerListAdapter.notifyDataSetChanged();
+        MainActivity.csLibrary4A.clearInvalidata();
     }
     void sortTagsList() {
         Collections.sort(MainActivity.sharedObjects.barsList);

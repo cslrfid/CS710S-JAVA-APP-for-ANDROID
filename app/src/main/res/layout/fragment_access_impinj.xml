@@ -331,7 +331,7 @@
                         android:layout_gravity="center"
                         android:textAlignment="center"
                         android:background="#808080"
-                        android:text="Memory Select"/>
+                        android:text="@string/memory_select"/>
                 </TableRow>
 
                 <TableRow
@@ -555,7 +555,7 @@
                         android:layout_width="0dp"
                         android:layout_weight="1"
                         style="@style/style_normal_font"
-                        android:text="Memory Select" />
+                        android:text="@string/memory_select" />
                 </TableRow>
 
                 <TableRow

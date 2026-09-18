@@ -40,6 +40,7 @@ public class CsReaderConnector {
 
     String byteArrayToString(byte[] packet) { return utility.byteArrayToString(packet); }
     void appendToLog(String s) { utility.appendToLog(s); }
+    void appendToLogView(String s) { utility.appendToLogView(s); }
     public boolean connect(ReaderDevice readerDevice) {
         boolean result = false, DEBUG = true;
         if (DEBUG) appendToLog("csReaderConnector.connect: readerDevice is " + (readerDevice == null ? "null" : "valid"));
@@ -187,9 +188,9 @@ public class CsReaderConnector {
 
     boolean dataRead = false; int dataReadDisplayCount = 0; boolean mCs108DataReadRequest = false;
     int inventoryLength = 0;
-    int iSequenceNumber; boolean bDifferentSequence = false, bFirstSequence = true;
+    public int iSequenceNumber; boolean bDifferentSequence = false, bFirstSequence = true;
     public int validata;
-    public int[] invalidata = new int[2]; //invalidata = invalidata[0], invalidUpdata = invalidata[1];
+    public int[] invalidata = new int[2];
     public void clearInvalidata() {
         invalidata[0] = 0;
         invalidata[1] = 0;
@@ -235,7 +236,6 @@ public class CsReaderConnector {
                 System.arraycopy(cs108DataLeft, cs108DataLeftOffset, debugData, 0, len);
                 appendToLog("FmData: " + len + " dataIn = " + byteArrayToString(debugData));
             }
-            //if (len != 0 && bFirst) { bFirst = false; } //writeDebug2File("B" + String.valueOf(getIntervalProcessBleStreamInData()) + ", " + System.currentTimeMillis()); }
             cs108DataLeftOffset += len;
             if (len == 0) {
                 appendToLog("FmData: len is zero !!!");
@@ -325,16 +325,17 @@ public class CsReaderConnector {
                                 case (byte) 0x6A:
                                     if (dataIn[cs108DataReadStart + 3] == (byte) 0xC2) connectorData.connectorTypes = ConnectorData.ConnectorTypes.RFID;
                                     else connectorData.connectorTypes = ConnectorData.ConnectorTypes.BARCODE;
-                                    if (dataIn[cs108DataReadStart + 8] == (byte) 0x81 || (bis108 == false && dataIn[cs108DataReadStart + 8] == (byte) 0x91)) {
+                                    if (dataIn[cs108DataReadStart + 8] == (byte) 0x81
+                                            || (bis108 == false && dataIn[cs108DataReadStart + 8] == (byte) 0x91 && dataIn[cs108DataReadStart + 9] == 0)) {
                                         int iSequenceNumber = (int) (dataIn[cs108DataReadStart + 4] & 0xFF);
                                         int itemp = iSequenceNumber;
                                         if (itemp < this.iSequenceNumber) {
                                             itemp += 256;
                                         }
                                         itemp -= (this.iSequenceNumber + 1);
-                                        if (DEBUG) appendToLog("FmData: iSequenceNumber = " + iSequenceNumber + ", old iSequenceNumber = " + this.iSequenceNumber + ", difference = " + itemp);
-                                        if (itemp != 0) {
-                                            if (DEBUG) appendToLog("FmData: Non-zero iSequenceNumber difference = " + itemp);
+                                        appendToLog("processStreamInData: BtDataIn, iSequenceNumber = " + iSequenceNumber + ", old iSequenceNumber = " + this.iSequenceNumber + ", difference = " + itemp);
+                                        if (bFirstSequence == false && itemp != 0) {
+                                            appendToLog("processStreamInData: BtDataIn, Non-zero iSequenceNumber difference = " + itemp);
                                             connectorData.invalidSequence = true;
                                             if (bFirstSequence == false) {
                                                 invalidata[0] += itemp;
@@ -344,11 +345,14 @@ public class CsReaderConnector {
                                                     if (iMissedNumber < 0) iMissedNumber += 256;
                                                     stringSequenceList += (i != 0 ? ", " : "") + String.format("%X", iMissedNumber);
                                                 }
-                                                if (DEBUG) utility.appendToLogView("FmData: " + String.format("ERROR !!!: %X - %X, miss %d: ", iSequenceNumber, this.iSequenceNumber, itemp) + stringSequenceList);
+                                                utility.appendToLogView("FmData: " + String.format("ERROR !!!: %X - %X, miss %d: ", iSequenceNumber, this.iSequenceNumber, itemp) + stringSequenceList);
                                             }
+                                            utility.appendToLogView("processStreamInData: invalidSequence !!! iSequenceNumber = " + iSequenceNumber + ", old iSequenceNumber = " + this.iSequenceNumber + ", difference = " + itemp);
                                         }
                                         bFirstSequence = false;
                                         this.iSequenceNumber = iSequenceNumber;
+                                        connectorData.sequenceNumber = iSequenceNumber;
+                                        appendToLog("processStreamInData: BtDataIn, new iSequenceNumber = " + iSequenceNumber + ", " + byteArrayToString(connectorData.dataValues));
                                     }
                                     if (DEBUG) utility.appendToLogView("FmData: Rin: " + (connectorData.invalidSequence ? "invalid sequence" : "ok") + "," + byteArrayToString(connectorData.dataValues));
                                     validata++;
@@ -540,16 +544,10 @@ public class CsReaderConnector {
         bluetoothGatt.connectorCallback = new BluetoothGatt.ConnectorCallback() {
             @Override
             public void callbackMethod() {
-                //appendToLog("going to processBleStreamInData with bis108 " + bis108 + " and connected " + isBleConnected());
                 processStreamInData();
             }
         };
 
-        //cs108ConnectorDataInit();
-        //mHandler.removeCallbacks(bluetoothGatt.runnableProcessBleStreamInData); mHandler.post(bluetoothGatt.runnableProcessBleStreamInData);
-        //if (DEBUGTHREAD) appendToLog("start immediate mReadWriteRunnable");
-        //mHandler.removeCallbacks(mReadWriteRunnable); mHandler.post(mReadWriteRunnable);
-        //mHandler.removeCallbacks(runnableRx000UplinkHandler); mHandler.post(runnableRx000UplinkHandler);
         appendToLog("foregroundReader: new SettingData for bis108 as " + bis108);
         settingData = new SettingData(context, utility);
     }
@@ -709,6 +707,7 @@ public class CsReaderConnector {
                     if (bFirst) { bFirst = false; } //writeDebug2File("C" + String.valueOf(intervalReadWrite) + ", " + System.currentTimeMillis()); }
                     try {
                         ConnectorData connectorData = connectorDataList.get(0);
+
                         connectorDataList.remove(0);
                         boolean bValid = true;
                         if (utility.DEBUG_PKDATA) appendToLog("PkData: connectorData.type = " + connectorData.connectorTypes.toString() + ", connectorData.dataValues = " + byteArrayToString(connectorData.dataValues));
@@ -911,12 +910,6 @@ public class CsReaderConnector {
                             appendToLog("CsReaderConnector.mReadWriteRunnable.run: BtDataOut, 3 going to writeData with dataOut = " + byteArrayToString(dataOut));
                             retValue = writeData(dataOut, 0);
                         }
-                        if (retValue) {
-                            //notificationController.sendDataToWriteSent++;
-                        } else {
-                            //if (DEBUG) appendToLogView("failure to send " + notificationController.notificationToWrite.get(0).toString());
-                            //notificationController.notificationToWrite.remove(0); notificationController.sendDataToWriteSent = 0; appendToLog("notificationToWrite remove0 with length = " + notificationToWrite.size());
-                        }
                     }
                     ready2Write = false;    //
                     if (false) appendToLog("ready2Write is set false after true sendSiliconLabIcToWrite");
@@ -939,12 +932,6 @@ public class CsReaderConnector {
                         if (dataOut != null) {
                             appendToLog("CsReaderConnector.mReadWriteRunnable.run: 4 going to writeData with dataOut = " + byteArrayToString(dataOut));
                             retValue = writeData(dataOut, 0);
-                        }
-                        if (retValue) {
-                            //controllerConnector.sendDataToWriteSent++;
-                        } else {
-                            //if (DEBUG) appendToLogView("failure to send " + controllerConnector.controllerToWrite.get(0).toString());
-                            //controllerConnector.controllerToWrite.remove(0); controllerConnector.sendDataToWriteSent = 0;
                         }
                     }
                     ready2Write = false;    //
@@ -969,12 +956,6 @@ public class CsReaderConnector {
                         if (dataOut != null) {
                             appendToLog("CsReaderConnector.mReadWriteRunnable.run: 5 going to writeData with dataOut = " + byteArrayToString(dataOut));
                             retValue = writeData(dataOut, 0);
-                        }
-                        if (retValue) {
-                            //bluetoothConnector.sendDataToWriteSent++;
-                        } else {
-                            //if (DEBUG) appendToLogView("failure to send " + bluetoothConnector.bluetoothIcToWrite.get(0).bluetoothIcPayloadEvent.toString());
-                            //bluetoothConnector.bluetoothIcToWrite.remove(0); bluetoothConnector.sendDataToWriteSent = 0;
                         }
                     }
                     ready2Write = false;
@@ -1034,27 +1015,12 @@ public class CsReaderConnector {
                     }
                 }
             }
-            /*if (validBuffer) {
-                if (DEBUG)  appendToLog("mReadWriteRunnable: END, timer2Write=" + timer2Write + ", streamInBufferSize = " + bluetoothGatt.getStreamInBufferSize() + ", mRfidToRead.size=" + rfidConnector.mRfidToRead.size() + ", mRx000ToRead.size=" + rfidReader.mRx000ToRead.size());
-            }*/
-            //appendToLog("mRfidDevice is " + (mRfidDevice == null ? "null" : "valid"));
-            //appendToLog("mRfidDevice.mRfidReaderChip is " + (mRfidDevice.mRfidReaderChip == null ? "null" : "valid"));
-            //appendToLog("mRfidDevice.mRfidReaderChip.mRfidReaderChip is " + (mRfidDevice.mRfidReaderChip.mRfidReaderChip == null ? "null" : "valid"));
             if (rfidReader != null) rfidReader.uplinkHandler(invalidata);
             if (DEBUGTHREAD) appendToLog("CsReaderConnector.mReadWriteRunnable.run: ends");
         }
     };
 
     int intervalRx000UplinkHandler = 250;
-    /*private final Runnable runnableRx000UplinkHandler = new Runnable() {
-        @Override
-        public void run() {
-//            mRfidDevice.mRx000Device.mRx000UplinkHandler();
-            mHandler.postDelayed(runnableRx000UplinkHandler, intervalRx000UplinkHandler);
-        }
-    };
-    */
-
     public String getModelName() {
         boolean DEBUG = true;
         if (bis108) return controllerConnector.getModelName();
@@ -1508,25 +1474,59 @@ public class CsReaderConnector {
         settingData.serverImpinjName = serverImpinjName;
         return true;
     }
-    public byte[] barcodeDataStore = null; long timeBarcodeData;
+    public byte[] barcodeDataStore = null;
+    boolean bPrefixFound = false;  int suffixCheckIndex = -1;
+    int iBarcodeSequence = -1;
+    void resetBarcodeDataStore() {
+        barcodeDataStore = null; bPrefixFound = false; suffixCheckIndex = -1; iBarcodeSequence = -1;
+    }
+    void showBarcodeStringViewStored(boolean bShow) {
+        appendToLog("onBarcodeEvent: 0, bShow = " + bShow + ", stringViewStored = " + utility.stringViewStored);
+        if (bShow) appendToLogView(utility.stringViewStored);
+        utility.stringViewStored = "";
+    }
     public byte[] onBarcodeEvent() {
         byte[] barcodeData = null;
         if (barcodeConnector.mBarcodeToRead.size() != 0) {
             BarcodeConnector.CsReaderBarcodeData csReaderBarcodeData = barcodeConnector.mBarcodeToRead.get(0);
             barcodeConnector.mBarcodeToRead.remove(0);
+
             if (csReaderBarcodeData != null) {
-                if (csReaderBarcodeData.barcodePayloadEvent == BarcodeConnector.BarcodePayloadEvents.BARCODE_GOOD_READ) {
-                    if (false) barcodeData = "<GR>".getBytes();
-                } else if (csReaderBarcodeData.barcodePayloadEvent == BarcodeConnector.BarcodePayloadEvents.BARCODE_DATA_READ) {
-                    barcodeData = csReaderBarcodeData.dataValues;
+                barcodeData = csReaderBarcodeData.dataValues;
+                if (barcodeData == null) appendToLog("onBarcodeEvent: csReaderBarcodeData.dataValues is null");
+                if (csReaderBarcodeData.barcodePayloadEvent == BarcodeConnector.BarcodePayloadEvents.BARCODE_DATA_READ) {
+                    if (csReaderBarcodeData.invalidSequence) {
+                        appendToLogView("onBarcodeEvent: bit, Invalid sequence detected, sequenceNumber = " + csReaderBarcodeData.sequenceNumber + ", iBarcodeSequence = " + iBarcodeSequence);
+                        resetBarcodeDataStore();
+                    }
+                    utility.stringViewStored += csReaderBarcodeData.sequenceNumber + ", ";; // + ", " + byteArrayToString(csReaderBarcodeData.dataValues) + "\n";
+                    appendToLog("onBarcodeEvent: 1, stringViewStored = " + utility.stringViewStored);
+
+                    appendToLog("onBarcodeEvent: csReaderBarcodeData.sequenceNumber = " + csReaderBarcodeData.sequenceNumber + ", iBarcodeSequence = " + iBarcodeSequence);
+                    appendToLog("onBarcodeEvent: csReaderBarcodeData.barcodePayloadEvent = " + csReaderBarcodeData.barcodePayloadEvent.toString() +
+                            (csReaderBarcodeData.dataValues != null ? ", dataValue.length = " + csReaderBarcodeData.dataValues.length + ", dataValues = " + byteArrayToString(csReaderBarcodeData.dataValues) : ", dataValues = null"));
+                    if (iBarcodeSequence < 0 || barcodeData == null) {
+                        iBarcodeSequence = csReaderBarcodeData.sequenceNumber;
+                    }
+                    else {
+                        int iSequenceDiff = csReaderBarcodeData.sequenceNumber - iBarcodeSequence - 1;
+                        if (iSequenceDiff < 0) iSequenceDiff += 256;
+                        appendToLog("onBarcodeEvent: iSequenceDiff = " + iSequenceDiff);
+                        if (iSequenceDiff != 0) {
+                            appendToLogView("onBarcodeEvent: byte, Invalid sequence detected, sequenceNumber = " + csReaderBarcodeData.sequenceNumber + ", iBarcodeSequence = " + iBarcodeSequence);
+                            resetBarcodeDataStore();
+                            invalidata[1] += iSequenceDiff;
+                        } //else invalidata[1]++;
+                        iBarcodeSequence = csReaderBarcodeData.sequenceNumber;
+                    }
+                    appendToLog("onBarcodeEvent: 2, invalidata[1] = " + invalidata[1]);
                 }
             }
-        }
+        } else return null;
 
         byte[] barcodeCombined = null;
-        if (false) barcodeCombined = barcodeData;
-        else if (barcodeData != null) {
-            appendToLog("BarStream: barcodeData = " + byteArrayToString(barcodeData) + ", barcodeDataStore = " + byteArrayToString(barcodeDataStore));
+        if (barcodeData != null) {
+            appendToLog("onBarcodeEvent: barcodeData = " + byteArrayToString(barcodeData) + ", barcodeDataStore = " + byteArrayToString(barcodeDataStore));
             int barcodeDataStoreIndex = 0;
             int length = barcodeData.length;
             if (barcodeDataStore != null) {
@@ -1538,88 +1538,88 @@ public class CsReaderConnector {
                 System.arraycopy(barcodeDataStore, 0, barcodeCombined, 0, barcodeDataStore.length);
             System.arraycopy(barcodeData, 0, barcodeCombined, barcodeDataStoreIndex, barcodeData.length);
             barcodeDataStore = barcodeCombined;
-            timeBarcodeData = System.currentTimeMillis();
-            barcodeCombined = new byte[0];
-        }
-        if (barcodeDataStore != null) {
-            barcodeCombined = new byte[barcodeDataStore.length];
-            System.arraycopy(barcodeDataStore, 0, barcodeCombined, 0, barcodeCombined.length);
 
-            if (System.currentTimeMillis() - timeBarcodeData < 300) barcodeCombined = null;
-            else barcodeDataStore = null;
-        }
-        if (barcodeCombined != null && barcodeNewland.getPrefix() != null && barcodeNewland.getSuffix() != null) {
-            if (barcodeCombined.length == 0) barcodeCombined = null;
-            else {
-                byte[] prefixExpected = barcodeNewland.getPrefix(); boolean prefixFound = false;
-                byte[] suffixExpected = barcodeNewland.getSuffix(); boolean suffixFound = false;
-                int codeTypeLength = 4;
-                appendToLog("BarStream: barcodeCombined = " + byteArrayToString(barcodeCombined) + ", Expected Prefix = " + byteArrayToString(prefixExpected)  + ", Expected Suffix = " + byteArrayToString(suffixExpected));
-                if (barcodeCombined.length > prefixExpected.length + suffixExpected.length + codeTypeLength) {
-                    int i = 0;
-                    for (; i <= barcodeCombined.length - prefixExpected.length - suffixExpected.length; i++) {
-                        int j = 0;
-                        for (; j < prefixExpected.length; j++) {
-                            if (barcodeCombined[i+j] != prefixExpected[j]) break;
-                        }
-                        if (j == prefixExpected.length) { prefixFound = true; break; }
+            byte[] prefixExpected = barcodeNewland.getPrefix(); if (prefixExpected == null) prefixExpected = new byte[0];
+            appendToLog("onBarcodeEvent: bPrefixFound = " + bPrefixFound + ", prefixExpected = " + byteArrayToString(prefixExpected) + ", barcodeCombined = " + byteArrayToString(barcodeCombined));
+            if (barcodeCombined.length < prefixExpected.length) barcodeCombined = null;
+            if (bPrefixFound == false && barcodeCombined != null) {
+                appendToLog("onBarcodeEvent: prefixExpected = " + byteArrayToString(prefixExpected) + ", barcodeCombined = " + byteArrayToString(barcodeCombined));
+                int prefixPosition = -1;
+                for (int i = 0; i <= barcodeCombined.length - prefixExpected.length; i++) {
+                    int j = 0;
+                    for (; j < prefixExpected.length; j++) {
+                        if (barcodeCombined[i + j] != prefixExpected[j]) break;
                     }
-                    int k = i + prefixExpected.length;
-                    for (; k <= barcodeCombined.length - suffixExpected.length; k++) {
-                        int j = 0;
-                        for (; j < suffixExpected.length; j++) {
-                            if (barcodeCombined[k+j] != suffixExpected[j]) break;
-                        }
-                        if (j == suffixExpected.length) { suffixFound = true; break; }
+                    if (j == prefixExpected.length) {
+                        prefixPosition = i;
+                        break;
                     }
-                    appendToLog("BarStream: iPrefix = " + i + ", iSuffix = " + k + ", with prefixFound = " + prefixFound + ", suffixFound = " + suffixFound);
-                    if (prefixFound && suffixFound) {
-                        byte[] barcodeCombinedNew = new byte[k - i - prefixExpected.length - codeTypeLength];
-                        System.arraycopy(barcodeCombined, i + prefixExpected.length + codeTypeLength, barcodeCombinedNew, 0, barcodeCombinedNew.length);
-                        barcodeCombined = barcodeCombinedNew;
-                        appendToLog("BarStream: barcodeCombinedNew = " + byteArrayToString(barcodeCombinedNew));
-
-                        if (true) {
-                            byte[] prefixExpected1 = {0x5B, 0x29, 0x3E, 0x1E};
-                            prefixFound = false;
-                            byte[] suffixExpected1 = {0x1E, 0x04};
-                            suffixFound = false;
-                            appendToLog("BarStream: barcodeCombined = " + byteArrayToString(barcodeCombined) + ", Expected Prefix = " + byteArrayToString(prefixExpected1) + ", Expected Suffix = " + byteArrayToString(suffixExpected1));
-                            if (barcodeCombined.length > prefixExpected1.length + suffixExpected1.length) {
-                                i = 0;
-                                for (; i <= barcodeCombined.length - prefixExpected1.length - suffixExpected1.length; i++) {
-                                    int j = 0;
-                                    for (; j < prefixExpected1.length; j++) {
-                                        if (barcodeCombined[i + j] != prefixExpected1[j]) break;
-                                    }
-                                    if (j == prefixExpected1.length) {
-                                        prefixFound = true;
-                                        break;
-                                    }
-                                }
-                                k = i + prefixExpected1.length;
-                                for (; k <= barcodeCombined.length - suffixExpected1.length; k++) {
-                                    int j = 0;
-                                    for (; j < suffixExpected1.length; j++) {
-                                        if (barcodeCombined[k + j] != suffixExpected1[j]) break;
-                                    }
-                                    if (j == suffixExpected1.length) {
-                                        suffixFound = true;
-                                        break;
-                                    }
-                                }
-                                appendToLog("BarStream: iPrefix = " + i + ", iSuffix = " + k + ", with prefixFound = " + prefixFound + ", suffixFound = " + suffixFound);
-                                if (prefixFound && suffixFound) {
-                                    barcodeCombinedNew = new byte[k - i - prefixExpected1.length];
-                                    System.arraycopy(barcodeCombined, i + prefixExpected1.length, barcodeCombinedNew, 0, barcodeCombinedNew.length);
-                                    barcodeCombined = barcodeCombinedNew;
-                                    appendToLog("BarStream: barcodeCombinedNew = " + byteArrayToString(barcodeCombinedNew));
-                                }
-                            }
-                        }
-                    }
-                } else barcodeCombined = null;
+                }
+                appendToLog("onBarcodeEvent: prefixPosition = " + prefixPosition);
+                if (prefixPosition < 0) {
+                    byte[] barcodeCombinedTrimmed = new byte[prefixExpected.length - 1];
+                    System.arraycopy(barcodeCombined, barcodeCombined.length - prefixExpected.length + 1, barcodeCombinedTrimmed, 0, barcodeCombinedTrimmed.length);
+                    barcodeCombined = barcodeCombinedTrimmed;
+                    barcodeDataStore = barcodeCombined;
+                    barcodeCombined = null;
+                    appendToLog("onBarcodeEvent: prefixPosition < 0, barcodeDataStore = " + byteArrayToString(barcodeDataStore));
+                } else if (prefixPosition > 0) {
+                    byte[] barcodeCombinedTrimmed = new byte[barcodeCombined.length - prefixPosition];
+                    System.arraycopy(barcodeCombined, prefixPosition, barcodeCombinedTrimmed, 0, barcodeCombinedTrimmed.length);
+                    barcodeCombined = barcodeCombinedTrimmed;
+                    barcodeDataStore = barcodeCombined;
+                    appendToLog("onBarcodeEvent: prefixPosition > 0, barcodeDataStore = " + byteArrayToString(barcodeDataStore));
+                    bPrefixFound = true;
+                } else bPrefixFound = true;
+                if (bPrefixFound) suffixCheckIndex = 0;
             }
+
+            byte[] suffixExpected = barcodeNewland.getSuffix(); if (suffixExpected == null) suffixExpected = new byte[0];
+            if (bPrefixFound && barcodeCombined != null) {
+                appendToLog("onBarcodeEvent: suffixExpected = " + byteArrayToString(suffixExpected) + ", barcodeCombined = " + byteArrayToString(barcodeCombined));
+                int suffixPosition = -1;
+                for (int i = suffixCheckIndex; i <= barcodeCombined.length - suffixExpected.length; i++) {
+                    int j = 0;
+                    for (; j < suffixExpected.length; j++) {
+                        if (barcodeCombined[i + j] != suffixExpected[j]) break;
+                    }
+                    if (j == suffixExpected.length) {
+                        suffixPosition = i;
+                        break;
+                    }
+                }
+                appendToLog("onBarcodeEvent: suffixPosition = " + suffixPosition + ", barcodeCombined.length = " + barcodeCombined.length + ", suffixExpected.length = " + suffixExpected.length);
+                if (suffixPosition < 0) {
+                    suffixCheckIndex = barcodeCombined.length - suffixExpected.length + 1;
+                    barcodeCombined = null;
+                } else {
+                    if (suffixPosition < barcodeCombined.length - suffixExpected.length) {
+                        byte[] barcodeCombinedTrimmed = new byte[barcodeCombined.length - suffixPosition - suffixExpected.length];
+                        System.arraycopy(barcodeCombined, suffixPosition + suffixExpected.length, barcodeCombinedTrimmed, 0, barcodeCombinedTrimmed.length);
+                        barcodeDataStore = barcodeCombinedTrimmed;
+                        byte[] barcodeCombinedTrimmed0 = new byte[suffixPosition + suffixExpected.length];
+                        System.arraycopy(barcodeCombined, 0, barcodeCombinedTrimmed0, 0, barcodeCombinedTrimmed0.length);
+                        barcodeCombined = barcodeCombinedTrimmed0;
+                    } else {
+                        barcodeDataStore = null;
+                    }
+                    bPrefixFound = false; suffixCheckIndex = -1; //iBarcodeSequence = -1;
+                    appendToLog("onBarcodeEvent: barcodeCombined after suffix check = " + byteArrayToString(barcodeCombined) + ", barcodeDataStore = " + byteArrayToString(barcodeDataStore));
+
+                    int codeTypeLength = 4;
+                    if (barcodeCombined.length > prefixExpected.length + suffixExpected.length + codeTypeLength) {
+                        byte[] barcodeCombinedNew = new byte[barcodeCombined.length - prefixExpected.length - suffixExpected.length - codeTypeLength];
+                        System.arraycopy(barcodeCombined, prefixExpected.length + codeTypeLength, barcodeCombinedNew, 0, barcodeCombinedNew.length);
+                        barcodeCombined = barcodeCombinedNew;
+                    } else  barcodeCombined = null;
+                }
+            }
+        }
+        appendToLog("onBarcodeEvent: returning barcodeCombined = " + (barcodeCombined == null ? "null" : byteArrayToString(barcodeCombined)));
+        if (barcodeCombined != null) {
+            utility.stringViewStored += "F";
+            appendToLog("onBarcodeEvent: 1, stringViewStored = " + utility.stringViewStored);
+            showBarcodeStringViewStored(true);
         }
         return barcodeCombined;
     }
@@ -1671,8 +1671,9 @@ public class CsReaderConnector {
     public boolean barcodeInventory(boolean start) {
         boolean result = true;
         appendToLog("TTestPoint 0: " + start);
+        resetBarcodeDataStore();
         if (start) {
-            barcodeConnector.mBarcodeToRead.clear(); barcodeDataStore = null;
+            barcodeConnector.mBarcodeToRead.clear();
             if (barcodeConnector.getOnStatus() == false) { result = setBarcodeOn(true); appendToLog("TTestPoint 1"); }
             if (settingData.barcode2TriggerMode && result) {
                 if (notificationConnector.getTriggerStatus() && notificationConnector.getAutoBarStartSTop()) {  appendToLog("TTestPoint 2"); barcodeAutoStarted = true; result = true; }
@@ -1707,6 +1708,7 @@ public class CsReaderConnector {
                 controllerConnector = controllerConnector;
                 bluetoothConnector = bluetoothConnector;
 
+                setBarcodeOn(false);
                 rfidReader.turnOn(true);
                 setBarcodeOn(true);
                 controllerConnector.getVersion();

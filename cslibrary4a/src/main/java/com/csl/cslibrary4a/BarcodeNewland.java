@@ -67,6 +67,7 @@ public class BarcodeNewland {
         if (retValue) retValue = barcodeSendCommand("nls0311010;".getBytes());
         if (retValue) retValue = barcodeSendCommand("nls0317040;".getBytes());
         if (retValue) retValue = barcodeSendCommand("nls0305010;".getBytes());
+        if (retValue) retValue = barcodeSendCommand("nls0503020;".getBytes());
         String string = "nls0300000=0x" + byteArrayToString(prefixRef) + ";"; appendToLog("Set Prefix string = " + string);
         if (retValue) retValue = barcodeSendCommand(string.getBytes());
         if (retValue) retValue = barcodeSendCommand("nls0306010;".getBytes());
@@ -404,7 +405,7 @@ public class BarcodeNewland {
             if (matched) { if (utility.DEBUG_PKDATA) appendToLog("PkData: Barcode.Uplink.DataRead." + byteArrayToString(dataValues) + " is processed with matched = " + matched + ", OkCount = " + barcodeConnector.iOkCount + ", expected count = " + count + " for " + byteArrayToString(barcodeConnector.barcodeToWrite.get(0).dataValues)); }
             else if (foundOk) { if (utility.DEBUG_PKDATA) appendToLog("PkData: Barcode.Uplink.DataRead." + byteArrayToString(dataValues) + " is processed with matched = " + matched + ", but OkCount = " + barcodeConnector.iOkCount + ", expected count = " + count + " for " + byteArrayToString(barcodeConnector.barcodeToWrite.get(0).dataValues)); }
             else {
-                barcodeConnector.mBarcodeToRead.add(csReaderBarcodeData);
+                barcodeConnector.mBarcodeToRead.add(csReaderBarcodeData); appendToLog("BarcodeNewland.decodeNewland: added mBarcodeToRead. barcodeToRead added with size = " + barcodeConnector.mBarcodeToRead.size());
                 if (utility.DEBUG_PKDATA) appendToLog("PkData: uplink data Barcode.DataRead." + byteArrayToString(csReaderBarcodeData.dataValues) + " is added to mBarcodeToRead");
             }
         }

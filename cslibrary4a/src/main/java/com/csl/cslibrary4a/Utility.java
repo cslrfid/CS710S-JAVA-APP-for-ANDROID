@@ -29,6 +29,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -175,11 +176,20 @@ public class Utility {
         String string = "\n" + getReferencedCurrentTimeMs() + "." + s;
         return (string);
     }
-
+    String stringViewStored = "";
+    ArrayList<String> arrayList4View = new ArrayList<>();
     public void appendToLogView(String s) {
+        appendToLog("appendToLogView: Starts with s = " + s);
         appendToLog(s);
         String string = "\n" + getReferencedCurrentTimeMs() + "." + s;
-        if (Looper.myLooper() == Looper.getMainLooper() && mLogView != null && string != null)   mLogView.append(string);
+        if (Looper.myLooper() == Looper.getMainLooper() && mLogView != null && string != null) {
+            for (int i = 0; i < arrayList4View.size(); i++) {
+                mLogView.append(arrayList4View.get(i));
+            }
+            arrayList4View.clear();
+            mLogView.append(string);
+        }
+        else arrayList4View.add(string);
     }
 
     private static File fileDebug; private static boolean enableFileDebug = false;

@@ -6,6 +6,7 @@ public class ConnectorData {
     }
     public ConnectorTypes connectorTypes;
     public byte[] dataValues;
-    public boolean invalidSequence;
+    public boolean invalidSequence = false;
+    public int sequenceNumber;
     public long milliseconds;
 }

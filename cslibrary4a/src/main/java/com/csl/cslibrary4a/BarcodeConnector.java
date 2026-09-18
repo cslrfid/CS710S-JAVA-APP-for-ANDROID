@@ -29,6 +29,8 @@ public class BarcodeConnector {
     public static class CsReaderBarcodeData {
         public boolean waitUplinkResponse = false;
         boolean downlinkResponsed = false;
+        boolean invalidSequence = false;
+        int sequenceNumber = 0;
         public BarcodePayloadEvents barcodePayloadEvent;
         public byte[] dataValues;
     }
@@ -245,14 +247,11 @@ public class BarcodeConnector {
                             } else break;
                         }
                     }
-                    /*for (int i=0; false && commandType == null && i < dataValues.length; i++) {
-                        if (dataValues[i] == 0x28 || dataValues[i] == 0x29    //  ( )
-                                || dataValues[i] == 0x5B || dataValues[i] == 0x5D || dataValues[i] == 0x5C
-                                || dataValues[i] == 0x7B || dataValues[i] == 0x7D
-                        ) dataValues[i] = 0x20;
-                    }*/
                     csReaderBarcodeData.dataValues = dataValues;
-                    mBarcodeToRead.add(csReaderBarcodeData);
+                    csReaderBarcodeData.sequenceNumber = connectorData.sequenceNumber;
+                    csReaderBarcodeData.invalidSequence = connectorData.invalidSequence;
+                    utility.stringViewStored += "=" + connectorData.sequenceNumber + ", ";
+                    mBarcodeToRead.add(csReaderBarcodeData); appendToLog("BarcodeConnector.isBarcodeToRead: 0, csReaderBarcodeData.sequenceNumber = " + csReaderBarcodeData.sequenceNumber);
                     if (DEBUG_PKDATA) appendToLog("PkData: uplink data Barcode.DataRead." + byteArrayToString(dataValues) + " is added to mBarcodeToRead");
                     found = true;
                     break;
@@ -260,7 +259,7 @@ public class BarcodeConnector {
                     if (DEBUG) appendToLog("BarStream: matched Barcode.good data is found");
                     csReaderBarcodeData.barcodePayloadEvent = BarcodePayloadEvents.BARCODE_GOOD_READ;
                     csReaderBarcodeData.dataValues = null;
-                    mBarcodeToRead.add(csReaderBarcodeData);
+                    mBarcodeToRead.add(csReaderBarcodeData); appendToLog("BarcodeConnector.isBarcodeToRead: 1, added mBarcodeToRead. uplink data Barcode.GoodRead is added to mBarcodeToRead");
                     if (DEBUG_PKDATA) appendToLog("PkData: uplink data Barcode.GoodRead is added to mBarcodeToRead");
                     found = true;
                     break;

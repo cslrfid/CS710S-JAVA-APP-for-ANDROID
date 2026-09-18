@@ -97,21 +97,9 @@ public class RfidConnector {
             dataOutRef[2] += datalength;
         }
         System.arraycopy(dataOutRef, 0, dataOut, 0, dataOutRef.length);
-            /*if (data.rfidPayloadEvent == RfidConnector.RfidPayloadEvents.RFID_COMMAND) {
-                if (data.dataValues != null) {
-                    byte[] dataOut1 = new byte[dataOut.length + data.dataValues.length];
-                    System.arraycopy(dataOut, 0, dataOut1, 0, dataOut.length);
-                    dataOut1[2] += data.dataValues.length;
-                    System.arraycopy(data.dataValues, 0, dataOut1, dataOut.length, data.dataValues.length);
-                    dataOut = dataOut1;
-                }
-            }*/
-        appendToLog("aabb 8");
         if (arrayTypeSet(dataOut, 9, data.rfidPayloadEvent)) {
             if (utility.DEBUG_PKDATA) appendToLog(String.format("PkData: write Rfid.%s.%s with mRfidDevice.sendRfidToWriteSent = %d", data.rfidPayloadEvent.toString(), byteArrayToString(data.dataValues), sendRfidToWriteSent));
             if (sendRfidToWriteSent != 0) appendToLog("!!! mRfidDevice.sendRfidToWriteSent = " + sendRfidToWriteSent);
-            appendToLog("aabb 9");
-            if (DEBUG) appendToLogView("NOut: " + byteArrayToString(dataOut));
             return dataOut;
         }
         return null;

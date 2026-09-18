@@ -507,17 +507,14 @@ public class BluetoothGatt extends BluetoothGattCallback {
                 } else {
                     if (true) utility.writeDebug2File("Up1  " + byteArrayToString(v));
                     if (utility.DEBUG_BTDATA || true) Log.i(TAG, "BtDataIn= " + byteArrayToString(v));
-                    if (isStreamInBufferRing) {
+                    if (true) {
                         streamInBufferPush(v, 0, v.length);
-                    } else {
-                        System.arraycopy(v, 0, streamInBuffer, streamInBufferSize, v.length);
                     }
                     streamInBufferSize += v.length;
                     streamInAddCounter++;
                     streamInAddTime = utility.getReferencedCurrentTimeMs();
                     if (streamInRequest == false) {
                         streamInRequest = true;
-                        //appendToLog("post runnableProcessStreamInData after onCharacteristicChanged");
                         mHandler.removeCallbacks(runnableProcessStreamInData); mHandler.post(runnableProcessStreamInData);
                     }
                 }
@@ -544,7 +541,6 @@ public class BluetoothGatt extends BluetoothGattCallback {
         public void run() {
             streamInRequest = false;
             processStreamInData();
-            //appendToLog("post runnableProcessStreamInData within runnableProcessStreamInData");
             mHandler.postDelayed(runnableProcessStreamInData, intervalProcessBleStreamInData);
         }
     };
@@ -860,7 +856,7 @@ public class BluetoothGatt extends BluetoothGattCallback {
         synchronized (arrayListStreamIn) {
             if (0 == streamInBufferSize) return 0;
 
-            if (isArrayListStreamInBuffering) {
+            if (true) {
                 int byteGot = 0;
                 int length1 = arrayListStreamIn.get(0).data.length;
                 if (arrayListStreamIn.size() != 0 && buffer.length - byteOffset > length1) {
@@ -871,20 +867,6 @@ public class BluetoothGatt extends BluetoothGattCallback {
                     byteGot += length1;
                 }
                 byteCount = byteGot;
-            } else {
-            if (byteCount > streamInBufferSize)
-                byteCount = streamInBufferSize;
-            if (byteOffset + byteCount > buffer.length) {
-                byteCount = buffer.length - byteOffset;
-            }
-            if (byteCount <= 0) return 0;
-
-            if (isStreamInBufferRing) {
-                streamInBufferPull(buffer, byteOffset, byteCount);
-            } else {
-                System.arraycopy(streamInBuffer, 0, buffer, byteOffset, byteCount);
-                System.arraycopy(streamInBuffer, byteCount, streamInBuffer, 0, streamInBufferSize - byteCount);
-            }
             }
             streamInBufferSize -= byteCount;
             return byteCount;
@@ -901,30 +883,16 @@ public class BluetoothGatt extends BluetoothGattCallback {
         byte[] data;
         long milliseconds;
     }
-    private ArrayList<StreamInData> arrayListStreamIn = new ArrayList<StreamInData>(); private boolean isArrayListStreamInBuffering = true;
-    private boolean isStreamInBufferRing = true;
+    private ArrayList<StreamInData> arrayListStreamIn = new ArrayList<StreamInData>();
     private void streamInBufferPush(byte[] inData, int inDataOffset, int length) {
         int length1 = streamInBuffer.length - streamInBufferTail;
         int totalCopy = 0;
-        if (isArrayListStreamInBuffering) {
+        if (true) {
             StreamInData streamInData = new StreamInData();
             streamInData.data = inData;
             streamInData.milliseconds = System.currentTimeMillis();
             arrayListStreamIn.add(streamInData);
             totalCopy = length;
-        } else {
-            if (length > length1) {
-                totalCopy = length1;
-                System.arraycopy(inData, inDataOffset, streamInBuffer, streamInBufferTail, length1);
-                length -= length1;
-                inDataOffset += length1;
-                streamInBufferTail = 0;
-            }
-            if (length != 0) {
-                totalCopy += length;
-                System.arraycopy(inData, inDataOffset, streamInBuffer, streamInBufferTail, length);
-                streamInBufferTail += length;
-            }
         }
         if (totalCopy != 0) {
             totalTemp += totalCopy;
@@ -932,27 +900,11 @@ public class BluetoothGatt extends BluetoothGattCallback {
             if (totalTemp > 17 && timeDifference > 1000) {
                 totalReceived = totalTemp;
                 totalTime = timeDifference;
-                //appendToLog("BtDataIn: totalReceived = " + totalReceived + ", totalTime = " + totalTime);
                 firstTime = System.currentTimeMillis();
                 totalTemp = 0;
             }
         }
     }
-    private void streamInBufferPull(byte[] buffer, int byteOffset, int length) {
-        synchronized (arrayListStreamIn) {
-        int length1 = streamInBuffer.length - streamInBufferHead;
-        if (length > length1) {
-            System.arraycopy(streamInBuffer, streamInBufferHead, buffer, byteOffset, length1);
-            length -= length1;
-            byteOffset += length1;
-            streamInBufferHead = 0;
-        }
-        if (length != 0) {
-            System.arraycopy(streamInBuffer, streamInBufferHead, buffer, byteOffset, length);
-            streamInBufferHead += length;
-        }}
-    }
-
     public boolean isBLUETOOTH_CONNECTinvalid() {
         boolean bValue = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

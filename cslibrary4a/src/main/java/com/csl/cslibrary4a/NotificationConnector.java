@@ -157,7 +157,6 @@ public class NotificationConnector {
         System.arraycopy(dataOutRef, 0, dataOut, 0, dataOutRef.length);
         if (arrayTypeSet(dataOut, 9, data.notificationPayloadEvent)) {
             if (DEBUG_PKDATA) appendToLog(String.format("PkData: write mNotificationDevice.%s.%s with  mNotificationDevice.sendDataToWriteSent = %d", data.notificationPayloadEvent.toString(), byteArrayToString(data.dataValues), sendDataToWriteSent));
-            if (DEBUG) appendToLogView("NOut: " + byteArrayToString(dataOut));
             return dataOut;
         }
         return null;

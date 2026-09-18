@@ -1503,12 +1503,25 @@ public class CsLibrary4A {
         else Log.i("Hello2", "barcodeInventory" + stringNOTCONNECT);
         return false;
     }
+    public void showBarcodeStringViewStored(boolean bShow) {
+        if (DEBUG) Log.i("Hello2", "showBarcodeStringViewStored");
+        if (isCs108Connected()) cs108Library4A.showBarcodeStringViewStored(bShow);
+        else if (isCs710Connected()) cs710Library4A.showBarcodeStringViewStored(bShow);
+        else Log.i("Hello2", "showBarcodeStringViewStored" + stringNOTCONNECT);
+    }
     public byte[] onBarcodeEvent() {
         if (DEBUG) Log.i("Hello2", "onBarcodeEvent");
         if (isCs108Connected()) return cs108Library4A.onBarcodeEvent();
         else if (isCs710Connected()) return cs710Library4A.onBarcodeEvent();
         else Log.i("Hello2", "onBarcodeEvent" + stringNOTCONNECT);
         return null;
+    }
+    public int getPackageSequenceNumber() {
+        if (DEBUG) Log.i("Hello2", "getPackageSequenceNumber");
+        if (isCs108Connected()) return cs108Library4A.getPackageSequenceNumber();
+        else if (isCs710Connected()) return cs710Library4A.getPackageSequenceNumber();
+        else Log.i("Hello2", "getPackageSequenceNumber" + stringNOTCONNECT);
+        return -1;
     }
 
     //============ Android General ============

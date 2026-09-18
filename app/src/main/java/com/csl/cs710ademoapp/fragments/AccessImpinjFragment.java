@@ -103,6 +103,10 @@ public class AccessImpinjFragment extends CommonFragment {
                     tabView.setVisibility(View.GONE);
                 }
 
+                String string = getActivity().getString(R.string.memory_select);
+                if (position == impinjTag.m830.ordinal()) string += " (tick means M830, blank means M850)";
+                checkBoxMemorySelect.setText(string);
+
                 LinearLayout layoutA = (LinearLayout) viewFragment.findViewById(R.id.accessImpinjProtectLayout);
                 LinearLayout layoutA1 = (LinearLayout) viewFragment.findViewById(R.id.accessImpinjProtectLayout1);
                 if (position == impinjTag.m775.ordinal() ||
@@ -468,7 +472,7 @@ public class AccessImpinjFragment extends CommonFragment {
         int iSelectOffset = 32;
         if (iSelectBank != 1) iSelectOffset = 0;
         if (invalidRequest == false) {
-            String string = textViewConfiguration.getText().toString();
+            String string = textViewConfiguration.getText().toString().substring(0, 4);
             int iValue = Integer.valueOf(string, 16);
             MainActivity.csLibrary4A.appendToLog(String.format("iValue = 0x%02X", iValue));
 
@@ -582,6 +586,39 @@ public class AccessImpinjFragment extends CommonFragment {
         }
         return retValue;
     }
+    String binaryString(int iValue, int iBits) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = iBits - 1; i >= 0; i--) {
+            sb.append((iValue & (1 << i)) != 0 ? '1' : '0');
+        }
+        return sb.toString();
+    }
+    CharSequence add01ToString(String string) {
+        MainActivity.csLibrary4A.appendToLog("add01ToString: string = " + string);
+        if (string == null) return "";
+        if (string.length() < 4) return string;
+        String first4 = string.substring(0, 4);
+        int iValue;
+        try {
+            iValue = Integer.valueOf(first4, 16);
+        } catch (Exception ex) {
+            return string;
+        }
+        // bits 15..5 (11 bits)
+        int part1 = (iValue >> 5) & ((1 << 11) - 1);
+        // bits 4..0 (5 bits)
+        int part2 = iValue & 0x1F;
+        String s1 = binaryString(part1, 11);
+        String s2 = binaryString(part2, 5);
+        // Append s1 normally and s2 in red color. Use HTML so TextView can render colored text.
+        String composed = string + ": " + s1 + " " + "<font color=\"#FF0000\">" + s2 + "</font>";
+        // Html.fromHtml returns a CharSequence that preserves the color span when setText is called.
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            return android.text.Html.fromHtml(composed, android.text.Html.FROM_HTML_MODE_LEGACY);
+        } else {
+            return android.text.Html.fromHtml(composed);
+        }
+    }
     private final Runnable updateRunnable = new Runnable() {
         @Override
         public void run() {
@@ -597,7 +634,7 @@ public class AccessImpinjFragment extends CommonFragment {
                 else if (iRunType == 3) textViewProtectValue.setText(accessTask.accessResult);
                 else if (iRunType == 4) textViewEpc128Value.setText(accessTask.accessResult);
                 else if (iRunType == 5) {
-                    textViewConfiguration.setText(accessTask.accessResult);
+                    textViewConfiguration.setText(add01ToString(accessTask.accessResult));
                     int iValue = Integer.valueOf(accessTask.accessResult.substring(accessTask.accessResult.length()-2, accessTask.accessResult.length()), 16);
                     MainActivity.csLibrary4A.appendToLog("updateRunnable(): " + String.format("accessResult = %s, iValue = 0x%02X", accessTask.accessResult, iValue));
 
@@ -661,7 +698,7 @@ public class AccessImpinjFragment extends CommonFragment {
                 else if (iRunType == 6) {
                     MainActivity.csLibrary4A.appendToLog("updateRunnable(): accessResult = " + accessTask.accessResult + ", accessError = " + accessTask.resultError);
                     if (accessTask.resultError.trim().length() != 0) Toast.makeText(MainActivity.context, accessTask.resultError, Toast.LENGTH_SHORT).show();
-                    else if (accessTask.accessResult.length() == 0) textViewConfiguration.setText(stringNewAutoTuneConfig);
+                    else if (accessTask.accessResult.length() == 0) textViewConfiguration.setText(add01ToString(stringNewAutoTuneConfig));
 
                     if (unprotecting > 0) stopProtectResuming();
                 }
