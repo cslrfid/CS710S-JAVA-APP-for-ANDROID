@@ -256,7 +256,7 @@ public class Utility {
         return null;
     }
 
-    public String StringVersionHeader = "24.";
+    public String StringVersionHeader = "25.";
     public String getCombinedVersion(String string0) {
         String string1 = BuildConfig.VERSION_NAME;
         int iValue1 = Integer.parseInt(string1);
